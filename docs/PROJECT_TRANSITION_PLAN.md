@@ -69,12 +69,12 @@ The project has reached a good stopping point when:
   closeout disables all five recurring tasks, keeps four daemon sentinels, and
   requires zero verified repository daemon processes; historical unmetered
   background usage is reconciled privately at the provider.
-- The closeout advanced through pull requests 2, 4, 5, 6, and 7. The latest
-  verified integrated baseline is pull request 7 on `master`, merge commit
-  `1e1e8b5eac7a58b837b5782de2f11c1ca5a8d5dc`. Its 16 pull-request checks and
+- The closeout advanced through pull requests 2, 4, 5, 6, 7, and 8. The latest
+  validated substantive baseline is pull request 8 on `master`, merge commit
+  `9385a837879209e18f8e013cf969a3e1ecbcfc91`. Its 16 pull-request checks and
   all six merge-triggered workflows passed. Render, MkDocs Pages, the portable
-  website build, and all six schema routes were live; the refreshed 587-link
-  audit found zero confirmed breakage and kept 12 transient/unverified hosts
+  website build, and all six schema routes were live; the refreshed 588-link
+  audit found zero confirmed breakage and kept nine transient/unverified hosts
   separate. Use live `master` as the base and rerun gates on every later
   candidate.
 - Keep the handoff, transition plan, deferred-work registry, purpose maps, and
@@ -213,7 +213,7 @@ or billing information.
 | Entity-intelligence pipeline | Propose-only, curator-reviewed, separate from worker-facing and training paths | A reviewed governance and evidence-admission change is approved |
 | Kaggle surface inventory | `01`, `02`, and `A-00` active; `03` and `04` optional; notebook-era variants archived | Root `AGENTS.md` and `kaggle/_INDEX.md` change together |
 | Release version/tag | Pending a deliberate owner decision | Week 2 release-candidate reconciliation is reviewed |
-| Target branch | Root rules name `master`; pull request 7 is the latest verified integrated baseline at `1e1e8b5eac7a58b837b5782de2f11c1ca5a8d5dc`, with all PR checks and six merge-triggered workflows green | Continue from live `master`; rerun gates on the exact candidate before any tag |
+| Target branch | Root rules name `master`; pull request 8 is the latest validated substantive baseline at `9385a837879209e18f8e013cf969a3e1ecbcfc91`, with all PR checks and six merge-triggered workflows green | Continue from live `master`; rerun gates on the exact candidate before any tag |
 | Successor | Transfer path preferred; maintenance mode is the safe fallback | A successor accepts and completes the rehearsal |
 
 ### Closeout Decision Snapshot - 2026-07-27

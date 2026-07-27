@@ -85,26 +85,27 @@ named evidence gap and passes the publication checklist in
 
 ## 2026-07-27 Final Wrap-up Receipt
 
-The successor-focused wrap-up landed through
-[pull request 5](https://github.com/TaylorAmarelTech/gemma4_comp/pull/5) on
-`master` as merge commit `504aec0c0ba6d3c251282e446cc6c764b4c469ce`.
-All 17 pull-request checks passed. In particular, the active Kaggle kernels,
+The successor-focused wrap-up began in pull request 5, and its validated
+deferred-work closeout landed through
+[pull request 8](https://github.com/TaylorAmarelTech/gemma4_comp/pull/8) on
+`master` as merge commit `9385a837879209e18f8e013cf969a3e1ecbcfc91`.
+All 16 pull-request checks passed. In particular, the active Kaggle kernels,
 generated page sources, optional Community Benchmark surface, both full Python
 matrices, 18-wheel build, clean-room install, privacy/secret scan, public
 website, and build-only multi-architecture image gate remained green.
 
 The merge-triggered evidence also completed successfully:
 
-- [full CI](https://github.com/TaylorAmarelTech/gemma4_comp/actions/runs/30290776307)
+- [full CI](https://github.com/TaylorAmarelTech/gemma4_comp/actions/runs/30306149302)
   passed the notebook, package, privacy, website, harness, and
   entity-intelligence lanes;
-- the [Docker candidate run](https://github.com/TaylorAmarelTech/gemma4_comp/actions/runs/30290776019)
+- the [Docker candidate run](https://github.com/TaylorAmarelTech/gemma4_comp/actions/runs/30306149136)
   built both target architectures without logging in, signing, or publishing;
-- the [evaluation](https://github.com/TaylorAmarelTech/gemma4_comp/actions/runs/30290776483)
-  and [contract](https://github.com/TaylorAmarelTech/gemma4_comp/actions/runs/30290776383)
+- the [evaluation](https://github.com/TaylorAmarelTech/gemma4_comp/actions/runs/30306149303)
+  and [contract](https://github.com/TaylorAmarelTech/gemma4_comp/actions/runs/30306149137)
   workflows passed;
-- the [MkDocs Pages deployment](https://github.com/TaylorAmarelTech/gemma4_comp/actions/runs/30290776419)
-  and [51-page portable website build](https://github.com/TaylorAmarelTech/gemma4_comp/actions/runs/30290776591)
+- the [MkDocs Pages deployment](https://github.com/TaylorAmarelTech/gemma4_comp/actions/runs/30306149235)
+  and [51-page portable website build](https://github.com/TaylorAmarelTech/gemma4_comp/actions/runs/30306149166)
   passed; and
 - the live [project-status route](https://duecare-ai.com/project-status),
   [provider-budgeting guide](https://tayloramareltech.github.io/gemma4_comp/PROVIDER_BUDGETING/),
@@ -164,8 +165,8 @@ notebook scripts and 31 notebook-focused tests passed, the 5 active/optional
 Kaggle kernel checks passed, all 78 website tests passed, the Project Bible
 pickup passed 65 checks, the successor rehearsal reassembled all 52 archived
 files to their recorded SHA-256 values, and the strict documentation build
-completed. The latest external audit checked 587 links with zero confirmed
-broken links and 12 transient or unverified hosts.
+completed. The latest external audit checked 588 links with zero confirmed
+broken links and nine transient or unverified hosts.
 
 The separate training scope correctly remains red: its deterministic workbook
 has 0/75 completed rows, the quality audit still identifies five dense
@@ -173,11 +174,11 @@ single-corridor shortcut risks, and the older append-only fine-tune record has
 intentionally stale artifact fingerprints. This is curator work, not a reason
 to weaken the gate or rewrite provenance history.
 
-The cost-stop correction landed through
-[pull request 7](https://github.com/TaylorAmarelTech/gemma4_comp/pull/7) as
-merge commit `1e1e8b5eac7a58b837b5782de2f11c1ca5a8d5dc`. All 16 pull-request checks
-and all six merge-triggered workflows passed. Later candidates must establish
-their own live receipts rather than inheriting that result.
+The cost-stop correction itself landed through pull request 7. The validated
+deferred-work closeout then landed through pull request 8 as merge commit
+`9385a837879209e18f8e013cf969a3e1ecbcfc91`; all 16 pull-request checks and all
+six merge-triggered workflows passed. Later candidates must establish their own
+live receipts rather than inheriting that result.
 
 ## First 30 Minutes
 

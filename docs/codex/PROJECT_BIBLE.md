@@ -48,8 +48,8 @@ explicitly asks to restore them.
 >
 > - **Repository reconciliation is complete; release disposition is an owner
 >   decision.** Root `AGENTS.md` names `master` as the active branch. Pull
->   request 7 is the latest verified integrated baseline at
->   `1e1e8b5eac7a58b837b5782de2f11c1ca5a8d5dc`; all 16 PR checks and all six
+>   request 8 is the latest validated substantive closeout baseline at
+>   `9385a837879209e18f8e013cf969a3e1ecbcfc91`; all 16 PR checks and all six
 >   merge-triggered workflows passed. Verify live Git state and rerun the
 >   release gates on any later candidate rather than inheriting that receipt.
 > - **Canonical stopping point:** start with
@@ -85,8 +85,9 @@ explicitly asks to restore them.
 >   distributions remain unpublished on PyPI. The sole OIDC publisher now uses
 >   a reviewed independent-SemVer manifest and one-package production tags.
 >   Render serves project status
->   plus all six advertised schema endpoints, and the post-deploy 587-link audit
->   found zero confirmed broken links. `ollama ps` showed no loaded model.
+>   plus all six advertised schema endpoints, and the post-deploy 588-link audit
+>   found zero confirmed broken links and nine transient or unverified hosts.
+>   `ollama ps` showed no loaded model.
 > - **Generation is COMPLETE.** `reports/rich_lift/panel_perdim.coverage.json` reports
 >   `response_cells 236,157 / 236,157, 0 missing`. Every Gemma response for 78,719 prompts x 3 arms
 >   is on disk. Only judge calls remain: `panel_cells 47,813 / 708,471` (6.7%),

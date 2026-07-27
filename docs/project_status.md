@@ -36,19 +36,19 @@ snapshots, and older checklist/status docs are archived under
 ## Current Technical Posture
 
 - Root `AGENTS.md` names `master` as the release branch. The integrated
-  closeout advanced through pull requests 2, 4, 5, 6, and
-  [7](https://github.com/TaylorAmarelTech/gemma4_comp/pull/7). Pull request 7 is
-  the latest verified baseline at merge commit
-  `1e1e8b5eac7a58b837b5782de2f11c1ca5a8d5dc`; all 16 PR checks and all six
+  closeout advanced through pull requests 2, 4, 5, 6, 7, and
+  [8](https://github.com/TaylorAmarelTech/gemma4_comp/pull/8). Pull request 8 is
+  the latest validated substantive baseline at merge commit
+  `9385a837879209e18f8e013cf969a3e1ecbcfc91`; all 16 PR checks and all six
   merge-triggered workflows passed. A release/tag remains a separate owner
   decision, and every later candidate must rerun its own gates.
 - The wrap-up started from clean `master`, confirmed no model was loaded in
   local Ollama, and its validation commands made no Ollama, hosted-model, or
   Kaggle-quota calls. The
-  [post-merge CI](https://github.com/TaylorAmarelTech/gemma4_comp/actions/runs/30290776307),
-  [MkDocs Pages deployment](https://github.com/TaylorAmarelTech/gemma4_comp/actions/runs/30290776419),
-  [portable website build](https://github.com/TaylorAmarelTech/gemma4_comp/actions/runs/30290776591),
-  and [build-only Docker run](https://github.com/TaylorAmarelTech/gemma4_comp/actions/runs/30290776019)
+  [post-merge CI](https://github.com/TaylorAmarelTech/gemma4_comp/actions/runs/30306149302),
+  [MkDocs Pages deployment](https://github.com/TaylorAmarelTech/gemma4_comp/actions/runs/30306149235),
+  [portable website build](https://github.com/TaylorAmarelTech/gemma4_comp/actions/runs/30306149166),
+  and [build-only Docker run](https://github.com/TaylorAmarelTech/gemma4_comp/actions/runs/30306149136)
   all passed. Render serves the updated project status, and the new handoff,
   provider-budgeting, and successor-rehearsal Pages routes were verified live.
 - A later 2026-07-27 live audit corrected the operational boundary: Hermes,
@@ -190,8 +190,8 @@ Latest offline working-tree receipt on 2026-07-27:
   the complete 78-test website suite;
 - curator-block governance: all 75 universal rubric dimensions have inline
   guidance; strict validation reports zero errors and zero warnings;
-- post-deploy external network audit: 587 links checked, zero confirmed broken,
-  and 12 transient/unverified hosts kept separate from confirmed failures;
+- post-deploy external network audit: 588 links checked, zero confirmed broken,
+  and nine transient/unverified hosts kept separate from confirmed failures;
 - the polish/validation commands initiated no Ollama or hosted-model call; the
   separate background-daemon usage correction above supersedes any broader
   reading of that receipt.
