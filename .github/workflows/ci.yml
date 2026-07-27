@@ -374,4 +374,3 @@ jobs:
 
       - name: Validate Kaggle page and asset references
         run: python scripts/validate_kaggle_page_sources.py
-          done

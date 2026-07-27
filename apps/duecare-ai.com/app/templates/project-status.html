@@ -58,9 +58,9 @@
     <aside class="ps-receipt" aria-label="Latest offline validation receipt">
       <span class="label">Latest offline receipt</span>
       <dl>
-        <dt>Core release gates</dt><dd>9 / 9 pass</dd>
+        <dt>Core release gates</dt><dd>10 / 10 pass</dd>
         <dt>Handoff gates</dt><dd>2 / 2 pass</dd>
-        <dt>Combined regression</dt><dd>4,589 passed</dd>
+        <dt>Combined regression</dt><dd>4,627 passed</dd>
         <dt>Model calls in closeout</dt><dd>0</dd>
         <dt>Autonomous engine</dt><dd>paused</dd>
       </dl>
@@ -74,11 +74,11 @@
   <h2>Release-ready and research-incomplete are kept separate.</h2>
   <p class="intro">A green core gate means the public repository is coherent at the checked revision. It does not silently turn an unfinished dataset, adapter, or experimental judge lane into a completed scientific claim.</p>
   <div class="ps-grid">
-    <article class="ps-card"><span class="cap">Stable</span><h3>Core public surface</h3><p>Public messaging, source-checkout smoke, manifest-backed dataset counts, model-fallback registry, active Kaggle kernels, generated page sources, package-release ownership, and package-test collection pass without a model or network call.</p></article>
+    <article class="ps-card"><span class="cap">Stable</span><h3>Core public surface</h3><p>Public messaging, source-checkout smoke, manifest-backed dataset counts, model-fallback registry, provider-budget coverage, active Kaggle kernels, generated page sources, package-release ownership, and package-test collection pass without a model or network call.</p></article>
     <article class="ps-card"><span class="cap">Preserved</span><h3>Dated benchmark evidence</h3><p>Existing results retain their original model, prompt set, rubric, judge, and date. They are benchmark response-quality evidence, not field-effectiveness, victim-identification, or production-reliability claims.</p></article>
-    <article class="ps-card"><span class="cap">Paused</span><h3>Model and engine work</h3><p>The autonomous engine remains stopped behind its sentinel. Closeout uses a zero planned-call guard; restarting Ollama or a hosted provider requires a new frozen budget, preflight, and explicit authorization.</p></article>
+    <article class="ps-card"><span class="cap">Paused</span><h3>Model and engine work</h3><p>The autonomous engine remains stopped behind its sentinel. Zero-call mode now blocks both rich-harness planning and HTTP attempts in the primary generation router. Restarting Ollama or a hosted provider requires reviewed pricing, finite attempt/token/cash caps, preflight, and explicit authorization.</p></article>
   </div>
-  <div class="ps-boundary"><strong>The strict training lane is not ready.</strong>Five dense generic-corridor typologies require a metadata-only 25-task, minimum-75-row curation expansion. The expansion plan passes its privacy checks, but quality and provenance must remain red until reviewed rows, fingerprints, and a verified model card are regenerated through the normal append-only path.</div>
+  <div class="ps-boundary"><strong>The strict training lane is not ready.</strong>Five dense generic-corridor typologies require a metadata-only 25-task, 75-slot curation expansion. All 75 content slots are honestly unfilled, and all 12 official-source candidates remain training-blocked pending rights review and immutable snapshots. Quality and provenance stay red until independently adjudicated rows, fingerprints, and a verified model card are regenerated through the normal append-only path.</div>
 </div></section>
 
 <section class="ps-section" data-screen-label="Project status &middot; Deployment"><div class="wrap">
@@ -101,11 +101,14 @@
 $env:DUECARE_MAX_PLANNED_MODEL_CALLS='0'
 python scripts/validate_publication_readiness.py --scope handoff
 python scripts/validate_publication_readiness.py --scope core
+python scripts/validate_provider_budget_coverage.py
 python scripts/autonomous_engine.py --status</pre></div>
     <nav class="ps-links" aria-label="Continuity documents">
       <a href="https://tayloramareltech.github.io/gemma4_comp/MAINTAINER_HANDOFF/"><strong>Maintainer handoff</strong><br />Operations, boundaries, recovery, access transfer, and acceptance.</a>
       <a href="https://tayloramareltech.github.io/gemma4_comp/PROJECT_TRANSITION_PLAN/"><strong>30-day transition plan</strong><br />Weekly closeout, owner actions, rehearsal, and maintenance fallback.</a>
       <a href="https://tayloramareltech.github.io/gemma4_comp/PUBLICATION_READINESS/"><strong>Publication readiness</strong><br />Release boundary, limitations, data plan, Ollama plan, and ordered backlog.</a>
+      <a href="https://tayloramareltech.github.io/gemma4_comp/PROVIDER_BUDGETING/"><strong>Provider budgeting</strong><br />Atomic attempt/token/cash controls, sanitized receipts, and the exact coverage boundary.</a>
+      <a href="https://tayloramareltech.github.io/gemma4_comp/SUCCESSOR_REHEARSAL/"><strong>Successor rehearsal</strong><br />One model-free pickup command with a privacy-minimized local receipt.</a>
     </nav>
   </div>
 </div></section>
@@ -114,9 +117,9 @@ python scripts/autonomous_engine.py --status</pre></div>
   <span class="ix">04 &middot; What remains</span>
   <h2>The next work is explicit, bounded, and optional by lane.</h2>
   <div class="ps-grid" style="margin-top:28px;">
-    <article class="ps-card"><span class="cap">P0 &middot; Release</span><h3>Choose and freeze</h3><ul><li>DueCare's 18 Python distributions are source-buildable but not on PyPI.</li><li>Choose coordinated or per-package version policy before enabling a release tag.</li><li>Rerun core and handoff gates on the exact release revision.</li></ul></article>
-    <article class="ps-card"><span class="cap">P1 &middot; Data</span><h3>Close the curation queue</h3><ul><li>Add lawful, dated corridor sources.</li><li>Adjudicate the minimum 75 diverse rows.</li><li>Regenerate quality and provenance sequentially.</li></ul></article>
-    <article class="ps-card"><span class="cap">P1 &middot; Providers</span><h3>Budget every attempt</h3><ul><li>Add one atomic call/token/cash ledger.</li><li>Classify retryable failures explicitly.</li><li>Resume with a small cached smoke matrix only.</li></ul></article>
+    <article class="ps-card"><span class="cap">P0 &middot; Release</span><h3>Freeze an approved tag</h3><ul><li>All 18 distributions build as wheels and source archives and clean-install as one cohort, but remain unpublished on PyPI.</li><li>Independent per-package semantic versions and exact tag syntax are frozen in one manifest.</li><li>An owner still chooses the first release package and reruns core/handoff gates on that exact revision.</li></ul></article>
+    <article class="ps-card"><span class="cap">P1 &middot; Data</span><h3>Close the curation queue</h3><ul><li>Approve lawful, immutable source snapshots and record compatible rights.</li><li>Fill and independently adjudicate the exact 75 risk, benign-neighbour, and corridor-counterfactual slots.</li><li>Regenerate quality and provenance sequentially; do not fabricate approvals.</li></ul></article>
+    <article class="ps-card"><span class="cap">P2 &middot; Providers</span><h3>Extend the completed ledger</h3><ul><li>The primary router already budgets every attempt and retry atomically.</li><li>Migrate standalone, application, and package clients one at a time with zero-transport tests.</li><li>Design a portable notebook receipt before any broad funded evaluation.</li></ul></article>
   </div>
 </div></section>
 

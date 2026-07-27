@@ -18,8 +18,6 @@
 # Entra ID (formerly AAD), Auth0, Okta, Keycloak, Authentik, Dex,
 # Cognito, GitHub.
 
-version: "3.9"
-
 services:
 
   oauth2-proxy:

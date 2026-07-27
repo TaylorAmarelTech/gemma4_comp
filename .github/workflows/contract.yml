@@ -30,7 +30,7 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -e ./packages/duecare-llm-core
-          pip install -e ./packages/duecare-llm-chat[test]
+          pip install -e "./packages/duecare-llm-chat[test]"
           pip install fastapi httpx httpx2 "pydantic>=2" pytest python-multipart jinja2 pyyaml
 
       - name: Route contract (every endpoint pinned)

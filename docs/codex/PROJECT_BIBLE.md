@@ -51,10 +51,13 @@ explicitly asks to restore them.
 >   website artifact workflows passed. Verify live Git state and rerun the
 >   release gates on any later candidate rather than tagging an earlier commit.
 > - **Canonical stopping point:** start with
->   `docs/PUBLICATION_READINESS.md`. Its model-free core lane passed 9/9 checks
+>   `docs/PUBLICATION_READINESS.md`. Its model-free core lane passed 10/10 checks
 >   on 2026-07-27; the separate training lane intentionally remains red on five
 >   dense generic-corridor typologies, with a privacy-safe 25-task / 75-row
->   curation plan. No new model or adapter-improvement claim is ready.
+>   curation plan. A deterministic 75-slot workbook now enforces source,
+>   lineage, duplicate, language, privacy, and two-person adjudication gates;
+>   it remains honestly empty and no new model or adapter-improvement claim is
+>   ready.
 > - **Succession is now an explicit 30-day workstream.** Use
 >   `docs/MAINTAINER_HANDOFF.md` for operational pickup and
 >   `docs/PROJECT_TRANSITION_PLAN.md` for the 2026-08-25 target. The read-only
@@ -62,11 +65,20 @@ explicitly asks to restore them.
 >   privacy checks with live pickup consistency. It passed 2/2 gates on
 >   2026-07-27 (16/16 succession checks and the 65-check pickup validator with
 >   zero findings); it never authorizes model calls or engine resume.
+> - **The primary generation router now enforces a shared provider budget.**
+>   `scripts/provider_budget.py` reserves attempt, input-token, output-token,
+>   and reviewed cash allowance atomically before each of the four
+>   `llm_generate.py` transports. Offline tests prove zero-call denial occurs
+>   before HTTP and retries consume new reservations. This is not a universal
+>   interceptor for package/application adapters, standalone direct clients, or
+>   self-contained Kaggle kernels; use `docs/PROVIDER_BUDGETING.md` for the
+>   exact boundary.
 > - **Public release surfaces were reconciled live on 2026-07-27.** Active
 >   Kaggle 01 is `COMPLETE`; 02 and A-00 are `CANCEL_ACKNOWLEDGED`; optional 04
 >   is `COMPLETE`; optional 03 has no verified public URL. All 18 Python
->   distributions remain unpublished on PyPI and the sole coordinated publisher
->   fails closed while workspace versions differ. Render serves project status
+>   distributions remain unpublished on PyPI. The sole OIDC publisher now uses
+>   a reviewed independent-SemVer manifest and one-package production tags.
+>   Render serves project status
 >   plus all six advertised schema endpoints, and the post-deploy 577-link audit
 >   found zero confirmed broken links. `ollama ps` showed no loaded model.
 > - **Generation is COMPLETE.** `reports/rich_lift/panel_perdim.coverage.json` reports
@@ -93,11 +105,12 @@ explicitly asks to restore them.
 >   `scripts/autonomous_engine.ps1 -Run`** -- Taylor's call; the wrapper rechecks provider readiness
 >   and removes the sentinel only after launch preflight succeeds. A state-only, no-Ollama preflight
 >   was refreshed on 2026-07-26; `validate_project_bible_pickup.py` reports 65 checks, 0 findings.
-> - **Full suite re-verified green on 2026-07-26:** the integrated combined
->   `packages tests` run passed **4,589 tests, 9 skipped** with no warning
+> - **Full suite re-verified green on 2026-07-27:** the integrated combined
+>   `packages tests` run passed **4,627 tests, 9 skipped** with no warning
 >   summary. The former pandas Styler constant-range warnings are fixed; a
 >   focused 43-test package run also passed with `RuntimeWarning` promoted to
->   an error. This supersedes the earlier separate counts and the
+>   an error. This supersedes the 2026-07-26 4,589-test receipt, the earlier
+>   separate counts, and the
 >   `4147 passed, 12 skipped` line below. Two tests had been failing silently for days and were fixed
 >   (`test_next_notebooks_inherit_reusable_contracts_without_redeclaring_lists` broke when the
 >   headless A-30 GPU trainer landed at the Kaggle root before being archived;

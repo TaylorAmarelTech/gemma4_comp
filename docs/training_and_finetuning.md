@@ -260,6 +260,32 @@ This process can start with Gemma 4 and then be repeated for other compatible
 models. The dataset and evaluation contracts are portable; a LoRA adapter is
 not. Train and evaluate a separate adapter for every base model and revision.
 
+### Corridor curation workbook
+
+The current strict training blocker has an executable, model-free curation
+handoff. `build_corridor_curation_workbook.py` expands the 25 metadata-only
+tasks into 75 planned rows: one risk case, one benign near-neighbour, and one
+corridor counterfactual per task. Related rows share a planned lineage family
+and split; perspectives and language-review lanes are balanced explicitly.
+
+```powershell
+python scripts/build_corridor_curation_workbook.py --validate
+python scripts/build_corridor_curation_workbook.py
+python scripts/validate_corridor_curation.py
+python scripts/validate_corridor_curation.py --require-complete
+```
+
+The tracked source registry at
+`configs/duecare/training/corridor_curation_sources.json` contains discovery
+metadata only. A source cannot be selected by an accepted row until a curator
+changes it from candidate-only to approved, records a compatible-rights
+decision and immutable snapshot SHA-256, and retains the retrieval evidence.
+The row validator additionally requires two distinct reviews, explicit
+adjudication, native-language attestation when applicable, no PII-like text,
+no exact or cross-family near-duplicates, and no lineage-family split leakage.
+Candidate rows stay ignored and are not trainer inputs merely because the
+workbook exists.
+
 ## Local Ollama adversarial candidate loop
 
 Use `scripts/ollama_adversarial_flywheel.py` when you want a local Ollama

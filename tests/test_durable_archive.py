@@ -64,6 +64,28 @@ def test_round_trip_restore_is_byte_identical(sandbox):
     assert src.read_bytes() == content
 
 
+def test_isolated_restore_preserves_live_source(sandbox):
+    src = sandbox / "src" / "panel.jsonl"
+    content = b'{"grade":"archived"}\n'
+    src.write_bytes(content)
+    da.archive(quiet=True)
+    src.write_bytes(b'{"grade":"newer-live-copy"}\n')
+    isolated = sandbox / "isolated-restore"
+
+    assert da.restore(destination_root=isolated) == (1, 1)
+
+    assert src.read_bytes() == b'{"grade":"newer-live-copy"}\n'
+    assert (isolated / "src" / "panel.jsonl").read_bytes() == content
+
+
+def test_isolated_restore_rejects_live_repo_root(sandbox):
+    (sandbox / "src" / "panel.jsonl").write_bytes(b"{}\n")
+    da.archive(quiet=True)
+
+    with pytest.raises(da.ArchiveManifestError, match="live repository root"):
+        da.restore(destination_root=sandbox)
+
+
 def test_default_sources_include_complete_perdim_closure_artifacts():
     assert {
         "reports/rich_lift/panel_perdim.jsonl",

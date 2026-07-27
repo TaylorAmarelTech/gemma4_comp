@@ -1,11 +1,13 @@
 # Kernel 01 Playwright test harness
 
-Validates the live DueCare Exploration Workbench (kernel 01) against
-a published cloudflared URL. Captures screenshots, runs regression
-tests for known bugs, and runs an automated accessibility scan.
+Validates DueCare Exploration Workbench (kernel 01) either against the bundled
+quota-free local fake workbench or a published cloudflared URL. It captures
+screenshots, runs regression tests for known bugs, and runs an automated
+accessibility scan.
 
 ## When to use
 
+- Before publishing, with no model download, API call, or Kaggle quota use.
 - After Run All on kernel 01 in Kaggle prints a
   `https://<random>.trycloudflare.com/` URL.
 - Before recording the submission video.
@@ -33,6 +35,27 @@ Linux/macOS:
 KERNEL_URL=https://<your-trycloudflare-url> npx playwright test
 ```
 
+## Run locally without model calls
+
+With `KERNEL_URL` unset, Playwright starts `local_fake_workbench.py`, waits for
+its health endpoint, runs the browser suite, and stops it automatically:
+
+```powershell
+Remove-Item Env:KERNEL_URL -ErrorAction SilentlyContinue
+npm test
+```
+
+The runner uses the repository virtual environment when it exists. Override it
+with `DUECARE_TEST_PYTHON` if needed. On a host where Playwright's downloaded
+Chromium cannot launch, point it at an installed Chromium-family executable:
+
+```powershell
+$env:PLAYWRIGHT_EXECUTABLE_PATH = "C:\Program Files\Google\Chrome\Application\chrome.exe"
+npm test -- --project=desktop-chromium
+```
+
+All responses and search results in this mode are deterministic fixtures.
+
 ## What gets run
 
 | Spec | What it checks |
@@ -59,9 +82,9 @@ If a test fails:
 See [`RUBRIC.md`](./RUBRIC.md) for the manual review checklist that
 complements the automated tests.
 
-## CI integration (post-hackathon)
+## CI integration
 
-These tests are NOT wired into the project CI yet because they need a
-live cloudflared URL. Post-hackathon, add a Render preview deployment
-of `apps/duecare-ai.com/` and point KERNEL_URL there for unattended
-runs.
+The local fake-workbench mode is suitable for unattended CI because it has no
+external service or model dependency. Use `KERNEL_URL` only for a separate live
+deployment smoke lane; a live tunnel failure should not invalidate the offline
+UI contract.

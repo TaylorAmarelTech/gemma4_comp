@@ -35,10 +35,10 @@ and [`kaggle/_INDEX.md`](../kaggle/_INDEX.md).
 
 | Area | Current State |
 |---|---|
-| Offline publication core | 9/9 composed gates passed on 2026-07-27, including package-release ownership/install truth; rerun `python scripts/validate_publication_readiness.py --scope core` on the release commit. |
+| Offline publication core | 10/10 composed gates passed in the 2026-07-27 closeout candidate, including provider-budget coverage and package-release ownership/install truth; rerun `python scripts/validate_publication_readiness.py --scope core` on the release commit. |
 | Public deployment | Pull request 4 merged as `dc313814d9f42e127b24191b7912fd521083fadd`; post-merge CI, MkDocs Pages, website artifact, Render project status, and all six schema routes passed. The refreshed 577-link audit found zero confirmed broken links and 10 transient/unverified hosts. |
 | Curator governance | Inline grading guidance covers all 75 universal rubric dimensions; the strict curator validator reports zero errors and zero warnings, and CI now fails on either. |
-| Broad tests | Clean locked 18-package `packages tests` run: 4,589 passed, 9 skipped with no warning summary. The focused 43-test kit run also passes with `RuntimeWarning` promoted to an error. |
+| Broad tests | Closeout 18-package `packages tests` run: 4,627 passed, 9 skipped with no warning summary. The focused 43-test kit run also passes with `RuntimeWarning` promoted to an error. |
 | New training readiness | Intentionally red: five dense generic-corridor typologies; 25 privacy-safe curation tasks and a 75-row minimum expansion target. |
 | Harness contract | Documented in [`harness_ecosystem.md`](harness_ecosystem.md), [`harness_pattern.md`](harness_pattern.md), and [`harness_standard_contract.md`](harness_standard_contract.md). |
 | Model loading | Standardized through [`Gemma4Runtime.load()`](model_loading_trace.md) for inference, with active A-00 training as the only direct FastModel exception. |
@@ -49,8 +49,8 @@ and [`kaggle/_INDEX.md`](../kaggle/_INDEX.md).
 
 ## Remaining Human Actions
 
-1. Choose coordinated or per-package Python version policy, freeze the intended
-   release commit, and rerun the model-free publication core.
+1. Choose the first independently versioned Python package to release, freeze
+   the intended commit/tag, and rerun the model-free core and handoff gates.
 2. Run the two primary demo kernels on the intended GPU/runtime shape only when
    new recording evidence is needed.
 3. Optional only: produce an A-00 evidence run with checkpoint/resume
