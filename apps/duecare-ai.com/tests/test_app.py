@@ -338,10 +338,10 @@ def test_project_status_page_keeps_release_and_training_claims_separate(tmp_path
     response = client.get("/project-status")
 
     assert response.status_code == 200
-    assert "10 / 10 pass" in response.text
+    assert "11 / 11 pass" in response.text
     assert "remain unpublished on PyPI" in response.text
     assert "2 / 2 pass" in response.text
-    assert "4,630 passed" in response.text
+    assert "4,637 passed" in response.text
     assert "Model/flywheel stack" in response.text and "cost-stopped" in response.text
     assert "auxiliary discovery and server-automation callers" in response.text
     assert "does not claim its historical provider usage was zero" in response.text
@@ -354,6 +354,8 @@ def test_project_status_page_keeps_release_and_training_claims_separate(tmp_path
     assert "duecare-site-build.yml" in response.text
     assert "MAINTAINER_HANDOFF" in response.text
     assert "PROJECT_TRANSITION_PLAN" in response.text
+    assert "DEFERRED_WORK" in response.text
+    assert "validated deferred-work register" in response.text
 
 
 def test_stats_page_discloses_beta_data_and_uses_live_counters(tmp_path) -> None:

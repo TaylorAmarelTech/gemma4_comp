@@ -207,6 +207,7 @@ python -c "from duecare.server import create_app; from duecare.server.state impo
 > **Video script (~2:50):** [`docs/video_script.md`](./docs/video_script.md).
 > **Audit / readiness:** [`docs/readiness_dashboard.md`](./docs/readiness_dashboard.md).
 > **Offline publication wrap-up:** [`docs/PUBLICATION_READINESS.md`](./docs/PUBLICATION_READINESS.md) - one model-free core gate, the current training-data blocker, a credit-preserving Ollama plan, vetted public-resource candidates, and the exact next sequence.
+> **Canonical deferred work:** [`docs/DEFERRED_WORK.md`](./docs/DEFERRED_WORK.md) - generated owners, prerequisites, authorization boundaries, ordered actions, evidence, and acceptance gates for every unfinished item.
 > **Provider budget contract:** [`docs/PROVIDER_BUDGETING.md`](./docs/PROVIDER_BUDGETING.md) - atomic attempt/token/cash reservations, sanitized receipts, zero-transport proof, and the exact boundary around direct and notebook callers.
 > **Maintainer pickup:** [`docs/MAINTAINER_HANDOFF.md`](./docs/MAINTAINER_HANDOFF.md) - fresh-shell checks, architecture boundaries, routine operations, incident recovery, and transfer acceptance.
 > **Successor rehearsal:** [`docs/SUCCESSOR_REHEARSAL.md`](./docs/SUCCESSOR_REHEARSAL.md) - one model-free command for handoff, core, notebook, archive, and paused-engine evidence with a sanitized receipt.
