@@ -48,6 +48,11 @@ CORE_GATES: tuple[Gate, ...] = (
          "manifest-backed public dataset counts"),
     Gate("model fallback registry", ("scripts/validate_model_fallback_registry.py",),
          "declared fallback IDs and registry structure"),
+    Gate(
+        "provider budget coverage",
+        ("scripts/validate_provider_budget_coverage.py",),
+        "every primary-router HTTP transport reserves against one run budget",
+    ),
     Gate("active Kaggle kernels", ("scripts/validate_main_kaggle_kernels.py",),
          "active kernel syntax, metadata, and static contracts"),
     Gate("Kaggle page sources", ("scripts/validate_kaggle_page_sources.py",),
@@ -59,6 +64,11 @@ CORE_GATES: tuple[Gate, ...] = (
 )
 
 TRAINING_GATES: tuple[Gate, ...] = (
+    Gate(
+        "corridor curation completion",
+        ("scripts/validate_corridor_curation.py", "--require-complete"),
+        "75 source-bound rows, lineage isolation, privacy, and two-person adjudication",
+    ),
     Gate("strict training-data quality", ("scripts/audit_training_quality.py", "--require-clean"),
          "privacy, leakage, citation, and corridor-shortcut checks"),
     Gate("corridor expansion plan", ("scripts/build_corridor_expansion_plan.py", "--validate"),

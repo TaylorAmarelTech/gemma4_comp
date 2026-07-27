@@ -8,12 +8,12 @@ model run. Current as of 2026-07-27.
 
 | Track | Current state | Publication rule |
 |---|---|---|
-| Core code, docs, active Kaggle surfaces, package-release ownership, and published dataset claims | **9/9 core gates passed offline; the reconciled 2026-07-27 `master` passed complete post-merge CI and public deployment checks** | Re-run on the exact release commit before tagging. |
+| Core code, docs, active Kaggle surfaces, provider-budget coverage, package-release ownership, and published dataset claims | **10/10 core gates passed offline in the closeout candidate; the reconciled 2026-07-27 `master` passed its earlier complete post-merge CI and public deployment checks** | Re-run on the exact release commit before tagging. |
 | Maintainer succession and live pickup | **2/2 handoff gates passed offline; public handoff and deployment receipts are live on the merged closeout** | Re-run from a fresh shell and complete the private/manual acceptance steps before ownership transfer. |
 | Existing dated benchmark and learning-study results | Retained as bounded evidence with their original model, dataset, rubric, and date | Do not silently relabel an old result as a new model or field-effectiveness result. |
-| New fine-tuning dataset | **Not clean yet:** the strict audit reports five dense single/generic-corridor typologies | Curate the expansion queue, rerun the audit, then refresh provenance before training or a new model claim. |
+| New fine-tuning dataset | **Not clean yet:** the strict audit reports five dense single/generic-corridor typologies; the deterministic workbook has 75 unfilled slots and no fabricated approvals | Complete source snapshots, rights review, two-person adjudication, and lineage-safe rows; rerun the audit, then refresh provenance before training or a new model claim. |
 | Exhaustive per-dimension judging | Experimental, isolated, and incomplete | Keep it out of the default comparable board until its own exact closure gate passes. |
-| Local/hosted Ollama work | Optional and deferred | Plan offline first; unlock a small allowance only for a frozen, bounded run. |
+| Local/hosted Ollama work | Optional and deferred; the primary router now has an atomic attempt/token/cash ledger | Plan offline first; unlock a small allowance only for a frozen, priced run, and keep direct/notebook clients outside the router explicitly labeled. |
 
 ## Registry And Kaggle Publication Truth
 
@@ -22,9 +22,9 @@ model run. Current as of 2026-07-27.
   canonical install/version map.
 - `.github/workflows/pypi-publish.yml` is the sole publisher. Production PyPI
   has no manual dispatch target and no generic `v*` trigger. A
-  `packages-vMAJOR.MINOR.PATCH` tag must match every package version, so the
-  current `0.1.0` / `0.1.2` / `0.17.0` mix intentionally blocks publication
-  until an owner chooses coordinated or per-package policy.
+  `package-NAME-vMAJOR.MINOR.PATCH` tag must match exactly one row in the
+  reviewed independent-SemVer manifest. The current `0.1.0` / `0.1.2` /
+  `0.17.0` mix is intentional and no longer a policy blocker.
 - Live Kaggle status checked 2026-07-27: active 01 is `COMPLETE`; active 02 and
   A-00 are `CANCEL_ACKNOWLEDGED`; optional 04 is `COMPLETE`; optional 03 has no
   verified public URL. A canceled run is not completion evidence.
@@ -38,6 +38,16 @@ coverage shape: five typologies have enough rows to learn a generic-corridor
 shortcut. The resulting curation plan contains 25 metadata-only tasks in five
 batches and recommends at least 75 reviewed rows. The queue contains no raw
 prompt or answer text and passes its privacy checks.
+
+The deterministic curation workbook now expands those tasks into exactly 75
+review slots: 25 risk cases, 25 benign near-neighbours, and 25 corridor
+counterfactuals. It balances six perspectives, plans 45/15/15 rows across
+train/validation/test by whole lineage family, and assigns English plus relevant
+Bangla, Malay, Arabic, Amharic, and Hindi review lanes. The source catalog has
+12 official or intergovernmental candidates, but every one is deliberately
+blocked from training until a compatible-rights decision, immutable snapshot,
+retrieval date, and SHA-256 exist. No source or row is represented as human
+approved.
 
 Refreshing the audit and corridor plan invalidates fingerprints in the older
 append-only planned fine-tune record. That is expected: do not rewrite history
@@ -59,8 +69,8 @@ test collection. The runner sets
 Ollama's planned-call allowance to zero and forces common Hugging Face and
 Weights & Biases integrations offline for its child checks.
 
-Current audit receipt: all nine core gates passed on the 2026-07-27
-reconciliation without a model or network call. The final surface reconciliation
+Current audit receipt: all ten core gates passed in the 2026-07-27 closeout
+candidate without a model or network call. The earlier surface reconciliation
 landed through [pull request 4](https://github.com/TaylorAmarelTech/gemma4_comp/pull/4)
 as `dc313814d9f42e127b24191b7912fd521083fadd`, after which the complete
 [master CI workflow](https://github.com/TaylorAmarelTech/gemma4_comp/actions/runs/30273583863)
@@ -73,7 +83,8 @@ Training readiness is intentionally separate:
 python scripts/validate_publication_readiness.py --scope training
 ```
 
-It runs the strict quality audit, validates the corridor plan, and verifies the
+It first requires all 75 source-bound and independently adjudicated rows, then
+runs the strict quality audit, validates the corridor plan, and verifies the
 fine-tune registry/model-card/trainer provenance chain. A nonzero result is the
 honest expected state until the corridor queue is curated.
 
@@ -124,10 +135,19 @@ harness also accepts `--max-planned-model-calls N`; it exits with code 4 before
 any model call or run-artifact write when the offline estimate exceeds `N`.
 The command-line value overrides the environment lock.
 
-This guard counts planned **logical** generation, judging, and pairwise calls.
-It is not yet a strict transport-attempt, provider-credit, or token cap because
-transient retries and resilient generation can add requests. It also protects
-the rich harness only; direct Ollama helper scripts are not centrally locked.
+The rich-harness guard counts planned **logical** generation, judging, and
+pairwise calls. The primary `llm_generate.py` router now adds a separate atomic
+transport ledger: it reserves attempts, estimated input tokens, maximum output
+tokens, and reviewed worst-case cost before each HTTP request. Retries, key
+rotations, and resilient re-questions consume new reservations. The full
+operator contract, positive-budget environment, privacy boundary, and current
+coverage matrix are in [Provider budgeting](PROVIDER_BUDGETING.md).
+
+The transport lock is exact for the four primary-router HTTP paths, as enforced
+by `validate_provider_budget_coverage.py`. It is not a repository-wide network
+interceptor: self-contained Kaggle kernels, package/application adapters, and
+standalone scripts with their own HTTP clients remain operator-controlled. Keep provider
+credentials unavailable to those paths during deterministic maintenance.
 
 When model work resumes, use this order:
 
@@ -144,11 +164,11 @@ When model work resumes, use this order:
 7. Keep v2/h2/per-dimension experiments in versioned files, separate from the
    v1/h1 batched board.
 
-The next transport improvement should be a shared atomic budget ledger in
-`llm_generate.py`: reserve before every provider attempt, count retries and
-tokens, store a sanitized receipt, and refuse when either call, token, or cash
-allowance is exhausted. That would extend the lock to every Ollama caller and
-turn the current startup estimate into an enforceable run-wide budget.
+The shared primary-router ledger is complete and tested without provider calls.
+The remaining transport work is to migrate direct standalone research clients,
+then design a portable notebook equivalent and an injectable
+package/application-adapter contract without changing existing benchmark
+evidence lanes.
 
 ## Dataset Improvement Plan
 
@@ -180,6 +200,25 @@ The row review should add diversity without creating a new shortcut:
 - publish a data card and machine-readable metadata alongside row manifests;
 - keep private complaints, contact lists, identity documents, and raw case
   narratives out of the training corpus.
+
+The executable handoff is:
+
+```powershell
+python scripts/build_corridor_curation_workbook.py --validate
+python scripts/build_corridor_curation_workbook.py
+python scripts/validate_corridor_curation.py
+python scripts/validate_corridor_curation.py --require-complete
+```
+
+The first three commands currently pass the metadata-only scaffold. The final
+command correctly fails with `0/75` valid rows and `75` missing slots. Candidate
+content belongs only in ignored
+`reports/training/corridor_curation_rows.jsonl`. The validator rejects
+unapproved or checksum-mismatched sources, missing or duplicate reviewers,
+unresolved disagreements, absent native-language attestation, PII-like text,
+exact duplicates, cross-family near-duplicates, and lineage-family split
+leakage. Findings contain row identifiers and category/count summaries, never
+matched sensitive payloads.
 
 After curation, run these in order:
 
@@ -217,6 +256,14 @@ license/terms, minimum necessary fields, privacy review, source snapshot,
 entity data belongs in the propose-only entity-intelligence pipeline until
 reviewed; it must not flow directly into worker-facing answers or training rows.
 
+The machine-readable candidate registry is
+[`configs/duecare/training/corridor_curation_sources.json`](../configs/duecare/training/corridor_curation_sources.json).
+It adds corridor-relevant official discovery points for BMET and its live
+recruiting-agent registry, Malaysia's labour-policy publications, India MEA's
+overseas-employment material, Saudi HRSD's labour-reform guide, and dated ILO
+FAIR/FAIRWAY, STREAM, Qatar, and Kuwait material. URL verification is not
+license approval: all entries remain candidate-only and training-blocked.
+
 ## Pickup In Ten Minutes
 
 A new maintainer or agent should use this order. None of these commands calls a
@@ -252,7 +299,7 @@ The authoritative live/generated evidence is:
 | Is the public repository coherent? | `validate_publication_readiness.py --scope core` |
 | Is local automation paused and internally coherent? | `validate_project_bible_pickup.py` plus `autonomous_engine.py --status` |
 | Is the new training dataset safe to advance? | `reports/training/quality_audit.json` and `--scope training` |
-| What must curators add? | `reports/training/corridor_expansion_plan.json` and its manifest |
+| What must curators add? | `reports/training/corridor_curation_workbook.json`, the candidate-only source catalog, and `validate_corridor_curation.py --require-complete` |
 | Is the exhaustive judge lane complete? | `reports/rich_lift/panel_perdim.coverage.json` |
 | What Kaggle surfaces are active? | `kaggle/_INDEX.md` and the two Kaggle static validators |
 
@@ -281,6 +328,7 @@ curated data
   -> organize + lineage split
   -> strict quality audit
   -> corridor curation plan
+  -> 75-slot source/review workbook
   -> optional train/evaluate
   -> append-only fine-tune registry + verified model card
 ```
@@ -300,7 +348,7 @@ worker-facing answers, benchmark labels, or training rows automatically.
 - The training gate is red because of corridor coverage and the resulting
   stale fingerprints in an older planned registry record. This is a truthful
   provenance stop, not a reason to rewrite the ledger.
-- The integrated `packages tests` regression passed 4,589 tests with nine
+- The integrated `packages tests` regression passed 4,627 tests with nine
   skips and no warning summary in the clean, locked 18-package workspace. The
   focused package follow-up also passes 43 tests with `RuntimeWarning`
   promoted to an error, proving the former
@@ -329,10 +377,10 @@ worker-facing answers, benchmark labels, or training rows automatically.
   Docker, Helm, and PyPI publishing remain release-triggered and should be
   validated on an approved release candidate/tag, not dispatched as a
   production smoke test.
-- Workspace package versions were not guessed or bumped. `CITATION.cff` now
-  describes living research software without claiming a nonexistent
-  coordinated release, while the package publisher blocks on the current mixed
-  versions. Choose and document release policy before tagging.
+- Workspace package versions were not guessed or bumped. ADR-001 now adopts
+  independent SemVer, and `configs/duecare/package_release.toml` reconciles the
+  intentionally mixed versions with the sole publisher. `CITATION.cff` still
+  describes living research software because no registry release exists yet.
 - The post-deploy concurrent external audit checked 577 outbound links on
   2026-07-27 with zero confirmed broken links. All six same-site schema URLs
   returned 200; 10 additional hosts were transient, DNS/SSL-blocked,
@@ -354,9 +402,9 @@ worker-facing answers, benchmark labels, or training rows automatically.
 
 | Priority | Work item | Model credits | Effort | Done when |
 |---|---|---:|---:|---|
-| P0 | Freeze a release commit, choose package-version policy, reconcile versions/changelog, run privacy-safe secret scan, rerun core gate | 0 | Low | Exact tag/commit and bounded release notes exist; 9/9 core gates pass there |
-| P1 | Curate the 25 corridor tasks / minimum 75 rows with sources, lineage, and adjudication | 0 if human/deterministic | Medium | Strict quality audit is clean without weakening a threshold |
-| P1 | Add a shared atomic call/token/cash ledger around every provider attempt | 0 during implementation | Medium | All callers fail closed against one run budget; retries appear in a sanitized receipt |
+| P0 | Freeze the verified package cohort at a first-package release commit, reconcile changelog/citation, run privacy-safe secret scan, rerun core gate | 0 | Low | Exact package tag/commit and bounded release notes exist; 10/10 core gates pass there |
+| P1 | Fill the 75-slot corridor workbook with source-approved rows, lineage, and two-person adjudication | 0 if human/deterministic | Medium | `validate_corridor_curation.py --require-complete` and the strict quality audit pass without weakening a threshold |
+| P2 | Extend the primary-router budget contract to direct standalone clients and design a portable notebook equivalent | 0 during implementation | Medium | Each migrated caller has a zero-transport test; no claim implies a repository-wide interceptor |
 | P1 | Refresh training provenance through the normal append-only engine path | 0 | Low after curation | Registry fingerprints and verified model-card gate pass |
 | P2 | Human-adjudicate a stratified high-severity and benign-control slice | 0 model credits | Medium | Agreement, disagreement reasons, and adjudication policy are published |
 | P2 | Run a frozen small Ollama smoke matrix with finite output cap and cache reuse | Small, explicit | Low | Planned allowance equals receipt; all artifacts are hash-bound |
@@ -390,12 +438,13 @@ new versioned evidence lane rather than changing the existing board in place.
 
 ## Recommended Next Sequence
 
-1. Curate and adjudicate the 75-row corridor expansion with full lineage and
-   source metadata.
+1. Approve immutable source snapshots, then fill and adjudicate the 75-row
+   corridor workbook with full lineage and source metadata.
 2. Clear the strict quality and provenance gates and append a new planned
    fine-tune record through the normal engine.
-3. Add the shared transport/token budget ledger, then run a small frozen Ollama
-   smoke matrix with checkpoint reuse.
+3. When spend is separately authorized, configure the completed primary-router
+   ledger with reviewed pricing and run a small frozen Ollama smoke matrix with
+   checkpoint reuse.
 4. Expand only the cells justified by confidence intervals or disagreement,
    complete the isolated per-dimension lane, and obtain human adjudication on a
    representative high-severity slice.

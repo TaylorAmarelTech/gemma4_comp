@@ -30,10 +30,26 @@ def test_workspace_release_surface_is_reconciled():
     assert not findings
 
 
-def test_current_mixed_versions_fail_a_coordinated_release_tag():
-    _, findings = vpr.validate("packages-v0.1.0")
+def test_independent_release_tag_selects_one_matching_package():
+    packages, findings = vpr.validate("package-duecare-llm-chat-v0.17.0")
 
-    assert any(finding.check == "coordinated version" for finding in findings)
+    assert not findings
+    assert vpr.selected_directories(
+        packages, tag="package-duecare-llm-chat-v0.17.0"
+    ) == ["duecare-llm-chat"]
+
+
+def test_release_tag_version_must_match_manifest_and_pyproject():
+    _, findings = vpr.validate("package-duecare-llm-chat-v0.1.0")
+
+    assert any(finding.check == "release tag version" for finding in findings)
+
+
+def test_manual_all_selection_uses_canonical_build_order():
+    packages, findings = vpr.validate(package="all")
+
+    assert not findings
+    assert vpr.selected_directories(packages) == vpr.DEFAULT_BUILD_ORDER
 
 
 def test_generic_release_tag_is_rejected():

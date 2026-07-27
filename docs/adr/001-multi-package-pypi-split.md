@@ -31,8 +31,9 @@ multi-GB heavy deps (Unsloth, transformers, llama.cpp) for a
 Split into **17 intended registry packages** under the **PEP 420 implicit
 namespace package** `duecare.*`. Each package owns one folder under
 `packages/` and has its own `pyproject.toml`. The original decision proposed
-lock-step semantic versions; publication and the final version policy remained
-unresolved as of the 2026-07-27 amendment below.
+lock-step semantic versions. The 2026-07-27 amendment below replaces that
+proposal with manifest-backed independent SemVer before the first registry
+publication.
 
 Heavy dependencies live in **optional extras**:
 
@@ -59,12 +60,19 @@ reviewers who need the complete graph should run `uv sync --all-packages`.
 
 ## Amendment — 2026-07-27
 
-None of the 18 distributions is published on PyPI. Local wheels build, but
-`duecare-llm-chat` is `0.17.0`, `duecare-llm-server` is `0.1.2`, and the other
-workspace packages are `0.1.0`; therefore a coordinated package tag is
-fail-closed until the owner chooses and documents coordinated versus
-per-package versioning. `.github/workflows/pypi-publish.yml` is the sole OIDC
-publisher, and direct token/twine publication is not part of this decision.
+None of the 18 distributions is published on PyPI. The packages adopt
+**independent semantic versions** because `duecare-llm-chat` already has a
+public notebook-compatibility cadence (`0.17.0`), `duecare-llm-server` is
+`0.1.2`, and the other workspace packages are `0.1.0`. Artificially raising
+unrelated packages or downgrading chat would obscure compatibility history.
+
+`configs/duecare/package_release.toml` is the reviewed release cohort and first
+publication order. A production tag has the form
+`package-NAME-vMAJOR.MINOR.PATCH`, selects exactly one manifest row, and must
+match that package's `pyproject.toml`. Manual workflow runs may build all rows
+or a selected package and may use TestPyPI, but cannot publish to production.
+`.github/workflows/pypi-publish.yml` remains the sole OIDC publisher; direct
+token/twine publication is not part of this decision.
 
 ## Alternatives considered
 
@@ -84,14 +92,14 @@ publisher, and direct token/twine publication is not part of this decision.
 - Kaggle notebook cold start is ~30s instead of multi-minute
 - External integrators install a clean 50-200 MB instead of multi-GB
 - Each package can release independently (semver-disciplined)
-- 17 separate test runs can parallelize in CI
+- 18 separate package test surfaces can parallelize in CI
 - Clear bug-report routing (which package owns the bug)
 
 **Negative:**
-- Workspace tooling is more complex; we use `uv` workspace + a 17-row
-  Helm chart for the multi-arch image build
+- Workspace tooling is more complex; we use a `uv` workspace, an explicit
+  release manifest, and a multi-package build order
 - Cross-package refactors require careful version coordination
-- New contributors face a 17-package mental model (mitigated by
+- New contributors face an 18-package mental model (mitigated by
   `docs/architecture.md` + `docs/adr/002-folder-per-module-pattern.md`)
 
 ## References

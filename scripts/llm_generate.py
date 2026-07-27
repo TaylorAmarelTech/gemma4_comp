@@ -39,6 +39,11 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Callable
 
+try:
+    import provider_budget
+except ModuleNotFoundError:  # supports ``python -m scripts.llm_generate``
+    from scripts import provider_budget
+
 _ROOT = Path(__file__).resolve().parents[1]
 PROPOSALS_DIR = _ROOT / "reports" / "llm_proposals"
 OLLAMA_CLOUD_BASE = "https://ollama.com/v1"   # NOT OLLAMA_HOST (that's the down local daemon)
@@ -59,6 +64,27 @@ DEFAULT_MAX_TOKENS = int(os.environ.get("DUECARE_MAX_TOKENS", "0"))
 # cloud models (glm-5.2, kimi-k2.6, gpt-oss:120b, deepseek-v4-pro) carry large native contexts. 32768
 # comfortably fits the benchmark content; raise via DUECARE_NUM_CTX toward a model's full native window.
 DEFAULT_NUM_CTX = int(os.environ.get("DUECARE_NUM_CTX", "32768"))
+DEFAULT_RESERVED_OUTPUT_TOKENS = max(
+    1, int(os.environ.get("DUECARE_DEFAULT_RESERVED_OUTPUT_TOKENS", "4096"))
+)
+
+
+def _budget_attempt(
+    *,
+    provider: str,
+    model: str,
+    prompt: str,
+    system: str | None,
+    max_output_tokens: int,
+):
+    """Reserve one transport attempt before any provider request is sent."""
+    return provider_budget.environment_ledger().attempt(
+        provider=provider,
+        model=model,
+        prompt=prompt,
+        system=system,
+        max_output_tokens=max_output_tokens,
+    )
 
 
 def _load_key() -> str:
@@ -261,15 +287,26 @@ def ollama_chat(prompt: str, *, model: str = DEFAULT_MODEL, max_tokens: int = DE
         opts["num_predict"] = -1
     payload["options"] = opts
     body = json.dumps(payload).encode("utf-8")
+    reserved_output = max_tokens if max_tokens and max_tokens > 0 else max(1, num_ctx)
     for attempt in range(max_retries + 1):
         try:
-            raw = _http_post_json(f"{OLLAMA_CLOUD_BASE}/chat/completions", data=body,
-                                  headers={"Authorization": f"Bearer {key}",
-                                           "Content-Type": "application/json"}, timeout=timeout)
-            out = json.loads(raw.decode("utf-8", "replace"))
-            msg = (out.get("choices") or [{}])[0].get("message") or {}
-            # reasoning-model aware: prefer the answer, fall back to the thinking text if content empty
-            return str(msg.get("content") or "").strip() or str(msg.get("reasoning") or "").strip()
+            with _budget_attempt(
+                provider="ollama_cloud",
+                model=model,
+                prompt=prompt,
+                system=system,
+                max_output_tokens=reserved_output,
+            ) as budget_attempt:
+                raw = _http_post_json(f"{OLLAMA_CLOUD_BASE}/chat/completions", data=body,
+                                      headers={"Authorization": f"Bearer {key}",
+                                               "Content-Type": "application/json"}, timeout=timeout)
+                out = json.loads(raw.decode("utf-8", "replace"))
+                msg = (out.get("choices") or [{}])[0].get("message") or {}
+                # reasoning-model aware: prefer the answer, fall back to the thinking text if content empty
+                text = (str(msg.get("content") or "").strip()
+                        or str(msg.get("reasoning") or "").strip())
+                budget_attempt.settle(response=out, output_text=text)
+                return text
         except urllib.error.HTTPError as exc:
             if exc.code not in _RETRYABLE_STATUS or attempt == max_retries:
                 raise
@@ -315,14 +352,26 @@ def nvidia_chat(prompt: str, *, model: str, max_tokens: int = DEFAULT_MAX_TOKENS
     if max_tokens and max_tokens > 0:
         payload["max_tokens"] = max_tokens
     body = json.dumps(payload).encode("utf-8")
+    reserved_output = (max_tokens if max_tokens and max_tokens > 0
+                       else DEFAULT_RESERVED_OUTPUT_TOKENS)
     for attempt in range(max_retries + 1):
         try:
-            raw = _http_post_json(f"{NVIDIA_CLOUD_BASE}/chat/completions", data=body,
-                                  headers={"Authorization": f"Bearer {key}",
-                                           "Content-Type": "application/json"}, timeout=timeout)
-            out = json.loads(raw.decode("utf-8", "replace"))
-            msg = (out.get("choices") or [{}])[0].get("message") or {}
-            return str(msg.get("content") or "").strip() or str(msg.get("reasoning_content") or "").strip()
+            with _budget_attempt(
+                provider="nvidia",
+                model=model,
+                prompt=prompt,
+                system=system,
+                max_output_tokens=reserved_output,
+            ) as budget_attempt:
+                raw = _http_post_json(f"{NVIDIA_CLOUD_BASE}/chat/completions", data=body,
+                                      headers={"Authorization": f"Bearer {key}",
+                                               "Content-Type": "application/json"}, timeout=timeout)
+                out = json.loads(raw.decode("utf-8", "replace"))
+                msg = (out.get("choices") or [{}])[0].get("message") or {}
+                text = (str(msg.get("content") or "").strip()
+                        or str(msg.get("reasoning_content") or "").strip())
+                budget_attempt.settle(response=out, output_text=text)
+                return text
         except urllib.error.HTTPError as exc:
             if exc.code not in _RETRYABLE_STATUS or attempt == max_retries:
                 raise
@@ -438,19 +487,30 @@ def openai_compatible_chat(prompt: str, *, model: str, base_url: str, keys: list
     if max_tokens and max_tokens > 0:
         payload["max_tokens"] = max_tokens
     body = json.dumps(payload).encode("utf-8")
+    reserved_output = (max_tokens if max_tokens and max_tokens > 0
+                       else DEFAULT_RESERVED_OUTPUT_TOKENS)
     start = _next_key_offset(provider, len(keys))
     last_exc: Exception | None = None
     for i in range(len(keys)):
         key = keys[(start + i) % len(keys)]
         for attempt in range(max_retries + 1):
             try:
-                raw = _http_post_json(f"{base_url}/chat/completions", data=body,
-                                      headers={"Authorization": f"Bearer {key}",
-                                               "Content-Type": "application/json"}, timeout=timeout)
-                out = json.loads(raw.decode("utf-8", "replace"))
-                msg = (out.get("choices") or [{}])[0].get("message") or {}
-                return (str(msg.get("content") or "").strip()
-                        or str(msg.get("reasoning_content") or msg.get("reasoning") or "").strip())
+                with _budget_attempt(
+                    provider=provider,
+                    model=model,
+                    prompt=prompt,
+                    system=system,
+                    max_output_tokens=reserved_output,
+                ) as budget_attempt:
+                    raw = _http_post_json(f"{base_url}/chat/completions", data=body,
+                                          headers={"Authorization": f"Bearer {key}",
+                                                   "Content-Type": "application/json"}, timeout=timeout)
+                    out = json.loads(raw.decode("utf-8", "replace"))
+                    msg = (out.get("choices") or [{}])[0].get("message") or {}
+                    text = (str(msg.get("content") or "").strip()
+                            or str(msg.get("reasoning_content") or msg.get("reasoning") or "").strip())
+                    budget_attempt.settle(response=out, output_text=text)
+                    return text
             except urllib.error.HTTPError as exc:
                 last_exc = exc
                 if exc.code in _KEY_DEAD_STATUS:
@@ -503,18 +563,30 @@ def anthropic_chat(prompt: str, *, model: str, keys: list[str], max_tokens: int 
     if system:
         payload["system"] = system
     body = json.dumps(payload).encode("utf-8")
+    reserved_output = int(payload["max_tokens"])
     start = _next_key_offset("anthropic", len(keys))
     last_exc: Exception | None = None
     for i in range(len(keys)):
         key = keys[(start + i) % len(keys)]
         for attempt in range(max_retries + 1):
             try:
-                raw = _http_post_json(f"{ANTHROPIC_BASE}/messages", data=body,
-                                      headers={"x-api-key": key, "anthropic-version": ANTHROPIC_VERSION,
-                                               "Content-Type": "application/json"}, timeout=timeout)
-                out = json.loads(raw.decode("utf-8", "replace"))
-                blocks = out.get("content") or []
-                return "".join(b.get("text", "") for b in blocks if isinstance(b, dict)).strip()
+                with _budget_attempt(
+                    provider="anthropic",
+                    model=model,
+                    prompt=prompt,
+                    system=system,
+                    max_output_tokens=reserved_output,
+                ) as budget_attempt:
+                    raw = _http_post_json(f"{ANTHROPIC_BASE}/messages", data=body,
+                                          headers={"x-api-key": key, "anthropic-version": ANTHROPIC_VERSION,
+                                                   "Content-Type": "application/json"}, timeout=timeout)
+                    out = json.loads(raw.decode("utf-8", "replace"))
+                    blocks = out.get("content") or []
+                    text = "".join(
+                        b.get("text", "") for b in blocks if isinstance(b, dict)
+                    ).strip()
+                    budget_attempt.settle(response=out, output_text=text)
+                    return text
             except urllib.error.HTTPError as exc:
                 last_exc = exc
                 if exc.code in _KEY_DEAD_STATUS:

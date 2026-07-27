@@ -42,7 +42,7 @@ chat:
   env:
     DUECARE_LOG_LEVEL: info
     OLLAMA_HOST: http://duecare-ollama:11434
-    DUECARE_OLLAMA_MODEL: gemma2:2b
+    DUECARE_OLLAMA_MODEL: gemma4:e2b
 
   # Probes are intentionally tight — fail fast on a wedged pod
   livenessProbe:
@@ -88,7 +88,7 @@ classifier:
   env:
     DUECARE_LOG_LEVEL: info
     OLLAMA_HOST: http://duecare-ollama:11434
-    DUECARE_OLLAMA_MODEL: gemma2:2b
+    DUECARE_OLLAMA_MODEL: gemma4:e2b
 
   livenessProbe:
     httpGet: { path: /healthz, port: 8080 }
@@ -111,7 +111,7 @@ ollama:
   port: 11434
 
   # Ollama is BIG — give it real resources. CPU-only fallback works
-  # for gemma2:2b but is slow (~3 sec/token). For real production,
+  # for gemma4:e2b but is slow (~3 sec/token). For real production,
   # request a GPU node (see `nodeSelector` below).
   resources:
     requests:
@@ -131,7 +131,7 @@ ollama:
 
   # Pre-pull model on first start (one-shot Job)
   modelPullEnabled: true
-  modelTag: gemma2:2b
+  modelTag: gemma4:e2b
 
   # GPU support — uncomment + set to a GPU node selector if you have one
   # nodeSelector:

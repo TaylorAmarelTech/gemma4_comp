@@ -15,8 +15,6 @@
 # To pick a different model: change OLLAMA_MODEL below + `docker compose
 # up`. The duecare container reads OLLAMA_MODEL at startup.
 
-version: "3.9"
-
 services:
   ollama:
     image: ollama/ollama:latest

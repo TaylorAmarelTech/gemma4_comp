@@ -7,8 +7,6 @@
 # Mac users: built-in Bonjour handles mDNS — you can drop the avahi
 # service. Linux users keep it.
 
-version: "3.9"
-
 services:
   ollama:
     image: ollama/ollama:latest

@@ -23,8 +23,6 @@
 # This stack is self-contained — no dependencies on the main
 # docker-compose.yml. Both can run side-by-side on the same host.
 
-version: "3.9"
-
 services:
 
   prometheus:

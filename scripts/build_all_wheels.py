@@ -12,10 +12,14 @@ Usage:
 from __future__ import annotations
 
 import argparse
+import hashlib
+import json
+import os
 import shutil
 import subprocess
 import sys
 import zipfile
+from datetime import datetime, timezone
 from pathlib import Path
 
 # Build order matters because some packages declare local deps on others
@@ -60,19 +64,80 @@ def _run(cmd: list[str], cwd: Path) -> bool:
     return proc.returncode == 0
 
 
-def build_one(pkg_dir: Path, dist_dir: Path,
-                 no_isolation: bool) -> bool:
+def build_one(
+    pkg_dir: Path,
+    dist_dir: Path,
+    no_isolation: bool,
+    include_sdist: bool,
+) -> bool:
     if _have("uv"):
-        ok = _run(["uv", "build", "--wheel",
-                   "--out-dir", str(dist_dir.resolve())], cwd=pkg_dir)
+        cmd = ["uv", "build", "--wheel"]
+        if include_sdist:
+            cmd.append("--sdist")
+        cmd.extend(["--out-dir", str(dist_dir.resolve())])
+        ok = _run(cmd, cwd=pkg_dir)
         if ok:
             return True
         print("  [warn] uv build failed; falling back to python -m build")
     cmd = [sys.executable, "-m", "build", "--wheel",
-            "--outdir", str(dist_dir.resolve())]
+           "--outdir", str(dist_dir.resolve())]
+    if include_sdist:
+        cmd.insert(4, "--sdist")
     if no_isolation:
         cmd.append("--no-isolation")
     return _run(cmd, cwd=pkg_dir)
+
+
+def _sha256(path: Path) -> str:
+    digest = hashlib.sha256()
+    with path.open("rb") as handle:
+        for chunk in iter(lambda: handle.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
+def write_receipt(path: Path, *, dist_dir: Path, targets: list[str]) -> None:
+    artifacts = []
+    for artifact in sorted((*dist_dir.glob("*.whl"), *dist_dir.glob("*.tar.gz"))):
+        artifacts.append(
+            {
+                "name": artifact.name,
+                "bytes": artifact.stat().st_size,
+                "sha256": _sha256(artifact),
+            }
+        )
+    repo_root = Path(__file__).resolve().parents[1]
+    git_sha = subprocess.run(
+        ["git", "rev-parse", "HEAD"],
+        cwd=repo_root,
+        capture_output=True,
+        text=True,
+        check=False,
+    ).stdout.strip()
+    git_status = subprocess.run(
+        ["git", "status", "--porcelain"],
+        cwd=repo_root,
+        capture_output=True,
+        text=True,
+        check=False,
+    ).stdout
+    payload = {
+        "schema": "duecare.python-release-candidate.v1",
+        "generated_at": datetime.now(timezone.utc).replace(microsecond=0).isoformat(),
+        "git_sha": git_sha,
+        "git_dirty": bool(git_status.strip()),
+        "source_date_epoch": os.environ.get("SOURCE_DATE_EPOCH", ""),
+        "package_directories": targets,
+        "package_count": len(targets),
+        "artifact_count": len(artifacts),
+        "artifacts": artifacts,
+        "network_calls": None,
+        "network_note": "build isolation may resolve declared build backends",
+        "model_calls": 0,
+    }
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(payload, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    print(f"  receipt: {path} ({len(artifacts)} artifacts)")
 
 
 def _wheel_prefix(package_name: str) -> str:
@@ -117,17 +182,32 @@ def main() -> int:
     ap.add_argument("--packages",
                      help="comma-separated list (default: all)")
     ap.add_argument("--clean", action="store_true",
-                     help="delete dist/ and per-package dist/ first")
+                     help="delete the selected output directory first")
     ap.add_argument("--dist-dir", default="dist",
                      help="output directory (default: ./dist)")
     ap.add_argument("--no-isolation", action="store_true",
                      help="build using already-installed hatchling "
-                          "(workaround for Python 3.14 venv issues)")
+                     "(workaround for Python 3.14 venv issues)")
+    ap.add_argument("--sdist", action="store_true",
+                    help="build source distributions alongside wheels")
+    ap.add_argument("--receipt",
+                    help="write a JSON receipt containing artifact SHA-256 hashes")
     args = ap.parse_args()
 
     repo_root = Path(__file__).resolve().parent.parent
     packages_dir = repo_root / "packages"
     dist_dir = (repo_root / args.dist_dir).resolve()
+
+    if not os.environ.get("SOURCE_DATE_EPOCH"):
+        commit_epoch = subprocess.run(
+            ["git", "log", "-1", "--format=%ct"],
+            cwd=repo_root,
+            capture_output=True,
+            text=True,
+            check=False,
+        ).stdout.strip()
+        if commit_epoch.isdigit():
+            os.environ["SOURCE_DATE_EPOCH"] = commit_epoch
 
     if args.clean and dist_dir.exists():
         print(f"  cleaning {dist_dir}")
@@ -149,7 +229,12 @@ def main() -> int:
         if not (pkg_dir / "pyproject.toml").exists():
             print("  [skip] no pyproject.toml")
             continue
-        ok = build_one(pkg_dir, dist_dir, no_isolation=args.no_isolation)
+        ok = build_one(
+            pkg_dir,
+            dist_dir,
+            no_isolation=args.no_isolation,
+            include_sdist=args.sdist,
+        )
         if not ok:
             failed.append(pkg)
 
@@ -166,6 +251,9 @@ def main() -> int:
     if verify_failed:
         print(f"\n  FAILED verification: {verify_failed}")
         return 1
+    if args.receipt:
+        receipt_path = (repo_root / args.receipt).resolve()
+        write_receipt(receipt_path, dist_dir=dist_dir, targets=targets)
     print(f"\n  done. {len(list(dist_dir.glob('*.whl')))} wheels in {dist_dir}")
     return 0
 

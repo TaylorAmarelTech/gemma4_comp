@@ -27,7 +27,7 @@ published evidence.
 | Public website | `apps/duecare-ai.com/README.md`, `/project-status`, page templates, route and static-export tests |
 | Python packages | Each package `README.md`, package tests, generated component docs |
 | Agent handoff | `AGENTS.md`, `CLAUDE.md`, `PROJECT_BIBLE.md`, `Plans.md`, `.claude/rules/` |
-| Maintainer succession | `docs/MAINTAINER_HANDOFF.md`, `docs/PROJECT_TRANSITION_PLAN.md` |
+| Maintainer succession | `docs/MAINTAINER_HANDOFF.md`, `docs/PROJECT_TRANSITION_PLAN.md`, `docs/SUCCESSOR_REHEARSAL.md`, `docs/PRIVATE_TRANSFER_RECEIPT_TEMPLATE.md` |
 | Competition docs | `docs/FOR_KAGGLE_JUDGES.md`, `docs/kaggle_writeup_paste_ready.md`, `docs/kaggle_post_networked_knowledge_sharing.md`, `docs/video_script.md` |
 | Publication and peer review | `docs/PUBLICATION_READINESS.md`, `docs/FOR_PEER_REVIEW.md`, `docs/reproducibility.md` |
 
@@ -64,10 +64,27 @@ separate training scope preserves an honest red result when strict dataset or
 provenance checks are not yet clean. `scripts/validate_maintainer_handoff.py`
 checks the two current succession documents, their discovery/local links, and
 privacy-safe content without calling a model or network service.
+`scripts/rehearse_successor_pickup.py` composes the handoff, core, notebook,
+archive, and paused-engine checks into a fresh-shell rehearsal and stores only
+hashed/count metadata in an ignored receipt.
+`scripts/build_corridor_curation_workbook.py` turns the privacy-safe 25-task
+plan into a deterministic 75-slot risk/benign/counterfactual workbook.
+`scripts/validate_corridor_curation.py` keeps those slots out of training until
+source snapshots, rights, privacy, lineage, duplicate, language, and two-person
+adjudication gates pass. The candidate source registry is
+`configs/duecare/training/corridor_curation_sources.json`; URL presence never
+implies training approval.
+`scripts/provider_budget.py` is the shared atomic attempt/token/cash ledger for
+the primary generation router, while
+`scripts/validate_provider_budget_coverage.py` statically prevents any of that
+router's four HTTP transports from moving outside a reservation. The public
+operator contract and honest non-universal boundary are in
+`docs/PROVIDER_BUDGETING.md`; pricing is copied from the empty public example to
+an ignored, provider-verified run file rather than guessed in Git.
 `scripts/validate_package_release.py` reconciles all 18 `pyproject.toml`
 members with the canonical build order, package inventory, source installers,
 and sole PyPI workflow; its optional tag check deliberately blocks mismatched
-coordinated versions. `scripts/check_external_links.py` is the complementary
+per-package manifest versions. `scripts/check_external_links.py` is the complementary
 network audit for active public Markdown/HTML: it checks concurrently and keeps
 confirmed broken links separate from transient or bot-blocked hosts.
 `scripts/mkdocs_repo_links.py` is the Pages-only resolver for Markdown links
