@@ -1,81 +1,81 @@
-﻿# Manual TODO Checklist
+# Owner-Only Action Checklist
 
-Current as of 2026-07-26. This list is intentionally limited to actions that
-cannot be completed by local code edits alone.
+Current as of 2026-07-27.
 
-The complete succession/access list is in
-[`PROJECT_TRANSITION_PLAN.md#owner-only-actions`](PROJECT_TRANSITION_PLAN.md#owner-only-actions),
-with acceptance and recovery steps in
-[`MAINTAINER_HANDOFF.md`](MAINTAINER_HANDOFF.md).
+This page contains only actions that cannot be truthfully completed through a
+local repository edit. The authoritative details and acceptance tests are in
+[`DEFERRED_WORK.md`](DEFERRED_WORK.md); the matching item ID is shown for every
+action below.
 
-## 1. Final Official Competition Check
+## Before Any Model Caller Resumes
 
-- Use this Kaggle writeup title:
-  **DueCare: A Gemma 4 Safety Ecosystem for Migrant-Worker Protection**
-- Use this subtitle:
-  **A self-hostable multi-faceted Gemma 4 implementation for content moderation, case analysis,
-  worker support, research, and anonymized knowledge sharing.**
-- Public Gemma 4 Good overview alignment was reviewed on 2026-05-18:
-  Safety & Trust is the primary fit, with Unsloth and LiteRT evidence.
-- Before clicking submit, confirm the Kaggle form still shows the same
-  track names, 3-minute video requirement, writeup word cap, and public
-  repo/demo fields.
-- If the live form wording differs, update `docs/writeup_draft.md`,
-  `docs/video_script.md`, and the submission text before final submission.
+- [ ] Privately reconcile provider usage from the last owner-verified receipt
+  through the current cost-stop receipt. Retain billing and account details
+  outside Git and record only the date, reviewer role, provider category, and
+  discrepancy count. (`provider-usage-reconciliation`)
+- [ ] Approve a finite run plan with immutable model IDs, maximum attempts,
+  input/output token caps, cash cap, stop conditions, and a unique run ID.
+  (`bounded-model-smoke`, `per-dimension-judging`, or
+  `optional-kaggle-reruns`)
+- [ ] Remove no sentinel and enable no scheduled task until the approved run is
+  ready; restore the whole-stack cost stop immediately afterward.
 
-## 2. Run The Two Primary Demo Kernels
+## Release Disposition
 
-These are optional while model credits/quota are being preserved. The current
-repository wrap-up does not depend on rerunning them; run them only for a new
-recording or deliberately versioned evidence release.
+- [ ] By the 2026-08-22 decision window, choose one outcome: a bounded release,
+  a dated no-release deferral, or maintenance mode. Record the effective date,
+  supported surfaces, security intake posture, and excluded claims in
+  [`PROJECT_TRANSITION_PLAN.md`](PROJECT_TRANSITION_PLAN.md).
+  (`release-disposition`)
+- [ ] If a Python package will be published, select one manifest row and one
+  exact package-specific tag. Let the sole trusted-publisher workflow perform
+  the production write; do not use a direct credential upload.
+  (`first-package-publication`)
+- [ ] If a Kaggle notebook is rerun or published, require a distinct evidence
+  purpose, preserve the output bundle, and reconcile its state in
+  [`kaggle/_INDEX.md`](../kaggle/_INDEX.md). The current repository closeout
+  does not require an additional notebook. (`optional-kaggle-reruns`)
 
-Active scope is exactly:
+The active source inventory remains exactly:
 
 - `kaggle/01-duecare-exploration-workbench/`
 - `kaggle/02-live-demo/`
+- `kaggle/A-00-omni-experiment-workbench/`
 
-For each kernel:
+The `03` and `04` benchmark surfaces are optional; notebook-era appendix
+surfaces remain archived provenance.
 
-- Run on the intended Kaggle GPU shape.
-- Confirm the notebook prints the public Cloudflare URL.
-- Confirm the page loads and Activity logs populate.
-- Save the final `/kaggle/working` artifacts before shutting down.
+## Dataset And Evaluation Review
 
-## 3. Preserve The A-00 Evidence Run
+- [ ] Assign two independent curators and the required native-language review
+  capacity for the 75-row corridor workbook. Approve source rights and immutable
+  snapshots before writing content. (`corridor-curation`)
+- [ ] After curation passes, approve the refreshed append-only training
+  provenance record. Do not rewrite the older planned-run evidence.
+  (`training-provenance-refresh`)
+- [ ] Recruit qualified domain reviewers for a human gold set and agreement
+  study; record consent, role, rubric revision, and disagreement procedure
+  privately where identities are sensitive. (`human-gold-calibration`)
 
-The 2026-05-18 smoke matrix has already been back-filled into the writeup
-and deck: 29.5% stock, 35.6% stock + chat-offline harness, 26.4%
-fine-tuned, 41.2% fine-tuned + harness. For archival quality:
+## Private Access Transfer
 
-- Download the evidence ZIP, activity bundle, report HTML/MD/JSON, CSV rows,
-  charts, and output manifest from `/kaggle/working`.
-- Keep the generated static report screenshot available for the video or
-  writeup evidence appendix.
-- Optional only: rerun the active A-00 preconfigured pipeline from
-  `kaggle/A-00-omni-experiment-workbench/` on a larger
-  prompt set if there is enough time and GPU budget.
+- [ ] Name the authorized successor or private maintenance owner.
+- [ ] Transfer GitHub, Kaggle, hosting, domain, package-registry, model-provider,
+  monitoring, mailbox, billing-visibility, recovery, and revocation authority
+  one platform at a time using
+  [`PRIVATE_TRANSFER_RECEIPT_TEMPLATE.md`](PRIVATE_TRANSFER_RECEIPT_TEMPLATE.md).
+- [ ] Verify least-privilege login, recovery, audit visibility, and revocation
+  before removing outgoing access. (`private-platform-transfer`)
 
-## 4. Capture Final Demo Assets
+## Final Acceptance
 
-- Exploration workbench: model load, chat prompt, harness trace, and harness
-  catalog pages.
-- Active A-00: preconfigured pipeline card, numbered Activity log, training checkpoint
-  panel, judging progress, report/evidence download links.
-- Final report: score chart, latency chart, prompt/response table, and exported
-  evidence ZIP contents.
+- [ ] From a fresh shell on the exact final revision, run the
+  [successor rehearsal](SUCCESSOR_REHEARSAL.md) and retain the ignored receipt.
+- [ ] Confirm public website and GitHub Pages deployments show the same release
+  disposition and deferred-work boundary as the repository.
+- [ ] Confirm the final branch is merged, required checks are green, `master`
+  matches its remote, and the local worktree is clean.
 
-## 5. Final Pre-Submit Checks
-
-- Run `python scripts/validate_publication_readiness.py --scope handoff` and
-  preserve its receipt with the ownership-transfer record.
-- Run `python scripts/validate_publication_readiness.py --scope core` and keep
-  its exact receipt with the release commit.
-- Decide explicitly whether the release makes no new training claim or waits
-  for the 75-row corridor-diversification queue and strict training gate.
-- Confirm `git status` is clean after committing and pushing.
-- Confirm GitHub shows the final commit.
-- Confirm Kaggle notebooks use the intended commit or attached wheel version.
-- Confirm the writeup references the current active Kaggle path, not archived
-  A-series notebook-era material.
-- Reconcile package versions, `CITATION.cff`, changelog, and tag as one release
-  decision; do not inherit a version from an unrelated package by accident.
+Unchecked boxes are genuine human or owner gates, not documentation
+placeholders. Repository maintainers should not mark them complete without the
+dated evidence specified in [`DEFERRED_WORK.md`](DEFERRED_WORK.md).

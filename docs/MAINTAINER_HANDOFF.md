@@ -5,7 +5,9 @@ It explains how to establish current truth, preserve the project's safety
 boundaries, run routine checks, and decide what is safe to publish. The dated
 closeout schedule is in the [30-day transition plan](PROJECT_TRANSITION_PLAN.md),
 while the release boundary and evidence backlog remain in
-[Publication readiness](PUBLICATION_READINESS.md).
+[Publication readiness](PUBLICATION_READINESS.md). The generated
+[Deferred work register](DEFERRED_WORK.md) is the canonical queue for every
+unfinished item and its authorization boundary.
 
 **Handoff posture:** active closeout
 **Prepared:** 2026-07-27
@@ -156,10 +158,10 @@ reviewed pricing policy pass preflight.
 
 The resulting closeout candidate was then exercised under
 `DUECARE_MAX_PLANNED_MODEL_CALLS=0`. The complete package/test regression passed
-4,630 tests with 9 skips, the public-surface audit checked 1,074 local links
-with no findings, all 10 core and both handoff gates passed, all 3 active
+4,637 tests with 9 skips, the public-surface audit checked 1,144 local links
+with no findings, all 11 core and both handoff gates passed, all 3 active
 notebook scripts and 31 notebook-focused tests passed, the 5 active/optional
-Kaggle kernel checks passed, all 45 website tests passed, the Project Bible
+Kaggle kernel checks passed, all 78 website tests passed, the Project Bible
 pickup passed 65 checks, the successor rehearsal reassembled all 52 archived
 files to their recorded SHA-256 values, and the strict documentation build
 completed. The latest external audit checked 587 links with zero confirmed
@@ -171,6 +173,12 @@ single-corridor shortcut risks, and the older append-only fine-tune record has
 intentionally stale artifact fingerprints. This is curator work, not a reason
 to weaken the gate or rewrite provenance history.
 
+The cost-stop correction landed through
+[pull request 7](https://github.com/TaylorAmarelTech/gemma4_comp/pull/7) as
+merge commit `1e1e8b5eac7a58b837b5782de2f11c1ca5a8d5dc`. All 16 pull-request checks
+and all six merge-triggered workflows passed. Later candidates must establish
+their own live receipts rather than inheriting that result.
+
 ## First 30 Minutes
 
 Use a Python 3.12 environment with the repository's development dependencies.
@@ -181,6 +189,7 @@ model, or the network:
 git status --short
 $env:DUECARE_MAX_PLANNED_MODEL_CALLS='0'
 python scripts/validate_maintainer_handoff.py
+python scripts/validate_deferred_work.py
 python scripts/validate_publication_readiness.py --scope handoff
 python scripts/validate_publication_readiness.py --scope core
 python scripts/validate_project_bible_pickup.py
@@ -210,13 +219,16 @@ Use this precedence order when artifacts disagree:
 1. Live Git, filesystem, process, and validator output from the current
    workspace.
 2. Root `AGENTS.md` for safety rules, active surfaces, and required validation.
-3. [Publication readiness](PUBLICATION_READINESS.md) for the release boundary,
-   known limitations, and prioritized model/data work.
-4. [`project_status.md`](project_status.md) and root `kaggle/_INDEX.md` for
+3. [Deferred work register](DEFERRED_WORK.md) for the canonical status, owner,
+   authorization boundary, next action, and acceptance evidence for unfinished
+   work.
+4. [Publication readiness](PUBLICATION_READINESS.md) for the release boundary
+   and known limitations.
+5. [`project_status.md`](project_status.md) and root `kaggle/_INDEX.md` for
    current public inventory.
-5. [`codex/PROJECT_BIBLE.md`](codex/PROJECT_BIBLE.md) for deep historical and
+6. [`codex/PROJECT_BIBLE.md`](codex/PROJECT_BIBLE.md) for deep historical and
    autonomous-engine context.
-6. Saved `.claude/state/` files and ignored reports as historical evidence only.
+7. Saved `.claude/state/` files and ignored reports as historical evidence only.
 
 Do not infer live completion from a handoff summary, an old manifest, or a
 healthy container alone. Re-run the smallest relevant read-only validator.
@@ -320,7 +332,8 @@ Run the smallest applicable scope first, then widen only as needed:
 | Scope | Command | Meaning |
 |---|---|---|
 | Handoff | `python scripts/validate_publication_readiness.py --scope handoff` | Succession docs, cross-links, privacy-safe content, pickup consistency, and paused-state evidence |
-| Core release | `python scripts/validate_publication_readiness.py --scope core` | Ten model-free public, claim, provider-budget, Kaggle, source-smoke, package-release, and package-collection gates |
+| Core release | `python scripts/validate_publication_readiness.py --scope core` | Eleven model-free public, claim, provider-budget, Kaggle, deferred-work, source-smoke, package-release, and package-collection gates |
+| Deferred work | `python scripts/validate_deferred_work.py` | Canonical owners, dependencies, boundaries, evidence paths, generated Markdown, and unresolved-token rejection |
 | Focused tests | `python -m pytest path/to/affected/tests -q` | Behavioral evidence for the edited area |
 | Package collection | `python -m pytest packages --collect-only -q` | Published package-test inventory remains discoverable |
 | Kaggle | `python scripts/validate_main_kaggle_kernels.py` and `py -3.12 scripts/validate_kaggle_page_sources.py` | Active kernel and generated-page contracts |
@@ -402,21 +415,18 @@ working tree as the sole copy of release evidence.
 
 ## Current Open Work
 
-| Priority | State at 2026-07-27 | Safe next action |
-|---|---|---|
-| P0 | Independent package-version policy is frozen; all 18 wheels and source archives build reproducibly and clean-install as a cohort, but no release commit/tag exists and every distribution remains unpublished | Choose the first package, then rerun privacy-safe scans plus core/handoff gates on the exact release commit before creating its manifest-matched tag |
-| P0 | Ownership and platform access still belong to the current maintainer | Complete the private transfer receipt and successor rehearsal; do not place credentials in Git |
-| P1 | Active Kaggle 02 and A-00 latest runs are canceled; optional 03 has no verified public URL | Rerun 02 only for a needed recording and A-00 only for a funded proof; inspect artifacts before updating claims; keep 03 source-only |
-| P1 | Five dense generic-corridor typologies need diversification; a deterministic 75-slot workbook and 12-source candidate registry now exist, with all slots unfilled and all sources training-blocked | Approve lawful immutable source snapshots, then fill the exact risk/benign/counterfactual slots with lineage and two-person adjudication; do not fabricate review |
-| P1 | Strict training quality and provenance are red | Close the curation queue, regenerate dependent artifacts sequentially, then append a new registry record through the normal path |
-| P2 | The primary generation router has an enforceable ledger and all three scheduled model-call wrappers require it before launch, but direct package/application/other standalone and self-contained notebook clients are not universally intercepted | Migrate one caller at a time with a zero-transport test; design a portable notebook receipt before broad live evaluation |
-| P2 | Per-dimension generation is complete but judging is incomplete | Keep it isolated; resume only with a frozen allowance and close the exact coverage manifest |
-| P2 | Human review evidence is limited | Adjudicate a stratified high-severity and benign-control slice and publish agreement/disagreement policy |
-| P3 | Legacy Ruff debt remains in long benchmark files | Isolate mechanical cleanup into behavior-preserving changes with regression evidence; the former constant-value pandas Styler warnings are fixed |
-| P3 | Refreshed actions passed the triggered CI, Pages, website-artifact, harness, and evaluation lanes; Docker, Helm, and PyPI publishing remain release-triggered | Validate those release-only lanes on the first approved release candidate/tag; do not dispatch a production publisher merely as a smoke test |
+The generated [`DEFERRED_WORK.md`](DEFERRED_WORK.md) register is authoritative
+and currently contains 13 explicit items: two ready for local model-free work,
+one recurring maintenance item, and ten blocked or deferred behind private
+access, human review, owner decision, or a finite approved budget. Each entry
+includes its exact prerequisites, ordered actions, evidence paths, and done
+conditions.
 
-The detailed dataset/source ideas and ordered research backlog are maintained in
-[Publication readiness](PUBLICATION_READINESS.md), not duplicated here.
+Do not copy the queue into another hand-maintained table. Update
+`configs/duecare/deferred_work.json`, regenerate the document, and run
+`python scripts/validate_deferred_work.py`. Strategic themes remain in
+[the roadmap](ROADMAP.md); release limitations remain in
+[Publication readiness](PUBLICATION_READINESS.md).
 
 ## Access And Ownership Transfer
 
@@ -491,6 +501,8 @@ check every item:
 - [ ] A restore rehearsal and a documentation-only change rehearsal succeeded.
 - [ ] The first 30-day successor backlog has an owner, evidence target, and
       model-credit budget of zero unless separately approved.
+- [ ] The deferred-work register validates and every item being transferred has
+      a named owner role and acceptance evidence.
 
 Until acceptance is complete, the safe default is preservation mode: keep the
 whole model/flywheel stack cost-stopped, make deterministic maintenance changes
