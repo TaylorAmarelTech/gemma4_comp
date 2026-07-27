@@ -36,7 +36,7 @@ and [`kaggle/_INDEX.md`](../kaggle/_INDEX.md).
 | Area | Current State |
 |---|---|
 | Offline publication core | 11/11 composed gates passed in the 2026-07-27 closeout candidate, including provider-budget coverage, deferred-work integrity, and package-release ownership/install truth; rerun `python scripts/validate_publication_readiness.py --scope core` on the release commit. |
-| Public deployment | Pull request 7 is the latest verified integrated baseline at `1e1e8b5eac7a58b837b5782de2f11c1ca5a8d5dc`; all 16 PR checks, six merge-triggered workflows, MkDocs Pages, website artifact, Render project status, and all six schema routes passed. The latest 587-link audit found zero confirmed broken links and 12 transient/unverified hosts. |
+| Public deployment | Pull request 8 is the latest validated substantive baseline at `9385a837879209e18f8e013cf969a3e1ecbcfc91`; all 16 PR checks, six merge-triggered workflows, MkDocs Pages, website artifact, Render project status, and all six schema routes passed. The latest 588-link audit found zero confirmed broken links and nine transient/unverified hosts. |
 | Curator governance | Inline grading guidance covers all 75 universal rubric dimensions; the strict curator validator reports zero errors and zero warnings, and CI now fails on either. |
 | Broad tests | Closeout 18-package `packages tests` run under the zero-call transport lock: 4,637 passed, 9 skipped with no warning summary. The focused 43-test kit run also passes with `RuntimeWarning` promoted to an error. |
 | Model/flywheel cost stop | All five recurring Windows tasks disabled, four daemon sentinels present, and zero verified repository daemon processes; inspect with `scripts/stop_ollama_stack.ps1 -Status`. |
