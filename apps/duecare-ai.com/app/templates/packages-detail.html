@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>corridor/qa-np · DueCare AI</title>
+<title>Illustrative corridor-pack schema · DueCare AI</title>
 <link rel="stylesheet" href="/static/styles.css" />
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%230E1116'/%3E%3Ctext x='16' y='21' text-anchor='middle' font-family='monospace' font-weight='700' font-size='14' fill='%23F7F6F1'%3ED%3C/text%3E%3C/svg%3E" />
 </head>
@@ -20,21 +20,20 @@
     </div>
     <div style="display:grid;grid-template-columns:1fr auto;gap:32px;align-items:end;margin-top:8px;">
       <div>
-        <span class="kicker">corridor pack · v3.2.1</span>
-        <h1 style="margin-top:14px;">Qatar ↔ Nepal corridor</h1>
-        <p class="lede">Recruitment-fee rules, KAFALA references, public advisories,
-          and a curated contact directory. Used as RAG context by the local DueCare
-          harness when caseworkers operate in this corridor.</p>
+        <span class="kicker">Illustrative corridor-pack schema · not a release</span>
+        <h1 style="margin-top:14px;">Qatar ↔ Nepal example</h1>
+        <p class="lede">This page demonstrates the proposed shape of a corridor
+          pack. Its versions, counts, signatures, checksums, contacts, and changelog
+          are synthetic interface examples, not a downloadable or verified pack.</p>
         <div class="row" style="margin-top:18px;">
-          <span class="badge verified">Verified · curator-04 signed 2026-05-04</span>
+          <span class="badge">Illustrative preview</span>
           <span class="badge no-pii">contains_raw_pii: false</span>
-          <span class="badge">CC-BY-SA 4.0</span>
-          <span class="badge version">sha 7c3f…a91d</span>
+          <span class="badge">No live-release claim</span>
         </div>
       </div>
       <div class="row" style="gap:8px;">
-        <a href="#" class="btn btn-ghost">View on GitHub</a>
-        <a href="#" class="btn">Pull pack <span class="arrow">→</span></a>
+        <a href="https://github.com/TaylorAmarelTech/gemma4_comp/blob/master/docs/knowledge_module_schema.md" class="btn btn-ghost" rel="noopener">View schema on GitHub</a>
+        <a href="/knowledge-packs" class="btn">Browse the live registry <span class="arrow">→</span></a>
       </div>
     </div>
   </div>
@@ -79,10 +78,11 @@
         </div>
       </div>
 
-      <h3 style="margin-top:48px;margin-bottom:14px;">Pull command</h3>
+      <h3 style="margin-top:48px;margin-bottom:14px;">Proposed pull contract</h3>
       <div class="code-block">
         <div class="code-bar"><span>shell</span><button class="copy" onclick="copyBlock(this)">Copy</button></div>
-<pre><span class="tok-fn">duecare</span> packs pull <span class="tok-s">"corridor/qa-np@3.2.1"</span>
+<pre><span class="tok-c"># Illustrative only: this preview is not a published pack.</span>
+<span class="tok-fn">duecare</span> packs pull <span class="tok-s">"corridor/qa-np@3.2.1"</span>
 <span class="tok-fn">duecare</span> packs verify <span class="tok-s">"corridor/qa-np"</span>
 <span class="tok-c"># sha must match: 7c3f3a8d5e4b8f1c9d2a3b4c5d6e7f8901a2b3c4 …a91d</span></pre>
       </div>
@@ -134,23 +134,23 @@
         <span class="label">Provenance</span>
         <h4 style="margin-top:8px;">38 public sources</h4>
         <p class="muted" style="font-size:13px;margin-top:6px;">Government advisories, ILO references, public NGO publications, and recruitment-authority registries. Every claim cites the public URL.</p>
-        <a href="#" style="font-family:var(--mono);font-size:12px;border-bottom:1px dashed var(--ink-3);margin-top:10px;display:inline-block;">View source list →</a>
+        <a href="/source-verification" style="font-family:var(--mono);font-size:12px;border-bottom:1px dashed var(--ink-3);margin-top:10px;display:inline-block;">Source-verification boundary →</a>
       </div>
       <div class="card">
         <span class="label">Used by</span>
         <h4 style="margin-top:8px;">3 tools · 2 grep packs</h4>
         <ul style="margin-top:8px;list-style:none;padding:0;display:flex;flex-direction:column;gap:6px;font-size:13.5px;">
-          <li><a href="#"><code>tools/complaint-draft</code></a></li>
-          <li><a href="#"><code>tools/contact-router</code></a></li>
-          <li><a href="#"><code>tools/fee-checker</code></a></li>
-          <li><a href="#"><code>grep-rules/recruitment</code></a></li>
+          <li><a href="/tools"><code>tools/complaint-draft</code></a></li>
+          <li><a href="/tools"><code>tools/contact-router</code></a></li>
+          <li><a href="/tools"><code>tools/fee-checker</code></a></li>
+          <li><a href="/grep-rules"><code>grep-rules/recruitment</code></a></li>
         </ul>
       </div>
       <div class="card">
         <span class="label">Reproduce</span>
         <h4 style="margin-top:8px;">Re-run the eval</h4>
         <p class="muted" style="font-size:13px;margin-top:6px;">Run the public benchmark notebook to confirm scores against this pack version.</p>
-        <a href="#" class="btn btn-ghost" style="margin-top:10px;">Open Kaggle notebook</a>
+        <a href="https://www.kaggle.com/code/taylorsamarel/duecare-deterministic-verification" class="btn btn-ghost" rel="noopener" style="margin-top:10px;">Open verified Kaggle notebook</a>
       </div>
     </aside>
   </div>

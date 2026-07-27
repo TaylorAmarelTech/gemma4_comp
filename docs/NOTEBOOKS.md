@@ -20,12 +20,18 @@ Slugs follow `https://www.kaggle.com/code/taylorsamarel/<slug>` for notebooks
 and `https://www.kaggle.com/datasets/taylorsamarel/<slug>` for datasets.
 
 Live reconciliation on 2026-07-27 used the authenticated Kaggle command line
-plus unauthenticated public-page checks. The owner listing contained 51
-DueCare-named kernels, including private/unpublished drafts, so owner listing
-alone is not evidence that a notebook is public. Direct checks confirmed the
-Prompt Intent notebook is public and `COMPLETE`; the active/optional kernel
+plus unauthenticated public-page checks. The owner listing contains many legacy
+and private/unpublished drafts, so owner listing alone is not evidence that a
+notebook is public. Direct checks confirmed the Prompt Intent and Deterministic
+Verification notebooks are public and `COMPLETE`; the active/optional kernel
 status boundary is maintained in
 [`current_kaggle_notebook_state.md`](current_kaggle_notebook_state.md).
+
+The same closeout pass validated all three active script-kernel sources, all
+five active/optional root kernels, generated page-source references, and 31
+focused Kaggle/notebook contract tests. Those are offline source and execution-
+contract checks; they do not relabel canceled Kaggle runs as complete and did
+not dispatch a new remote run.
 
 ---
 
@@ -87,7 +93,7 @@ Python around the harness primitives.
 | queued | Knowledge Base Explorer (`duecare-knowledge-base-explorer`) | Browse the GREP rules, the RAG corpus, the ILO instruments, and the corridor fee-caps behind the harness. |
 | queued | Getting Started (`duecare-getting-started`) | A one-page hub: set DueCare up in minutes, plus a catalog of every published surface. |
 | queued | Fact Check And Reproducibility (`duecare-fact-check-and-reproducibility`) | Verify the headline numbers and reproduce them from the public data. |
-| queued | Deterministic Verification (`duecare-deterministic-verification`) | Offline verification tutorial; present in the owner listing but its public URL returned 404 on 2026-07-27. |
+| live | [Deterministic Verification](https://www.kaggle.com/code/taylorsamarel/duecare-deterministic-verification) | Offline verification tutorial; anonymous page returned 200 and authenticated status was `COMPLETE` on 2026-07-27. |
 
 ## Publication queue and stopping decision
 

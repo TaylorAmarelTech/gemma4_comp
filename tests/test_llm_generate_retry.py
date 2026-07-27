@@ -40,6 +40,14 @@ class _FakeResp:
 
 def _patch(monkeypatch, urlopen):
     monkeypatch.setattr(lg, "_load_key", lambda: "k")
+    # These cases exercise a fake transport. Keep an operator's ambient
+    # zero-call ledger from short-circuiting the mock; dedicated tests below
+    # cover the real budget denial and reservation behavior explicitly.
+    monkeypatch.setattr(
+        lg.provider_budget,
+        "environment_ledger",
+        lambda: lg.provider_budget.DisabledProviderBudget(),
+    )
     # Exercise the legacy urlopen transport (the DUECARE_HTTP_POOL=0 fallback)
     # so these assertions keep hitting the mock. The pooled transport has its own tests.
     monkeypatch.setattr(lg, "_HTTP_POOL_ENABLED", False)

@@ -52,10 +52,35 @@ if (Test-Path $envFile) {
     $idx = $line.IndexOf('='); if ($idx -lt 1) { continue }
     $k = $line.Substring(0, $idx).Trim()
     $v = $line.Substring($idx + 1).Trim().Trim('"').Trim("'")
-    if ($k) { Set-Item -Path "Env:$k" -Value $v }
+    if ($k -and -not (Test-Path -LiteralPath "Env:$k")) { Set-Item -Path "Env:$k" -Value $v }
   }
 }
 $env:PYTHONUTF8 = '1'; $env:PYTHONIOENCODING = 'utf-8'
+
+function Assert-ExplicitProviderBudget {
+  [int]$maxCalls = 0
+  $rawMaxCalls = [Environment]::GetEnvironmentVariable('DUECARE_MAX_PLANNED_MODEL_CALLS', 'Process')
+  if (-not [int]::TryParse($rawMaxCalls, [ref]$maxCalls) -or $maxCalls -le 0) {
+    throw 'Autonomous engine is cost-locked: set an explicit positive DUECARE_MAX_PLANNED_MODEL_CALLS and the finite provider-budget variables before launch.'
+  }
+  foreach ($name in @(
+    'DUECARE_PROVIDER_RUN_ID',
+    'DUECARE_MAX_INPUT_TOKENS',
+    'DUECARE_MAX_OUTPUT_TOKENS',
+    'DUECARE_MAX_PROVIDER_COST_USD'
+  )) {
+    if ([string]::IsNullOrWhiteSpace([Environment]::GetEnvironmentVariable($name, 'Process'))) {
+      throw "Autonomous engine is cost-locked: required provider-budget variable $name is missing."
+    }
+  }
+  $pricingFile = [Environment]::GetEnvironmentVariable('DUECARE_PROVIDER_PRICING_FILE', 'Process')
+  $allowUnknown = [Environment]::GetEnvironmentVariable('DUECARE_ALLOW_UNKNOWN_PROVIDER_COST', 'Process')
+  if ([string]::IsNullOrWhiteSpace($pricingFile) -and $allowUnknown -notmatch '^(?i:1|true|yes|on)$') {
+    throw 'Autonomous engine is cost-locked: configure DUECARE_PROVIDER_PRICING_FILE or explicitly record DUECARE_ALLOW_UNKNOWN_PROVIDER_COST=1.'
+  }
+  & $py (Join-Path $repo 'scripts\provider_budget.py') | Out-Host
+  if ($LASTEXITCODE -ne 0) { throw 'Autonomous-engine provider-budget preflight failed.' }
+}
 
 function Get-VerifiedEngineProcess {
   param([Parameter(Mandatory = $true)][int]$ProcessId)
@@ -137,6 +162,15 @@ if ($WatchdogRun -and (Test-Path -LiteralPath $stopFile -PathType Leaf)) {
   Write-Host "Autonomous engine remains paused; watchdog is a no-op until an explicit -Run."
   Set-EngineExitCode 0
   return
+}
+if ($Run -or $Once -or $WatchdogRun) {
+  try {
+    Assert-ExplicitProviderBudget
+  } catch {
+    Write-Host "Autonomous engine not launched; provider-budget preflight failed: $($_.Exception.Message)"
+    Set-EngineExitCode 2
+    return
+  }
 }
 if ($Preflight) {
   Invoke-EnginePreflight -SkipOllama:$NoOllamaCheck -IgnoreStopSentinel:$IgnoreStopSentinel

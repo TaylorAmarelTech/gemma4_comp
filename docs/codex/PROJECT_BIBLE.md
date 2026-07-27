@@ -97,17 +97,21 @@ explicitly asks to restore them.
 >   2026-07-21 00:25 through 2026-07-26. The flywheel manager now watches both signals, so a live
 >   provider-failure pass is not force-restarted merely because no panel row was appended. Nothing
 >   is lost: the sweep is resumable and the seeded shuffle keeps any completed prefix unbiased.
-> - **The engine is now cleanly PAUSED and will NOT auto-resume.** `reports/autonomous_engine.stop`
->   was created 2026-07-24 21:28; the engine ran to `2026-07-25T05:28Z` and has been stopped since.
->   `python scripts/autonomous_engine.py --status` reports `paused=true` with a stale lock (pid
->   40920). Scheduled watchdog ticks now exit 0 before preflight while the sentinel exists, so they
->   neither call Ollama nor rewrite paused readiness evidence. **Resuming requires an explicit
->   `scripts/autonomous_engine.ps1 -Run`** -- Taylor's call; the wrapper rechecks provider readiness
->   and removes the sentinel only after launch preflight succeeds. A state-only, no-Ollama preflight
->   was refreshed on 2026-07-26; `validate_project_bible_pickup.py` reports 65 checks, 0 findings.
+> - **The whole model/flywheel stack is now cost-stopped and will NOT auto-resume.** The main
+>   engine remains paused with its stale historical lock, but a 2026-07-27 live audit found that its
+>   sentinel had not stopped the independent discovery, server-automation, and orchestrator
+>   watchdogs. Those process trees were stopped without deleting reports; all five recurring tasks
+>   are disabled and four daemon sentinels are present. All three scheduled model-call wrappers now
+>   require a positive finite provider budget before launch. Inspect host truth with
+>   `scripts/stop_ollama_stack.ps1 -Status`; explicit `-Resume` removes sentinels and re-enables
+>   tasks but launches nothing directly. Historical background usage had no local provider ledger
+>   and must be reconciled privately. `validate_project_bible_pickup.py` remains the portable
+>   state-only pickup check.
 > - **Full suite re-verified green on 2026-07-27:** the integrated combined
->   `packages tests` run passed **4,627 tests, 9 skipped** with no warning
->   summary. The former pandas Styler constant-range warnings are fixed; a
+>   `packages tests` run passed **4,630 tests, 9 skipped** with no warning
+>   summary under the zero-call transport lock. Mocked/loopback provider tests
+>   now isolate their fake transports explicitly while the real zero-call
+>   denial tests stay enforced. The former pandas Styler constant-range warnings are fixed; a
 >   focused 43-test package run also passed with `RuntimeWarning` promoted to
 >   an error. This supersedes the 2026-07-26 4,589-test receipt, the earlier
 >   separate counts, and the
