@@ -61,7 +61,12 @@ The project has reached a good stopping point when:
   merged through pull request 2 to `master` as
   `07cfdbfd00e1bc304ffc1f8b2736c4d93bbf0eab`. Post-merge CI, MkDocs Pages,
   the artifact-only website build, and the Render project-status route were
-  verified on 2026-07-26. Use current `master` as the integrated base.
+  verified on 2026-07-26. Pull request 4 then merged the final public-surface,
+  package-release, Kaggle-link, and handoff reconciliation as
+  `dc313814d9f42e127b24191b7912fd521083fadd` on 2026-07-27. Its post-merge CI
+  and both public deployment paths passed; all six schema routes returned 200
+  and the refreshed 577-link audit found zero confirmed breakage. Use current
+  `master` as the integrated base.
 - Land this handoff, transition plan, deterministic handoff validator, purpose
   maps, and navigation links.
 - Confirm the canonical active Kaggle surfaces and keep optional/archived lanes
@@ -195,7 +200,7 @@ or billing information.
 | Entity-intelligence pipeline | Propose-only, curator-reviewed, separate from worker-facing and training paths | A reviewed governance and evidence-admission change is approved |
 | Kaggle surface inventory | `01`, `02`, and `A-00` active; `03` and `04` optional; notebook-era variants archived | Root `AGENTS.md` and `kaggle/_INDEX.md` change together |
 | Release version/tag | Pending a deliberate owner decision | Week 2 release-candidate reconciliation is reviewed |
-| Target branch | Root rules name `master`; pull request 2 merged the reconciled closeout as `07cfdbfd00e1bc304ffc1f8b2736c4d93bbf0eab`, and post-merge CI plus both public deployment paths were verified | Continue from current `master`; rerun gates on the exact candidate before any tag |
+| Target branch | Root rules name `master`; pull request 4 merged the final reconciliation as `dc313814d9f42e127b24191b7912fd521083fadd`, and post-merge CI plus both public deployment paths were verified | Continue from current `master`; rerun gates on the exact candidate before any tag |
 | Successor | Transfer path preferred; maintenance mode is the safe fallback | A successor accepts and completes the rehearsal |
 
 ## Exit Criteria

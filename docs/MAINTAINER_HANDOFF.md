@@ -51,12 +51,24 @@ first closeout deliberately left for live verification:
   workflow now owns publication and fails closed while package versions differ;
 - official current GitHub Action majors were checked through GitHub and the
   workflows were refreshed (including checkout/setup, artifacts, Pages, cache,
-  Docker, and Helm). GitHub-hosted CI must confirm the new majors after merge;
+  Docker, and Helm). The triggered post-merge CI, Pages, website-artifact,
+  harness-contract, and evaluation workflows confirmed the refreshed actions;
 - the website now serves the six schema URLs it advertised, labels Kaggle
   execution state, and links the verified Prompt Intent notebook; and
 - the external-link checker now distinguishes confirmed breakage from network
   or bot-blocked hosts, checks concurrently, and no longer mistakes private
   owner listings or API endpoints for verified public pages.
+
+The reconciliation landed through
+[pull request 4](https://github.com/TaylorAmarelTech/gemma4_comp/pull/4) as
+`dc313814d9f42e127b24191b7912fd521083fadd`. Its
+[post-merge CI](https://github.com/TaylorAmarelTech/gemma4_comp/actions/runs/30273583863),
+[MkDocs Pages deployment](https://github.com/TaylorAmarelTech/gemma4_comp/actions/runs/30273583750),
+and [website artifact build](https://github.com/TaylorAmarelTech/gemma4_comp/actions/runs/30273583802)
+passed. The live project-status page and all six advertised schema endpoints
+returned 200, and the post-deploy audit checked 577 external links with zero
+confirmed broken links and 10 transient/unverified hosts. This supersedes the
+pre-deploy observations while retaining the earlier receipt as history.
 
 No Kaggle notebook, PyPI distribution, model, dataset, or release was published
 by this reconciliation. Candidate notebooks stay queued until one closes a
@@ -283,7 +295,6 @@ working tree as the sole copy of release evidence.
 |---|---|---|
 | P0 | Release commit/tag and package-version policy are not frozen; all 18 distributions remain unpublished | Choose the bounded release claim and coordinated/per-package policy, reconcile versions/changelog, then run privacy-safe scans and core/handoff gates on the exact commit |
 | P0 | Ownership and platform access still belong to the current maintainer | Complete the private transfer receipt and successor rehearsal; do not place credentials in Git |
-| P0 | Six new website schema routes pass locally but the pre-deploy live URLs still return 404 | Merge/deploy the reviewed candidate, verify all six return 200, then rerun the 571-link external audit |
 | P1 | Active Kaggle 02 and A-00 latest runs are canceled; optional 03 has no verified public URL | Rerun 02 only for a needed recording and A-00 only for a funded proof; inspect artifacts before updating claims; keep 03 source-only |
 | P1 | Five dense generic-corridor typologies need diversification | Curate the manifest-planned 25 tasks / minimum 75 rows with lawful sources, lineage, and adjudication |
 | P1 | Strict training quality and provenance are red | Close the curation queue, regenerate dependent artifacts sequentially, then append a new registry record through the normal path |
@@ -291,7 +302,7 @@ working tree as the sole copy of release evidence.
 | P2 | Per-dimension generation is complete but judging is incomplete | Keep it isolated; resume only with a frozen allowance and close the exact coverage manifest |
 | P2 | Human review evidence is limited | Adjudicate a stratified high-severity and benign-control slice and publish agreement/disagreement policy |
 | P3 | Legacy Ruff debt remains in long benchmark files | Isolate mechanical cleanup into behavior-preserving changes with regression evidence; the former constant-value pandas Styler warnings are fixed |
-| P3 | GitHub Action majors are refreshed locally from official current releases | Confirm CI, Pages, website-artifact, scheduled, Docker, and Helm workflows before treating the runtime warning as closed |
+| P3 | Refreshed actions passed the triggered CI, Pages, website-artifact, harness, and evaluation lanes; Docker, Helm, and PyPI publishing remain release-triggered | Validate those release-only lanes on the first approved release candidate/tag; do not dispatch a production publisher merely as a smoke test |
 
 The detailed dataset/source ideas and ordered research backlog are maintained in
 [Publication readiness](PUBLICATION_READINESS.md), not duplicated here.
