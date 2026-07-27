@@ -406,7 +406,7 @@ worker-facing answers, benchmark labels, or training rows automatically.
   independent SemVer, and `configs/duecare/package_release.toml` reconciles the
   intentionally mixed versions with the sole publisher. `CITATION.cff` still
   describes living research software because no registry release exists yet.
-- The post-deploy concurrent external audit checked 588 outbound links on
+- The post-deploy concurrent external audit checked 592 outbound links on
   2026-07-27 with zero confirmed broken links. All six same-site schema URLs
   returned 200; nine additional hosts were transient, DNS/SSL-blocked,
   redirect-looped, or bot-blocked and remain explicitly unverified rather than

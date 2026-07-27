@@ -73,7 +73,7 @@ The project has reached a good stopping point when:
   validated substantive baseline is pull request 8 on `master`, merge commit
   `9385a837879209e18f8e013cf969a3e1ecbcfc91`. Its 16 pull-request checks and
   all six merge-triggered workflows passed. Render, MkDocs Pages, the portable
-  website build, and all six schema routes were live; the refreshed 588-link
+  website build, and all six schema routes were live; the refreshed 592-link
   audit found zero confirmed breakage and kept nine transient/unverified hosts
   separate. Use live `master` as the base and rerun gates on every later
   candidate.

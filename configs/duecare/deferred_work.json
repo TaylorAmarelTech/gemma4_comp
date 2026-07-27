@@ -53,19 +53,23 @@
       "depends_on": [],
       "prerequisites": [
         "A named authorized successor or a named private maintenance owner",
-        "Least-privilege access to every platform listed in the private transfer receipt"
+        "Least-privilege access to every platform listed in the private transfer receipt",
+        "A reviewed hosting disposition that keeps Render, moves the public domain to a backend-free GitHub Pages fallback, or retains both during a timed rollback window"
       ],
       "next_actions": [
         "Invite the successor with least privilege and verify login, recovery, billing visibility, audit-log access, and revocation paths one platform at a time.",
         "Complete the private transfer receipt without copying personal contacts, recovery answers, credentials, or billing records into Git.",
+        "Before retiring Render, publish the backend-free static bundle from a dedicated GitHub Pages repository at a domain root, label or disable stateful features, verify the public route set, and retain a tested DNS rollback window.",
         "Remove outgoing access only after the successor demonstrates recovery and the successor rehearsal passes on the final revision."
       ],
       "acceptance_gates": [
         "Every platform row in the private receipt has a dated owner and tested recovery path.",
+        "If Render is retired, duecare-ai.com serves the reviewed static fallback without calling the retired backend, while the existing MkDocs project site remains available.",
         "The successor rehearsal passes from a fresh shell on the final revision.",
         "Outgoing access removal has a retained private audit record."
       ],
       "evidence": [
+        "apps/duecare-ai.com/DEPLOY_STATIC.md",
         "docs/PRIVATE_TRANSFER_RECEIPT_TEMPLATE.md",
         "docs/MAINTAINER_HANDOFF.md",
         "docs/SUCCESSOR_REHEARSAL.md"
@@ -206,30 +210,32 @@
     },
     {
       "id": "bounded-model-smoke",
-      "title": "Run a small frozen model smoke matrix",
-      "priority": "P2",
+      "title": "Run a small frozen frontier model smoke matrix",
+      "priority": "P1",
       "status": "deferred_budget",
       "owner_role": "Model-spend approver and benchmark maintainer",
       "target": "Only after provider reconciliation and an approved finite run plan",
-      "reason": "A live smoke matrix consumes provider quota and is unnecessary for repository maintenance closure.",
+      "reason": "Kimi K3 and Meta Muse Spark 1.1 are important new comparison targets, but a live smoke matrix consumes provider quota and is unnecessary for repository maintenance closure.",
       "model_credit_policy": "nonzero_requires_owner_approval",
       "network_policy": "owner_authorized_write",
       "depends_on": [
         "provider-usage-reconciliation"
       ],
       "prerequisites": [
-        "Reviewed immutable provider model identifiers and dated pricing",
+        "At execution time, reverify the dated catalog identities and pricing for Kimi K3 (currently kimi-k3:cloud on Ollama or moonshotai/kimi-k3 on OpenRouter) and Meta Muse Spark 1.1 (currently meta/muse-spark-1.1 on OpenRouter or the then-current Meta Model API identifier)",
         "A unique run ID with finite attempt, input-token, output-token, and cash caps",
         "A frozen prompt, rubric, harness, decoding, cache, and stop-condition manifest"
       ],
       "next_actions": [
         "Generate and review a no-call plan before changing any stop or budget setting.",
         "Configure the shared provider ledger and prove its sanitized receipt with python scripts/provider_budget.py --json.",
+        "Include Kimi K3 and Meta Muse Spark 1.1 as required candidate lanes on the same frozen text slice; stage any multimodal extension separately, and record unavailable access instead of silently substituting another model.",
         "Run only the approved matrix, preserve checkpoints and cache keys, then restore the whole-stack cost stop."
       ],
       "acceptance_gates": [
         "Reserved and actual attempts, tokens, and cost reconcile to the approved allowance.",
         "Every output is bound to immutable inputs and can resume without duplicate calls.",
+        "The report contains an immutable result receipt for both Kimi K3 and Meta Muse Spark 1.1, or dated provider evidence that a required lane was unavailable.",
         "scripts/stop_ollama_stack.ps1 -Status reports the complete cost stop after the run."
       ],
       "evidence": [
