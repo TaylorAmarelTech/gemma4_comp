@@ -20,11 +20,13 @@ life-cycle risk.
 3. `docs/PROJECT_TRANSITION_PLAN.md` - dated 2026-07-26 through 2026-08-25
    closeout, rehearsal, release decision, and maintenance-mode fallback.
 4. `docs/PUBLICATION_READINESS.md` - canonical release/evidence boundary and
-   prioritized model/data work.
-5. `CLAUDE.md` - Claude Code index and project memory map.
-6. `docs/codex/00_do_not_break.md` - recording-critical contract.
-7. `docs/codex/00_execution_order.md` - historical goal order and dependencies.
-8. `docs/FILE_PURPOSE_GUIDE.md` and `docs/REPO_LAYOUT.md` - update these when
+   limitations.
+5. `docs/DEFERRED_WORK.md` - generated owners, prerequisites, authorization
+   boundaries, next actions, evidence, and acceptance gates for unfinished work.
+6. `CLAUDE.md` - Claude Code index and project memory map.
+7. `docs/codex/00_do_not_break.md` - recording-critical contract.
+8. `docs/codex/00_execution_order.md` - historical goal order and dependencies.
+9. `docs/FILE_PURPOSE_GUIDE.md` and `docs/REPO_LAYOUT.md` - update these when
    adding public surfaces or long-lived docs outside an existing indexed area.
 
 Claude Code also auto-loads `.claude/rules/05_project_bible_pickup.md`, a
@@ -44,26 +46,30 @@ explicitly asks to restore them.
 
 > **Re-verified 2026-07-27 -- read this box before trusting the 2026-07-14 snapshot below.**
 >
-> - **Branch reconciliation is complete; publication is still open.** Root
->   `AGENTS.md` names `master` as the active branch. Pull request 4 merged the
->   final repository and public-surface reconciliation on 2026-07-27 as
->   `dc313814d9f42e127b24191b7912fd521083fadd`; its post-merge CI, Pages, and
->   website artifact workflows passed. Verify live Git state and rerun the
->   release gates on any later candidate rather than tagging an earlier commit.
+> - **Repository reconciliation is complete; release disposition is an owner
+>   decision.** Root `AGENTS.md` names `master` as the active branch. Pull
+>   request 7 is the latest verified integrated baseline at
+>   `1e1e8b5eac7a58b837b5782de2f11c1ca5a8d5dc`; all 16 PR checks and all six
+>   merge-triggered workflows passed. Verify live Git state and rerun the
+>   release gates on any later candidate rather than inheriting that receipt.
 > - **Canonical stopping point:** start with
->   `docs/PUBLICATION_READINESS.md`. Its model-free core lane passed 10/10 checks
+>   `docs/PUBLICATION_READINESS.md`. Its model-free core lane passed 11/11 checks
 >   on 2026-07-27; the separate training lane intentionally remains red on five
 >   dense generic-corridor typologies, with a privacy-safe 25-task / 75-row
 >   curation plan. A deterministic 75-slot workbook now enforces source,
 >   lineage, duplicate, language, privacy, and two-person adjudication gates;
 >   it remains honestly empty and no new model or adapter-improvement claim is
 >   ready.
+> - **Canonical unfinished work:** `docs/DEFERRED_WORK.md` is generated from a
+>   validated JSON registry. It distinguishes model-free local maintenance from
+>   private-access, human-review, owner-decision, recurring, and budget-gated
+>   work and supplies exact acceptance evidence for all 13 items.
 > - **Succession is now an explicit 30-day workstream.** Use
 >   `docs/MAINTAINER_HANDOFF.md` for operational pickup and
 >   `docs/PROJECT_TRANSITION_PLAN.md` for the 2026-08-25 target. The read-only
 >   `validate_publication_readiness.py --scope handoff` composes document/link/
 >   privacy checks with live pickup consistency. It passed 2/2 gates on
->   2026-07-27 (16/16 succession checks and the 65-check pickup validator with
+>   2026-07-27 (17/17 succession checks and the 65-check pickup validator with
 >   zero findings); it never authorizes model calls or engine resume.
 > - **The primary generation router now enforces a shared provider budget.**
 >   `scripts/provider_budget.py` reserves attempt, input-token, output-token,
@@ -79,7 +85,7 @@ explicitly asks to restore them.
 >   distributions remain unpublished on PyPI. The sole OIDC publisher now uses
 >   a reviewed independent-SemVer manifest and one-package production tags.
 >   Render serves project status
->   plus all six advertised schema endpoints, and the post-deploy 577-link audit
+>   plus all six advertised schema endpoints, and the post-deploy 587-link audit
 >   found zero confirmed broken links. `ollama ps` showed no loaded model.
 > - **Generation is COMPLETE.** `reports/rich_lift/panel_perdim.coverage.json` reports
 >   `response_cells 236,157 / 236,157, 0 missing`. Every Gemma response for 78,719 prompts x 3 arms
@@ -108,7 +114,7 @@ explicitly asks to restore them.
 >   and must be reconciled privately. `validate_project_bible_pickup.py` remains the portable
 >   state-only pickup check.
 > - **Full suite re-verified green on 2026-07-27:** the integrated combined
->   `packages tests` run passed **4,630 tests, 9 skipped** with no warning
+>   `packages tests` run passed **4,637 tests, 9 skipped** with no warning
 >   summary under the zero-call transport lock. Mocked/loopback provider tests
 >   now isolate their fake transports explicitly while the real zero-call
 >   denial tests stay enforced. The former pandas Styler constant-range warnings are fixed; a

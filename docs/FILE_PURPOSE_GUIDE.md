@@ -27,7 +27,7 @@ published evidence.
 | Public website | `apps/duecare-ai.com/README.md`, `/project-status`, page templates, route and static-export tests |
 | Python packages | Each package `README.md`, package tests, generated component docs |
 | Agent handoff | `AGENTS.md`, `CLAUDE.md`, `PROJECT_BIBLE.md`, `Plans.md`, `.claude/rules/` |
-| Maintainer succession | `docs/MAINTAINER_HANDOFF.md`, `docs/PROJECT_TRANSITION_PLAN.md`, `docs/SUCCESSOR_REHEARSAL.md`, `docs/PRIVATE_TRANSFER_RECEIPT_TEMPLATE.md` |
+| Maintainer succession | `docs/MAINTAINER_HANDOFF.md`, `docs/PROJECT_TRANSITION_PLAN.md`, `docs/DEFERRED_WORK.md`, `docs/SUCCESSOR_REHEARSAL.md`, `docs/PRIVATE_TRANSFER_RECEIPT_TEMPLATE.md` |
 | Competition docs | `docs/FOR_KAGGLE_JUDGES.md`, `docs/kaggle_writeup_paste_ready.md`, `docs/kaggle_post_networked_knowledge_sharing.md`, `docs/video_script.md` |
 | Publication and peer review | `docs/PUBLICATION_READINESS.md`, `docs/FOR_PEER_REVIEW.md`, `docs/reproducibility.md` |
 
@@ -58,12 +58,18 @@ added to `ROOT_FILES.md` with a durable reason.
 Durable training helpers in `scripts/` must be discoverable from
 `docs/training_and_finetuning.md`. For example,
 `scripts/validate_publication_readiness.py` is the model-free release wrapper:
-its core scope composes the portable public, claim, Kaggle, package-release, and collection
+its core scope composes eleven portable public, claim, Kaggle, deferred-work,
+package-release, and collection
 gates; its handoff scope composes succession and live-pickup checks; and its
 separate training scope preserves an honest red result when strict dataset or
 provenance checks are not yet clean. `scripts/validate_maintainer_handoff.py`
 checks the two current succession documents, their discovery/local links, and
-privacy-safe content without calling a model or network service.
+privacy-safe content plus the generated deferred-work register without calling
+a model or network service.
+`scripts/build_deferred_work_register.py` renders `docs/DEFERRED_WORK.md` from
+`configs/duecare/deferred_work.json`; `scripts/validate_deferred_work.py`
+rejects stale rendering, missing evidence, invalid dependencies, unsafe cost or
+network boundaries, empty fields, and unresolved tokens.
 `scripts/rehearse_successor_pickup.py` composes the handoff, core, notebook,
 archive, and paused-engine checks into a fresh-shell rehearsal and stores only
 hashed/count metadata in an ignored receipt.

@@ -1,6 +1,6 @@
 ﻿# Repository Layout
 
-Current as of 2026-07-15.
+Current as of 2026-07-27.
 
 | Path | Purpose | Status |
 |---|---|---|
@@ -11,7 +11,7 @@ Current as of 2026-07-15.
 | [`kaggle/`](../kaggle/) | Active Kaggle submission path plus archived notebook-era material. Source of truth: [`kaggle/_INDEX.md`](../kaggle/_INDEX.md). | Live |
 | [`kaggle/01-duecare-exploration-workbench/`](../kaggle/01-duecare-exploration-workbench/) | Broad interactive workbench: chat, harness comparison, search, extraction, traces, and knowledge flows. | Active |
 | [`kaggle/02-live-demo/`](../kaggle/02-live-demo/) | Focused demo/video path. | Active |
-| [`kaggle/A-00-omni-experiment-workbench/`](../kaggle/A-00-omni-experiment-workbench/) | Active quantitative proof source: baseline, harness, candidate rows, guarded SFT&rarr;DPO, judging, and report exports. The public Kaggle copy attaches the proof dataset; execution/artifact review is still pending. | Active source; public update pushed |
+| [`kaggle/A-00-omni-experiment-workbench/`](../kaggle/A-00-omni-experiment-workbench/) | Active quantitative proof source: baseline, harness, candidate rows, guarded SFT&rarr;DPO, judging, and report exports. The public Kaggle copy attaches the proof dataset; its latest run is canceled and is not completion evidence. | Active source; rerun only for funded proof |
 | [`kaggle/shared-datasets/training-data/`](../kaggle/shared-datasets/training-data/) | Documentation-only contract and placeholder metadata for a future full advanced SFT/preference Kaggle Dataset; contains no rows or active `dataset-metadata.json`. The separate combined proof dataset, exact-row SFT/preference views, and CPU companion notebooks are indexed in `kaggle/_INDEX.md`. | Template only; public proofs are separate |
 | [`kaggle/03-universal-llm-benchmark/`](../kaggle/03-universal-llm-benchmark/) | Optional endpoint-comparison kernel for arbitrary API targets, DueCare prompt/rubric cues, and Claude Opus judging. | Optional |
 | [`kaggle/04-kaggle-community-benchmark/`](../kaggle/04-kaggle-community-benchmark/) | Optional Kaggle Community Benchmark surface using `kaggle_benchmarks` and Kaggle model proxy calls. | Optional |
@@ -19,7 +19,7 @@ Current as of 2026-07-15.
 | [`docs/`](index.md) | Current docs plus archived historical docs. Main reviewer entry: [`FOR_PEER_REVIEW.md`](FOR_PEER_REVIEW.md). | Live |
 | [`docs/training_and_finetuning.md`](training_and_finetuning.md) | Public, executable guide to training-data export, local Ollama candidate generation, lineage-safe SFT/DPO preparation, immutable Gemma 4 revisions, Kaggle A-00 execution, and four-arm evaluation. | Live |
 | [`docs/research/`](https://github.com/TaylorAmarelTech/gemma4_comp/tree/master/docs/research) | Public research evidence, methods, and status reports. The architecture and publication references are [`evidence_grounded_synthetic_training_blueprint.md`](research/evidence_grounded_synthetic_training_blueprint.md) and [`training_dataset_publication_and_safety_practices.md`](research/training_dataset_publication_and_safety_practices.md); evaluation evidence includes [`training_methodology.md`](research/training_methodology.md), [`training_regimes_and_systems.md`](research/training_regimes_and_systems.md), and [`four_arm_eval.md`](research/four_arm_eval.md), the pending stock/trained by harness-off/on status report. | Live |
-| [`docs/entity_intelligence_pipeline.md`](entity_intelligence_pipeline.md) | Canonical map of the propose-only entity-intelligence pipeline: 12 connectors in `scripts/`, the 32-registry cascade in `configs/duecare/research_monitor/`, the 1,111-source + 532-org catalogs, the relationship-edge schema, and the licence ledger. | Live |
+| [`docs/entity_intelligence_pipeline.md`](entity_intelligence_pipeline.md) | Canonical map of the propose-only entity-intelligence pipeline: 12 connectors in `scripts/`, the 34-registry cascade in `configs/duecare/research_monitor/`, the 1,111-source + 532-org catalogs, the relationship-edge schema, and the licence ledger. | Live |
 | [`scripts/`](../scripts/) + [`configs/duecare/research_monitor/`](../configs/duecare/research_monitor/) | Operator research and training tooling: entity connectors, the config-driven registry resolvers (`registry_specs.yaml`), the licensed-entity / support-org catalogs, guarded candidate-data helpers such as `ollama_adversarial_flywheel.py`, and the approved-release companion builder `build_kaggle_interim_collection.py`. Propose-only outputs stage to gitignored `reports/` until release gates pass. | Live |
 | [`configs/duecare/benchmarks/domains/`](../configs/duecare/benchmarks/domains/) | Propose-only cross-domain benchmark registry, synthetic seed packs, and optional grounding manifests, including the developing-country worker-protections sister-benchmark seed. | Live |
 | [`configs/duecare/benchmarks/sister_projects/`](../configs/duecare/benchmarks/sister_projects/) | Propose-only sister-project charters for source-gated benchmark programs that sit above domain seeds and curation chains. | Live |
@@ -30,6 +30,7 @@ Current as of 2026-07-15.
 
 - Reviewer path: [`docs/FOR_PEER_REVIEW.md`](FOR_PEER_REVIEW.md)
 - Manual checklist: [`docs/USER_TODO.md`](USER_TODO.md)
+- Canonical deferred work: [`docs/DEFERRED_WORK.md`](DEFERRED_WORK.md)
 - Current status: [`docs/readiness_dashboard.md`](readiness_dashboard.md)
 - User path chooser: [`docs/user_paths.md`](user_paths.md)
 - Active Kaggle inventory: [`docs/current_kaggle_notebook_state.md`](current_kaggle_notebook_state.md)

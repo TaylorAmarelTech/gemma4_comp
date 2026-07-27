@@ -5,6 +5,9 @@ verifiable transfer rather than an informal document dump. Operational pickup
 is defined in the [Maintainer handoff](MAINTAINER_HANDOFF.md); the public release
 boundary, limitations, dataset plan, and model-work backlog remain in
 [Publication readiness](PUBLICATION_READINESS.md).
+Every unfinished action is normalized in the generated
+[Deferred work register](DEFERRED_WORK.md); that register wins if a duplicated
+status, owner, boundary, or acceptance test drifts.
 The repeatable technical exercise is the
 [successor pickup rehearsal](SUCCESSOR_REHEARSAL.md).
 
@@ -37,7 +40,9 @@ The project has reached a good stopping point when:
 - no raw worker data, private case material, credentials, ignored staging
   reports, or unreviewed entity allegations are published; and
 - the successor's first small backlog item has a clear owner, acceptance test,
-  and explicit model-credit budget.
+  and explicit model-credit budget; and
+- `DEFERRED_WORK.md` is current, placeholder-free, and agrees with the public
+  status, release boundary, and owner-only checklist.
 
 ## Workstreams And Deliverables
 
@@ -64,22 +69,20 @@ The project has reached a good stopping point when:
   closeout disables all five recurring tasks, keeps four daemon sentinels, and
   requires zero verified repository daemon processes; historical unmetered
   background usage is reconciled privately at the provider.
-- The reconciled `codex/full-flywheel-training-20260714` closeout branch was
-  merged through pull request 2 to `master` as
-  `07cfdbfd00e1bc304ffc1f8b2736c4d93bbf0eab`. Post-merge CI, MkDocs Pages,
-  the artifact-only website build, and the Render project-status route were
-  verified on 2026-07-26. Pull request 4 then merged the final public-surface,
-  package-release, Kaggle-link, and handoff reconciliation as
-  `dc313814d9f42e127b24191b7912fd521083fadd` on 2026-07-27. Its post-merge CI
-  and both public deployment paths passed; all six schema routes returned 200
-  and the refreshed 577-link audit found zero confirmed breakage. Use current
-  `master` as the integrated base.
-- Land this handoff, transition plan, deterministic handoff validator, purpose
-  maps, and navigation links.
+- The closeout advanced through pull requests 2, 4, 5, 6, and 7. The latest
+  verified integrated baseline is pull request 7 on `master`, merge commit
+  `1e1e8b5eac7a58b837b5782de2f11c1ca5a8d5dc`. Its 16 pull-request checks and
+  all six merge-triggered workflows passed. Render, MkDocs Pages, the portable
+  website build, and all six schema routes were live; the refreshed 587-link
+  audit found zero confirmed breakage and kept 12 transient/unverified hosts
+  separate. Use live `master` as the base and rerun gates on every later
+  candidate.
+- Keep the handoff, transition plan, deferred-work registry, purpose maps, and
+  navigation links reconciled through their deterministic validators.
 - Confirm the canonical active Kaggle surfaces and keep optional/archived lanes
   labeled correctly.
 - Classify every open item as release-blocking, successor backlog, experimental,
-  or deliberately stopped.
+  or deliberately stopped in `configs/duecare/deferred_work.json`.
 - Choose a release candidate claim set. The default is a core/docs/data release
   with no new training/model-improvement claim while the strict training gate
   remains red.
@@ -191,6 +194,9 @@ successor; local repository edits do not complete them:
   sentinels, or re-enabling of the recurring tasks; and
 - decide whether to retain, transfer, or retire public support commitments.
 
+The exact owner-only checklist is [`USER_TODO.md`](USER_TODO.md), and the
+acceptance contract for each item is [`DEFERRED_WORK.md`](DEFERRED_WORK.md).
+
 The repository may document commands and public identifiers, but must never
 store the private receipt's secrets, recovery answers, personal contact details,
 or billing information.
@@ -207,7 +213,7 @@ or billing information.
 | Entity-intelligence pipeline | Propose-only, curator-reviewed, separate from worker-facing and training paths | A reviewed governance and evidence-admission change is approved |
 | Kaggle surface inventory | `01`, `02`, and `A-00` active; `03` and `04` optional; notebook-era variants archived | Root `AGENTS.md` and `kaggle/_INDEX.md` change together |
 | Release version/tag | Pending a deliberate owner decision | Week 2 release-candidate reconciliation is reviewed |
-| Target branch | Root rules name `master`; pull request 4 merged the final reconciliation as `dc313814d9f42e127b24191b7912fd521083fadd`, and post-merge CI plus both public deployment paths were verified | Continue from current `master`; rerun gates on the exact candidate before any tag |
+| Target branch | Root rules name `master`; pull request 7 is the latest verified integrated baseline at `1e1e8b5eac7a58b837b5782de2f11c1ca5a8d5dc`, with all PR checks and six merge-triggered workflows green | Continue from live `master`; rerun gates on the exact candidate before any tag |
 | Successor | Transfer path preferred; maintenance mode is the safe fallback | A successor accepts and completes the rehearsal |
 
 ### Closeout Decision Snapshot - 2026-07-27
@@ -245,7 +251,8 @@ Before declaring the transition complete, retain evidence that:
 - [ ] Focused and broad regression commands, skips, warnings, platform caveats,
       and any intentionally red training gate are recorded exactly.
 - [ ] Public docs, purpose maps, Project Bible, status, roadmap, Kaggle index,
-      changelog, versions, citation, tag, and release notes agree.
+      deferred-work register, changelog, versions, citation, tag, and release
+      notes agree.
 - [ ] A category/count-only sensitive-data scan and a secret scanner have been
       run without printing matched payloads into the receipt.
 - [ ] Release artifacts and critical evidence have checksums and a tested
@@ -287,7 +294,9 @@ research lane or product roadmap item is complete.
 ## Future Improvements
 
 These are ordered for a successor; they are not exit blockers unless promoted
-by the Decision Register.
+by the Decision Register. Operational ownership, prerequisites, budgets, and
+acceptance evidence live in [`DEFERRED_WORK.md`](DEFERRED_WORK.md); the themes
+below do not override it.
 
 ### Reliability and maintenance
 
