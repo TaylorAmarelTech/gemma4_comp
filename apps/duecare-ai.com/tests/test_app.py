@@ -311,6 +311,27 @@ def test_every_design_route_renders(tmp_path) -> None:
         assert "/static/styles.css" in response.text, f"{path} did not link the design CSS"
 
 
+def test_public_notebook_catalogs_link_verified_deterministic_notebook(tmp_path) -> None:
+    client = TestClient(create_app(data_dir=tmp_path))
+    slug = "duecare-deterministic-verification"
+
+    assert slug in client.get("/data").text
+    assert slug in client.get("/kernels").text
+
+
+def test_package_detail_is_an_explicit_preview_with_real_navigation(tmp_path) -> None:
+    client = TestClient(create_app(data_dir=tmp_path))
+
+    response = client.get("/packages-detail")
+
+    assert response.status_code == 200
+    assert "Illustrative corridor-pack schema" in response.text
+    assert "not a downloadable or verified pack" in response.text
+    assert 'href="#"' not in response.text
+    assert "/knowledge-packs" in response.text
+    assert "duecare-deterministic-verification" in response.text
+
+
 def test_project_status_page_keeps_release_and_training_claims_separate(tmp_path) -> None:
     client = TestClient(create_app(data_dir=tmp_path))
 
@@ -320,8 +341,10 @@ def test_project_status_page_keeps_release_and_training_claims_separate(tmp_path
     assert "10 / 10 pass" in response.text
     assert "remain unpublished on PyPI" in response.text
     assert "2 / 2 pass" in response.text
-    assert "4,627 passed" in response.text
-    assert "Autonomous engine" in response.text and "paused" in response.text
+    assert "4,630 passed" in response.text
+    assert "Model/flywheel stack" in response.text and "cost-stopped" in response.text
+    assert "auxiliary discovery and server-automation callers" in response.text
+    assert "does not claim its historical provider usage was zero" in response.text
     assert "strict training lane is not ready" in response.text
     assert "All 75 content slots are honestly unfilled" in response.text
     assert "provider-budget coverage" in response.text

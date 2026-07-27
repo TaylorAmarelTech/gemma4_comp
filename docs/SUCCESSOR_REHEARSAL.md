@@ -34,6 +34,19 @@ artifact, remove the stop sentinel, or mutate benchmark results. The child
 environment forces the planned-call ceiling to zero and enables offline modes
 for common model libraries.
 
+On the Windows host that owns the scheduled automation, follow the portable
+rehearsal with this read-only host check:
+
+```powershell
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/stop_ollama_stack.ps1 -Status
+```
+
+It must report the whole model/flywheel stack cost-stopped: five recurring
+tasks disabled, four daemon sentinels present, and zero verified repository
+daemon processes. The Python rehearsal observes the autonomous engine but
+cannot portably inspect Windows Task Scheduler, so it does not replace this
+host-specific check.
+
 ## Receipt
 
 By default the command atomically writes the ignored file
@@ -69,8 +82,9 @@ data, or the location of secret material.
 
 ## Interpreting A Failure
 
-A failed step blocks transfer acceptance but is not permission to change the
-claim boundary or resume model work. Reproduce the smallest failing command,
+A failed step or whole-stack status blocks transfer acceptance but is not
+permission to change the claim boundary or resume model work. Reproduce the
+smallest failing command,
 compare live state with saved artifacts, fix the authoritative source, and run
 the rehearsal again. A dirty tree is evidence to investigate, not a failure by
 itself.

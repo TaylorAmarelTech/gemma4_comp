@@ -36,6 +36,11 @@ def _force_urlopen_transport(monkeypatch):
     # force the legacy transport (the ``DUECARE_HTTP_POOL=0`` fallback) and the mock is hit. The pooled
     # ``http.client`` transport itself is covered in test_http_pool.py.
     monkeypatch.setattr(lg, "_HTTP_POOL_ENABLED", False)
+    monkeypatch.setattr(
+        lg.provider_budget,
+        "environment_ledger",
+        lambda: lg.provider_budget.DisabledProviderBudget(),
+    )
 
 
 def _http_error(code: int) -> urllib.error.HTTPError:

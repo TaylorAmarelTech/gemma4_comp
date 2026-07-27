@@ -297,10 +297,10 @@
   <div class="docs-callout">
     <div>
       <span class="ix">05 · Reproduce a release</span>
-      <h2>Pull a pack. Verify the signature. Run the eval.</h2>
-      <p>Every vetted pack release is reproducible from public inputs alone. The reproduce script lives in <code>/tools/reproduce</code>; it pulls the pack at a given hash, validates the curator signature, and re-runs the six evaluation suites against a clean Gemma 4 build. Same hash → same answer, every time.</p>
+      <h2>Pin inputs. Verify hashes. Run the deterministic gates.</h2>
+      <p>Vetted knowledge exports retain provenance and content hashes. A hash proves the exact input bytes; it does not promise identical generative answers. Start with the live pack registry, then use the repository validators and the completed deterministic-verification notebook for reproducible, model-free checks.</p>
     </div>
-    <a href="/harness" class="btn primary">See the harness &rarr;</a>
+    <a href="/knowledge-packs" class="btn primary">Browse knowledge packs &rarr;</a>
   </div>
 </div></section>
 

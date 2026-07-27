@@ -184,6 +184,7 @@
         <a class="d-link" href="https://www.kaggle.com/code/taylorsamarel/duecare-perdim-grades-explorer" target="_blank" rel="noopener">Perdim</a>
         <a class="d-link" href="https://www.kaggle.com/code/taylorsamarel/duecare-cross-model-leaderboard-deep-dive" target="_blank" rel="noopener">Leaderboard</a>
         <a class="d-link" href="https://www.kaggle.com/code/taylorsamarel/duecare-cot-reasoning-explorer" target="_blank" rel="noopener">CoT</a>
+        <a class="d-link" href="https://www.kaggle.com/code/taylorsamarel/duecare-deterministic-verification" target="_blank" rel="noopener">Deterministic verification</a>
         <a class="d-link" href="/kernels">All kernels</a>
       </div>
     </div>
@@ -209,9 +210,9 @@ print(f"mean lift +{lift.mean():.1f} over {len(lift):,} paired prompts, "
 
 <div class="dd-section" data-screen-label="Reuse the toolkit">
   <h2>Reuse the toolkit &mdash; the engine, the verifier, the report generator</h2>
-  <p class="dd-sub">The code embedded in the notebooks is also an installable package, <code>duecare-llm-kit</code>: the ILO forced-labour indicator engine, a deterministic un-gameable verifier that corroborates the judged lift, DueCare-styled chart helpers, a self-contained HTML report generator, and a data-corpus exporter. Install it from source today; a Python Package Index release is on the way.</p>
+  <p class="dd-sub">The code embedded in the notebooks is also an installable package, <code>duecare-llm-kit</code>: the ILO forced-labour indicator engine, a deterministic un-gameable verifier that corroborates the judged lift, DueCare-styled chart helpers, a self-contained HTML report generator, and a data-corpus exporter. No DueCare distribution is published on the Python Package Index yet; install the kit from this source repository.</p>
   <div class="dd-load">
-    <pre><span class="c"># install the toolkit from source (a pip install duecare-llm-kit release is coming)</span>
+    <pre><span class="c"># install the toolkit from a pinned source checkout</span>
 pip install "git+https://github.com/TaylorAmarelTech/gemma4_comp.git#subdirectory=packages/duecare-llm-kit"
 
 <span class="c"># scan a message for ILO forced-labour indicators</span>

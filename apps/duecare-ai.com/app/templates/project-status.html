@@ -60,9 +60,9 @@
       <dl>
         <dt>Core release gates</dt><dd>10 / 10 pass</dd>
         <dt>Handoff gates</dt><dd>2 / 2 pass</dd>
-        <dt>Combined regression</dt><dd>4,627 passed</dd>
-        <dt>Model calls in closeout</dt><dd>0</dd>
-        <dt>Autonomous engine</dt><dd>paused</dd>
+        <dt>Combined regression</dt><dd>4,630 passed</dd>
+        <dt>Validator model calls</dt><dd>0</dd>
+        <dt>Model/flywheel stack</dt><dd>cost-stopped</dd>
       </dl>
       <span class="ps-state">Deterministic maintenance posture</span>
     </aside>
@@ -76,8 +76,9 @@
   <div class="ps-grid">
     <article class="ps-card"><span class="cap">Stable</span><h3>Core public surface</h3><p>Public messaging, source-checkout smoke, manifest-backed dataset counts, model-fallback registry, provider-budget coverage, active Kaggle kernels, generated page sources, package-release ownership, and package-test collection pass without a model or network call.</p></article>
     <article class="ps-card"><span class="cap">Preserved</span><h3>Dated benchmark evidence</h3><p>Existing results retain their original model, prompt set, rubric, judge, and date. They are benchmark response-quality evidence, not field-effectiveness, victim-identification, or production-reliability claims.</p></article>
-    <article class="ps-card"><span class="cap">Paused</span><h3>Model and engine work</h3><p>The autonomous engine remains stopped behind its sentinel. Zero-call mode now blocks both rich-harness planning and HTTP attempts in the primary generation router. Restarting Ollama or a hosted provider requires reviewed pricing, finite attempt/token/cash caps, preflight, and explicit authorization.</p></article>
+    <article class="ps-card"><span class="cap">Cost-stopped</span><h3>Model and flywheel work</h3><p>All five recurring tasks are disabled, four daemon sentinels are present, and zero verified repository daemons remain. Zero-call mode blocks rich-harness planning and primary-router HTTP attempts. Restarting any model caller requires reviewed pricing, finite attempt/token/cash caps, preflight, and explicit authorization.</p></article>
   </div>
+  <div class="ps-boundary"><strong>Operational correction, 2026-07-27.</strong>A live audit found auxiliary discovery and server-automation callers still active after the main engine was paused. No local budget ledger covered that background period, so this project does not claim its historical provider usage was zero; account-side reconciliation remains private owner work. The whole stack is now stopped and its launch controls fail closed.</div>
   <div class="ps-boundary"><strong>The strict training lane is not ready.</strong>Five dense generic-corridor typologies require a metadata-only 25-task, 75-slot curation expansion. All 75 content slots are honestly unfilled, and all 12 official-source candidates remain training-blocked pending rights review and immutable snapshots. Quality and provenance stay red until independently adjudicated rows, fingerprints, and a verified model card are regenerated through the normal append-only path.</div>
 </div></section>
 
@@ -102,7 +103,8 @@ $env:DUECARE_MAX_PLANNED_MODEL_CALLS='0'
 python scripts/validate_publication_readiness.py --scope handoff
 python scripts/validate_publication_readiness.py --scope core
 python scripts/validate_provider_budget_coverage.py
-python scripts/autonomous_engine.py --status</pre></div>
+python scripts/autonomous_engine.py --status
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/stop_ollama_stack.ps1 -Status</pre></div>
     <nav class="ps-links" aria-label="Continuity documents">
       <a href="https://tayloramareltech.github.io/gemma4_comp/MAINTAINER_HANDOFF/"><strong>Maintainer handoff</strong><br />Operations, boundaries, recovery, access transfer, and acceptance.</a>
       <a href="https://tayloramareltech.github.io/gemma4_comp/PROJECT_TRANSITION_PLAN/"><strong>30-day transition plan</strong><br />Weekly closeout, owner actions, rehearsal, and maintenance fallback.</a>
