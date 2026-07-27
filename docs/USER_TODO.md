@@ -17,6 +17,10 @@ action below.
   input/output token caps, cash cap, stop conditions, and a unique run ID.
   (`bounded-model-smoke`, `per-dimension-judging`, or
   `optional-kaggle-reruns`)
+- [ ] Include Kimi K3 and Meta Muse Spark 1.1 as required lanes in the first
+  approved frozen smoke matrix. Reverify their live identifiers and prices at
+  execution time; record an unavailable lane rather than silently substituting
+  a different model. (`bounded-model-smoke`)
 - [ ] Remove no sentinel and enable no scheduled task until the approved run is
   ready; restore the whole-stack cost stop immediately afterward.
 

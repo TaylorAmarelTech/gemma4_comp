@@ -60,7 +60,7 @@ URL_RE = re.compile(r"https?://[^\s<>)\"']+")
 MD_LINK_RE = re.compile(r"\[[^\]]+\]\((https?://[^)\s]+)(?:\s+\"[^\"]*\")?\)")
 HTML_ATTR_RE = re.compile(r"\b(?:href|src)=[\"'](https?://[^\"']+)[\"']", re.IGNORECASE)
 EXISTS_BUT_NOT_FETCHABLE = {401, 403, 405}
-KNOWN_BOT_BLOCKING_HOSTS = {"developers.facebook.com"}
+KNOWN_BOT_BLOCKING_HOSTS = {"ai.meta.com", "developers.facebook.com"}
 
 
 @dataclass(frozen=True)

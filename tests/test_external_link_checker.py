@@ -12,6 +12,7 @@ def test_external_link_checker_contract():
     assert "check_url" in text
     assert "urllib.request" in text
     assert "EXISTS_BUT_NOT_FETCHABLE" in text
+    assert '"ai.meta.com"' in text
     assert "--check" in text
     assert "--json" in text
     assert "DueCareLinkCheck" in text
@@ -63,3 +64,32 @@ def test_concurrent_checks_preserve_input_order(monkeypatch):
     results = module.check_links(refs, timeout=3, workers=2)
 
     assert [result.url for result in results] == [ref.url for ref in refs]
+
+
+def test_meta_400_is_bot_blocked_but_other_400_is_broken(monkeypatch):
+    import importlib.util
+    import sys
+
+    spec = importlib.util.spec_from_file_location("check_external_links_meta", SCRIPT)
+    assert spec and spec.loader
+    module = importlib.util.module_from_spec(spec)
+    sys.modules[spec.name] = module
+    spec.loader.exec_module(module)
+
+    def always_400(request, timeout):
+        del timeout
+        raise module.urllib.error.HTTPError(
+            request.full_url, 400, "Bad Request", hdrs=None, fp=None
+        )
+
+    monkeypatch.setattr(module.urllib.request, "urlopen", always_400)
+
+    blocked = module.check_url(
+        module.LinkRef("https://ai.meta.com/model", "meta.md", 1), timeout=1
+    )
+    broken = module.check_url(
+        module.LinkRef("https://other.invalid/model", "other.md", 1), timeout=1
+    )
+
+    assert blocked.ok and blocked.classification == "blocked"
+    assert not broken.ok and broken.classification == "broken"
