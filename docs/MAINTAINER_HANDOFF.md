@@ -165,7 +165,7 @@ notebook scripts and 31 notebook-focused tests passed, the 5 active/optional
 Kaggle kernel checks passed, all 78 website tests passed, the Project Bible
 pickup passed 65 checks, the successor rehearsal reassembled all 52 archived
 files to their recorded SHA-256 values, and the strict documentation build
-completed. The latest external audit checked 588 links with zero confirmed
+completed. The latest external audit checked 592 links with zero confirmed
 broken links and nine transient or unverified hosts.
 
 The separate training scope correctly remains red: its deterministic workbook

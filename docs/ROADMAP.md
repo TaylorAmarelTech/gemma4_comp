@@ -65,6 +65,8 @@ New evidence should deepen validity rather than inflate surface count:
    using model-judge scores as a stronger validity claim.
 3. After an explicit budget approval, run a small frozen smoke matrix with
    immutable model IDs, prompts, rubric, harness, decoding, and cash/token caps.
+   Kimi K3 and Meta Muse Spark 1.1 are required comparison lanes; record an
+   inaccessible provider lane rather than silently substituting another model.
 4. Continue the isolated per-dimension lane only from its resumable coverage
    receipt; never merge its incomplete metrics into the default board.
 5. Version datasets append-only. Preserve source rights, checksums, lineage

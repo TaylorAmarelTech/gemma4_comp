@@ -35,7 +35,7 @@ and undated completion claims are rejected by
 | P1 | [Publish the first independently versioned Python package](#first-package-publication) | Deferred: owner decision | Release owner | zero_only |
 | P1 | [Complete the 75-row corridor-diversification workbook](#corridor-curation) | Blocked: human review | Two independent data curators | zero_only |
 | P1 | [Refresh training quality and append-only provenance](#training-provenance-refresh) | Blocked: human review | Training-data curator and release reviewer | zero_only |
-| P2 | [Run a small frozen model smoke matrix](#bounded-model-smoke) | Deferred: budget or quota | Model-spend approver and benchmark maintainer | nonzero_requires_owner_approval |
+| P1 | [Run a small frozen frontier model smoke matrix](#bounded-model-smoke) | Deferred: budget or quota | Model-spend approver and benchmark maintainer | nonzero_requires_owner_approval |
 | P3 | [Complete the isolated exhaustive per-dimension judge lane](#per-dimension-judging) | Deferred: budget or quota | Research lead and model-spend approver | nonzero_requires_owner_approval |
 | P2 | [Run only justified Kaggle evidence jobs](#optional-kaggle-reruns) | Deferred: budget or quota | Kaggle account owner and evidence reviewer | nonzero_requires_owner_approval |
 | P2 | [Extend budget enforcement beyond the primary router](#direct-client-budget-migration) | Ready: local and model-free | Maintainer | zero_only |
@@ -116,21 +116,25 @@ The safe sequence is:
 
 - A named authorized successor or a named private maintenance owner
 - Least-privilege access to every platform listed in the private transfer receipt
+- A reviewed hosting disposition that keeps Render, moves the public domain to a backend-free GitHub Pages fallback, or retains both during a timed rollback window
 
 ### Ordered next actions
 
 1. Invite the successor with least privilege and verify login, recovery, billing visibility, audit-log access, and revocation paths one platform at a time.
 2. Complete the private transfer receipt without copying personal contacts, recovery answers, credentials, or billing records into Git.
-3. Remove outgoing access only after the successor demonstrates recovery and the successor rehearsal passes on the final revision.
+3. Before retiring Render, publish the backend-free static bundle from a dedicated GitHub Pages repository at a domain root, label or disable stateful features, verify the public route set, and retain a tested DNS rollback window.
+4. Remove outgoing access only after the successor demonstrates recovery and the successor rehearsal passes on the final revision.
 
 ### Done only when
 
 - Every platform row in the private receipt has a dated owner and tested recovery path.
+- If Render is retired, duecare-ai.com serves the reviewed static fallback without calling the retired backend, while the existing MkDocs project site remains available.
 - The successor rehearsal passes from a fresh shell on the final revision.
 - Outgoing access removal has a retained private audit record.
 
 ### Evidence and controls
 
+- [`apps/duecare-ai.com/DEPLOY_STATIC.md`](../apps/duecare-ai.com/DEPLOY_STATIC.md)
 - [`docs/PRIVATE_TRANSFER_RECEIPT_TEMPLATE.md`](PRIVATE_TRANSFER_RECEIPT_TEMPLATE.md)
 - [`docs/MAINTAINER_HANDOFF.md`](MAINTAINER_HANDOFF.md)
 - [`docs/SUCCESSOR_REHEARSAL.md`](SUCCESSOR_REHEARSAL.md)
@@ -288,11 +292,11 @@ The safe sequence is:
 - [`scripts/validate_training_provenance.py`](../scripts/validate_training_provenance.py)
 - [`scripts/training_engine.py`](../scripts/training_engine.py)
 
-## Run a small frozen model smoke matrix
+## Run a small frozen frontier model smoke matrix
 <a id="bounded-model-smoke"></a>
 
 - **ID:** `bounded-model-smoke`
-- **Priority:** P2
+- **Priority:** P1
 - **Status:** Deferred: budget or quota
 - **Owner role:** Model-spend approver and benchmark maintainer
 - **Target:** Only after provider reconciliation and an approved finite run plan
@@ -300,11 +304,11 @@ The safe sequence is:
 - **Network/write policy:** `owner_authorized_write`
 - **Depends on:** `provider-usage-reconciliation`
 
-**Why it remains open:** A live smoke matrix consumes provider quota and is unnecessary for repository maintenance closure.
+**Why it remains open:** Kimi K3 and Meta Muse Spark 1.1 are important new comparison targets, but a live smoke matrix consumes provider quota and is unnecessary for repository maintenance closure.
 
 ### Prerequisites
 
-- Reviewed immutable provider model identifiers and dated pricing
+- At execution time, reverify the dated catalog identities and pricing for Kimi K3 (currently kimi-k3:cloud on Ollama or moonshotai/kimi-k3 on OpenRouter) and Meta Muse Spark 1.1 (currently meta/muse-spark-1.1 on OpenRouter or the then-current Meta Model API identifier)
 - A unique run ID with finite attempt, input-token, output-token, and cash caps
 - A frozen prompt, rubric, harness, decoding, cache, and stop-condition manifest
 
@@ -312,12 +316,14 @@ The safe sequence is:
 
 1. Generate and review a no-call plan before changing any stop or budget setting.
 2. Configure the shared provider ledger and prove its sanitized receipt with python scripts/provider_budget.py --json.
-3. Run only the approved matrix, preserve checkpoints and cache keys, then restore the whole-stack cost stop.
+3. Include Kimi K3 and Meta Muse Spark 1.1 as required candidate lanes on the same frozen text slice; stage any multimodal extension separately, and record unavailable access instead of silently substituting another model.
+4. Run only the approved matrix, preserve checkpoints and cache keys, then restore the whole-stack cost stop.
 
 ### Done only when
 
 - Reserved and actual attempts, tokens, and cost reconcile to the approved allowance.
 - Every output is bound to immutable inputs and can resume without duplicate calls.
+- The report contains an immutable result receipt for both Kimi K3 and Meta Muse Spark 1.1, or dated provider evidence that a required lane was unavailable.
 - scripts/stop_ollama_stack.ps1 -Status reports the complete cost stop after the run.
 
 ### Evidence and controls
