@@ -323,8 +323,9 @@ worker-facing answers, benchmark labels, or training rows automatically.
   live Render project-status, and schema-route checks passed on 2026-07-27.
 - GitHub Action majors were verified against official releases on 2026-07-27
   and refreshed across CI, Pages, website artifacts, scheduled work, Docker,
-  Helm, and package publication. The triggered CI, Pages, website-artifact,
-  harness-contract, and evaluation jobs passed with the refreshed actions.
+  Helm, Gitleaks, and package publication. The triggered CI, Pages,
+  website-artifact, harness-contract, and evaluation jobs passed with the
+  refreshed actions and no Node 20 runtime annotation.
   Docker, Helm, and PyPI publishing remain release-triggered and should be
   validated on an approved release candidate/tag, not dispatched as a
   production smoke test.
@@ -362,7 +363,7 @@ worker-facing answers, benchmark labels, or training rows automatically.
 | P2 | Add calibration, abstention, and disagreement-escalation reporting | Optional small judging | Medium | Reports show calibration and route only ambiguous cells to extra judges |
 | P3 | Complete the isolated exhaustive per-dimension lane | High | High | Coverage manifest closes exactly with zero missing/invalid cells |
 | P3 | Isolate and clear legacy Ruff debt in long benchmark files | 0 | Medium | `make lint` can run without a mass behavioral diff or suppressing useful rules |
-| P3 | Confirm the refreshed GitHub Action majors across every triggered workflow | 0 | Low | Pages, website, CI, scheduled, Docker, Helm, and release preflight remain green without the Node.js 20 annotation |
+| P3 | Validate refreshed actions in the release-triggered Docker, Helm, and package workflows | 0 | Low | The first approved release candidate/tag keeps those release-only lanes green without runtime deprecation annotations |
 
 Good research extensions after the release boundary is stable include a
 cross-corridor counterfactual benchmark, temporal legal-freshness tests,

@@ -265,10 +265,10 @@ by the Decision Register.
 4. Keep the strict-MkDocs repository-link resolver test-covered, and reduce
    informational notices only when doing so preserves the intentional
    public-versus-provenance navigation boundary.
-5. Confirm the GitHub Action majors refreshed from official current releases
-   on 2026-07-27 across CI, Pages, website artifact, scheduled, Docker, Helm,
-   and package-release workflows; close the Node.js 20 warning only after those
-   GitHub-hosted jobs pass.
+5. The refreshed CI, Pages, website-artifact, harness, evaluation, and Gitleaks
+   actions passed without the Node 20 annotation on 2026-07-27. Validate the
+   release-triggered Docker, Helm, and package actions on the first approved
+   release candidate/tag rather than dispatching a production smoke test.
 6. Add restore drills, dependency/security review cadence, and a dated legal and
    public-source freshness dashboard.
 

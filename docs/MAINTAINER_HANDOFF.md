@@ -51,8 +51,9 @@ first closeout deliberately left for live verification:
   workflow now owns publication and fails closed while package versions differ;
 - official current GitHub Action majors were checked through GitHub and the
   workflows were refreshed (including checkout/setup, artifacts, Pages, cache,
-  Docker, and Helm). The triggered post-merge CI, Pages, website-artifact,
-  harness-contract, and evaluation workflows confirmed the refreshed actions;
+  Gitleaks, Docker, and Helm). The triggered post-merge CI, Pages,
+  website-artifact, harness-contract, and evaluation workflows confirmed the
+  refreshed actions without a Node 20 runtime annotation;
 - curator-owned inline grading guidance now covers all 75 universal rubric
   dimensions. Its strict validator reports zero errors and zero warnings, and
   CI no longer converts future curator warnings into a passing annotation;
