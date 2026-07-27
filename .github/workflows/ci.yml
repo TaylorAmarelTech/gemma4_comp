@@ -352,8 +352,9 @@ jobs:
 
       - name: Build wheels
         run: |
+          mkdir -p dist
           for pkg in packages/duecare-llm packages/duecare-llm-*; do
-            python -m build --wheel "$pkg"
+            python -m build --wheel --outdir dist "$pkg"
           done
 
       - name: Clean-room install smoke test

@@ -92,7 +92,7 @@ jobs:
 
       - name: Install cosign
         if: github.ref_type == 'tag' || (github.event_name == 'workflow_dispatch' && inputs.push)
-        uses: sigstore/cosign-installer@v4
+        uses: sigstore/cosign-installer@v4.1.2
 
       - name: Sign the published image digest with GitHub OIDC
         if: github.ref_type == 'tag' || (github.event_name == 'workflow_dispatch' && inputs.push)
