@@ -79,6 +79,44 @@ by this reconciliation. Candidate notebooks stay queued until one closes a
 named evidence gap and passes the publication checklist in
 [`NOTEBOOKS.md`](NOTEBOOKS.md).
 
+## 2026-07-27 Final Wrap-up Receipt
+
+The successor-focused wrap-up landed through
+[pull request 5](https://github.com/TaylorAmarelTech/gemma4_comp/pull/5) on
+`master` as merge commit `504aec0c0ba6d3c251282e446cc6c764b4c469ce`.
+All 17 pull-request checks passed. In particular, the active Kaggle kernels,
+generated page sources, optional Community Benchmark surface, both full Python
+matrices, 18-wheel build, clean-room install, privacy/secret scan, public
+website, and build-only multi-architecture image gate remained green.
+
+The merge-triggered evidence also completed successfully:
+
+- [full CI](https://github.com/TaylorAmarelTech/gemma4_comp/actions/runs/30290776307)
+  passed the notebook, package, privacy, website, harness, and
+  entity-intelligence lanes;
+- the [Docker candidate run](https://github.com/TaylorAmarelTech/gemma4_comp/actions/runs/30290776019)
+  built both target architectures without logging in, signing, or publishing;
+- the [evaluation](https://github.com/TaylorAmarelTech/gemma4_comp/actions/runs/30290776483)
+  and [contract](https://github.com/TaylorAmarelTech/gemma4_comp/actions/runs/30290776383)
+  workflows passed;
+- the [MkDocs Pages deployment](https://github.com/TaylorAmarelTech/gemma4_comp/actions/runs/30290776419)
+  and [51-page portable website build](https://github.com/TaylorAmarelTech/gemma4_comp/actions/runs/30290776591)
+  passed; and
+- the live [project-status route](https://duecare-ai.com/project-status),
+  [provider-budgeting guide](https://tayloramareltech.github.io/gemma4_comp/PROVIDER_BUDGETING/),
+  [successor rehearsal](https://tayloramareltech.github.io/gemma4_comp/SUCCESSOR_REHEARSAL/),
+  and this handoff returned the new closeout content.
+
+This final pass added an atomic attempt/token/cash budget around every primary
+generation-router transport, a strict 75-slot curation workbook backed by 12
+training-blocked source candidates, reproducible independent-SemVer package
+release tooling, guarded release workflows, archive restore rehearsal, and a
+single-command successor pickup. It made no Ollama, hosted-model, or Kaggle
+quota call and published no package, image, chart, notebook, model, or dataset.
+The intentionally unfinished work remains human rights/snapshot review, 75-row
+independent curation and adjudication, private access transfer, and an owner
+decision on the first release tag.
+
 ## First 30 Minutes
 
 Use a Python 3.12 environment with the repository's development dependencies.
