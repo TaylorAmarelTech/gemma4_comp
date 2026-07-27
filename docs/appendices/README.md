@@ -81,7 +81,7 @@ submission.
 | # | Appendix | What it covers |
 |---|---|---|
 | F1 | [ADR index](../adr/README.md) | All 5 architecture decisions with rationale |
-| F2 | [ADR-001 Multi-package PyPI split](../adr/001-multi-package-pypi-split.md) | Why 17 packages instead of 1 monolith |
+| F2 | [ADR-001 Multi-package PyPI split](../adr/001-multi-package-pypi-split.md) | Original 17-package split and the later 18th kit surface |
 | F3 | [ADR-002 Folder-per-module](../adr/002-folder-per-module-pattern.md) | Self-describing module convention |
 | F4 | [ADR-003 On-device default](../adr/003-on-device-default-cloud-opt-in.md) | Privacy-first defaults |
 | F5 | [ADR-004 6+5 notebook shape](../_archive/2026-05-16-legacy-notebook-era/004-six-plus-five-notebook-shape.md) (archived; superseded by the two-kernel scope) | Historical submission-surface design |

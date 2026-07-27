@@ -35,7 +35,7 @@ their phones, use `examples/deployment/ngo-office-edge/` instead (adds mDNS).
 ## Developer — local FastAPI workbench
 
 ```bash
-uv sync --all-packages        # install all 17 workspace packages
+uv sync --all-packages        # install all 18 workspace packages
 ollama pull gemma4:e2b        # ~1.5 GB; or gemma4:e4b for higher quality
 python -m duecare.chat.run_server --host 0.0.0.0 --port 8080
 # open http://localhost:8080  (load a model from the UI, then chat / compare arms)

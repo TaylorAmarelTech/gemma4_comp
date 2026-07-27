@@ -23,6 +23,10 @@ Usage:
 
     # Quick test (5 prompts each stage)
     python scripts/pipeline/run_pipeline.py --all --quick
+
+    # Non-mutating local rehearsal (keeps tracked data/ artifacts unchanged)
+    python scripts/pipeline/run_pipeline.py --stages 4,5,6,7 --heuristic --quick \
+        --data-dir reports/pipeline-rehearsal
 """
 
 from __future__ import annotations
@@ -74,12 +78,23 @@ def run_stage(stage_num: int, extra_args: list[str] | None = None) -> int:
 
 
 def main(argv: list[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    parser = argparse.ArgumentParser(
+        description=__doc__,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+    )
     parser.add_argument("--all", action="store_true", help="Run all 8 stages")
     parser.add_argument("--stages", help="Comma-separated stage numbers (e.g. 4,5,6)")
     parser.add_argument("--heuristic", action="store_true", help="Use heuristic mode (no model)")
     parser.add_argument("--quick", action="store_true", help="Quick mode (5 items per stage)")
     parser.add_argument("--model", default="gemma4:e4b")
+    parser.add_argument(
+        "--data-dir",
+        type=Path,
+        help=(
+            "Write and read every stage artifact below this directory instead of "
+            "the repository data/ tree (recommended for tests and dry rehearsals)"
+        ),
+    )
     args = parser.parse_args(argv)
 
     if args.all:
@@ -90,25 +105,58 @@ def main(argv: list[str] | None = None) -> int:
         parser.error("Specify --all or --stages")
 
     # Per-stage args — each stage only gets what it supports
-    STAGE_ARGS: dict[int, list[str]] = {s: [] for s in range(1, 9)}
+    stage_args_by_number: dict[int, list[str]] = {s: [] for s in range(1, 9)}
+    data_dir = args.data_dir.resolve() if args.data_dir else None
+    if data_dir is not None:
+        acquired = data_dir / "acquired_documents" / "documents.jsonl"
+        classified = data_dir / "classified_documents" / "classified.jsonl"
+        facts = data_dir / "extracted_facts" / "facts.jsonl"
+        knowledge_base = data_dir / "knowledge_base" / "kb.json"
+        generated = data_dir / "generated_prompts" / "kb_prompts.jsonl"
+        rated = data_dir / "rated_prompts" / "rated.jsonl"
+        remixed = data_dir / "remixed_prompts" / "remixed.jsonl"
+        baseline = data_dir / "baseline_results" / "comparison.json"
+        stage_args_by_number[1].extend(["--output-dir", str(acquired.parent)])
+        stage_args_by_number[2].extend(
+            ["--input", str(acquired), "--output", str(classified)]
+        )
+        stage_args_by_number[3].extend(["--input", str(classified), "--output", str(facts)])
+        stage_args_by_number[4].extend(
+            ["--facts-input", str(facts), "--output", str(knowledge_base)]
+        )
+        stage_args_by_number[5].extend(
+            ["--kb-input", str(knowledge_base), "--output", str(generated)]
+        )
+        stage_args_by_number[6].extend(["--input", str(generated), "--output", str(rated)])
+        stage_args_by_number[7].extend(["--input", str(rated), "--output", str(remixed)])
+        stage_args_by_number[8].extend(
+            [
+                "--prompts",
+                str(remixed),
+                "--kb",
+                str(knowledge_base),
+                "--output",
+                str(baseline),
+            ]
+        )
     if args.heuristic:
         for s in range(1, 9):
-            STAGE_ARGS[s].append("--heuristic")
+            stage_args_by_number[s].append("--heuristic")
     if args.quick:
-        STAGE_ARGS[1].extend(["--max-documents", "5"])
-        STAGE_ARGS[2].extend(["--max-documents", "5"])
-        STAGE_ARGS[3].extend(["--max-documents", "5"])
-        STAGE_ARGS[4].extend(["--max-entries", "5"])
-        STAGE_ARGS[5].extend(["--max-entries", "5"])
-        STAGE_ARGS[6].extend(["--max-prompts", "5"])
-        STAGE_ARGS[7].extend(["--max-base", "5"])
-        STAGE_ARGS[8].extend(["--max-prompts", "5"])
-    extra = None  # unused, per-stage args used instead
+        stage_args_by_number[1].extend(["--max-documents", "5"])
+        stage_args_by_number[2].extend(["--max-documents", "5"])
+        stage_args_by_number[3].extend(["--max-documents", "5"])
+        stage_args_by_number[4].extend(["--max-entries", "5"])
+        stage_args_by_number[5].extend(["--max-entries", "5"])
+        stage_args_by_number[6].extend(["--max-prompts", "5"])
+        stage_args_by_number[7].extend(["--max-base", "5"])
+        stage_args_by_number[8].extend(["--max-prompts", "5"])
 
-    print(f"# DueCare Pipeline Runner")
+    print("# DueCare Pipeline Runner")
     print(f"  Stages: {stages}")
     print(f"  Mode: {'heuristic' if args.heuristic else f'Gemma 4 ({args.model})'}")
     print(f"  Quick: {args.quick}")
+    print(f"  Data: {data_dir if data_dir is not None else 'repository defaults'}")
 
     t0 = time.time()
     failed = []
@@ -118,7 +166,7 @@ def main(argv: list[str] | None = None) -> int:
             print(f"  Unknown stage: {stage}")
             continue
 
-        stage_args = list(STAGE_ARGS.get(stage, []))
+        stage_args = list(stage_args_by_number.get(stage, []))
         if stage == 8 and not args.heuristic:
             stage_args.extend(["--model", args.model])
 
@@ -126,11 +174,14 @@ def main(argv: list[str] | None = None) -> int:
         if rc != 0:
             failed.append(stage)
             if stage < 4:
-                print(f"  WARNING: Stage {stage} failed but continuing (later stages may use existing data)")
+                print(
+                    f"  WARNING: Stage {stage} failed but continuing "
+                    "(later stages may use existing data)"
+                )
 
     elapsed = time.time() - t0
     print(f"\n{'='*60}")
-    print(f"  PIPELINE COMPLETE")
+    print("  PIPELINE COMPLETE")
     print(f"  Elapsed: {elapsed:.0f}s ({elapsed/60:.1f} min)")
     print(f"  Stages run: {len(stages)}")
     print(f"  Failed: {len(failed)} ({failed if failed else 'none'})")

@@ -337,7 +337,7 @@ and rubric.
 
 ## What ships
 
-**17 package surfaces** share the `duecare` Python namespace (PEP 420). The
+**18 package surfaces** share the `duecare` Python namespace (PEP 420). The
 source workspace installs them together; the `duecare-llm` meta package is the
 public pip entry point for the workflow-oriented stack.
 
@@ -353,6 +353,7 @@ public pip entry point for the workflow-oriented stack.
 | `duecare-llm-engine` | Heuristic prescan + GREP KB + RAG + tool-call + Gemma verdict pipeline (the core content-safety harness) | Pipeline smoke tests |
 | `duecare-llm-server` | FastAPI app that hosts the pipeline + audit dashboard (the live demo) | Route + audit-trail tests |
 | `duecare-llm-evidence-db` | Redacted-evidence corpus + audit trail SQLite store | Schema + integrity tests |
+| [`duecare-llm-kit`](./packages/duecare-llm-kit/) | Reusable indicator, visualization, HTML-report, and corpus-export toolkit | Engine, report, visualization, and packaging tests |
 | `duecare-llm-benchmark` | `smoke_25` + `score_row` + `aggregate` scoring helpers (zero deps) | Scoring + aggregation tests |
 | `duecare-llm-training` | Fail-closed dataset/training plans; execution delegates to the strict engine or active A-00 Kaggle handoff | Training-contract and plan tests |
 | `duecare-llm-research-tools` | Playwright scrapers + document extractors for domain corpora | Scraper + extractor tests |
@@ -378,7 +379,7 @@ pip install duecare-llm
 # Or, granular: install only what a Kaggle notebook needs
 pip install duecare-llm-core duecare-llm-domains duecare-llm-tasks duecare-llm-agents
 
-# Source checkout: install all 17 workspace packages together
+# Source checkout: install all 18 workspace packages together
 uv sync --all-packages
 ```
 
@@ -528,8 +529,9 @@ python -c "from duecare.tasks.generators import ALL_GENERATORS; print(f'{len(ALL
 python -c "from duecare.agents import agent_registry; print(f'{len(agent_registry)} agents')"
 python -c "from duecare.tasks import task_registry; print(f'{len(task_registry)} tasks')"
 
-# Run the 8-stage pipeline locally
-python scripts/pipeline/run_pipeline.py --stages 4,5,6,7 --heuristic --quick
+# Rehearse stages 4-7 without model calls or tracked-data changes
+python scripts/pipeline/run_pipeline.py --stages 4,5,6,7 --heuristic --quick \
+  --data-dir reports/pipeline-rehearsal
 
 # Run the demo app
 uvicorn src.demo.app:app --port 8080
@@ -738,8 +740,8 @@ When Gemma 5 ships, that's the entire integration cost: one YAML row.
    tasks, agents are all structurally typed. No forced inheritance.
 2. **Pydantic v2 for every data model.** JSON round-trips for free,
    strict validation at every layer boundary.
-3. **PEP 420 namespace packages.** All 17 packages share the `duecare`
-   Python namespace. Install one or all seventeen; imports work identically.
+3. **PEP 420 namespace packages.** All 18 packages share the `duecare`
+   Python namespace. Install one or all eighteen; imports work identically.
 4. **AgentSupervisor meta-agent** enforces retry, budget, and
    abort-on-harm policies across every agent call. Validator can
    signal `harm_detected=True` to abort a release workflow immediately.
@@ -908,7 +910,7 @@ Secrets (API keys) come from environment variables only — see
 
 ```
 gemma4_comp/
-├── packages/                     # 17 package surfaces (workspace members)
+├── packages/                     # 18 package surfaces (workspace members)
 │   ├── duecare-llm-core/         # contracts, schemas, observability
 │   ├── duecare-llm-models/       # 8 model adapters
 │   ├── duecare-llm-domains/      # pluggable domain packs

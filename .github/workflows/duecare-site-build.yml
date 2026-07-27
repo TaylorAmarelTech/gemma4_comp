@@ -28,8 +28,8 @@ jobs:
         with:
           python-version: "3.12"
           cache: pip
-      - name: Install site deps (+ httpx for the TestClient renderer)
-        run: pip install -r requirements.txt httpx
+      - name: Install site deps (+ HTTP clients for the TestClient renderer)
+        run: pip install -r requirements.txt httpx httpx2
       - name: Render static bundle
         run: python scripts/export_static.py --out dist --api-base https://gemma4-comp.onrender.com
       - name: Upload static site artifact

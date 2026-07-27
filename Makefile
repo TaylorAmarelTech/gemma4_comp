@@ -8,8 +8,12 @@
         notebooks kaggle-push kaggle-status kaggle-publish-all kaggle-dry-run kaggle-auth \
         clean help
 
-PACKAGES := duecare-llm-core duecare-llm-models duecare-llm-domains duecare-llm-tasks \
-            duecare-llm-agents duecare-llm-workflows duecare-llm-publishing duecare-llm
+PACKAGES := duecare-llm-core duecare-llm-benchmark duecare-llm-chat \
+            duecare-llm-evidence-db duecare-llm-engine duecare-llm-kit \
+            duecare-llm-nl2sql duecare-llm-research-tools duecare-llm-server \
+            duecare-llm-training duecare-llm-cli duecare-llm-models \
+            duecare-llm-domains duecare-llm-tasks duecare-llm-agents \
+            duecare-llm-workflows duecare-llm-publishing duecare-llm
 
 # Default target: show help
 .DEFAULT_GOAL := help
@@ -19,7 +23,7 @@ help:  ## Show this help
 		| awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-22s\033[0m %s\n", $$1, $$2}'
 
 # ── Install ──────────────────────────────────────────────────────
-install: install-uv  ## Install all 17 packages (preferred: uv); falls back to pip
+install: install-uv  ## Install all 18 packages (preferred: uv); falls back to pip
 install-uv:
 	@command -v uv >/dev/null 2>&1 \
 		&& uv sync --all-packages \
@@ -31,8 +35,6 @@ install-pip:  ## Install via pip (no uv required)
 		echo "Installing $$pkg ..."; \
 		pip install -e packages/$$pkg; \
 	done
-	@echo "Installing duecare-llm-chat ..."
-	pip install -e packages/duecare-llm-chat
 
 dev: install verify  ## Install + verify in one shot (for new contributors)
 

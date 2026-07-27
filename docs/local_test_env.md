@@ -87,7 +87,9 @@ The script is **idempotent** — re-run it any time. `-Regenerate` is the
 ## Known-working pins
 
 [`requirements-testenv.txt`](../requirements-testenv.txt) holds the direct,
-top-level pins. The set verified green on 2026-05-27:
+top-level pins. The baseline was verified green on 2026-05-27; `httpx2` was
+added on 2026-07-26 so clean environments also follow Starlette's supported
+test-client path:
 
 | Package | Version |
 |---|---|
@@ -95,6 +97,7 @@ top-level pins. The set verified green on 2026-05-27:
 | pytest-timeout | 2.4.0 |
 | fastapi | 0.136.3 |
 | httpx | 0.28.1 |
+| httpx2 | 2.7.0 |
 | python-multipart | 0.0.29 |
 | jinja2 | 3.1.6 |
 | pydantic | 2.13.4 |

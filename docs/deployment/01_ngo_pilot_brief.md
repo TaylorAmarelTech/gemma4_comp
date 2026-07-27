@@ -72,7 +72,7 @@ python -m venv .venv
 .\.venv\Scripts\Activate.ps1
 python -m pip install --upgrade pip
 
-# Install DueCare (one command pulls all 17 packages via the meta)
+# Install the workflow-oriented DueCare meta-package
 pip install duecare-llm
 
 # Pull Gemma 4 weights (one-time, ~6 GB for E4B)

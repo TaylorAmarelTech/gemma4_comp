@@ -112,7 +112,7 @@ jobs:
       - name: Install duecare-llm-chat + fastapi for the endpoint roundtrip
         run: |
           python -m pip install --no-cache-dir --upgrade pip
-          python -m pip install --no-cache-dir fastapi pydantic httpx python-multipart
+          python -m pip install --no-cache-dir fastapi pydantic httpx httpx2 python-multipart
           python -m pip install --no-cache-dir -e packages/duecare-llm-core
           python -m pip install --no-cache-dir -e packages/duecare-llm-chat
       - name: Run benchmark validator (6 checks; fails if any regress)
@@ -255,7 +255,7 @@ jobs:
 
       - name: Install workspace (all 17 packages)
         run: |
-          uv sync --all-packages --no-install-project --no-install-package forge-workspace
+          uv sync --all-packages --frozen
           uv pip install pytest pyyaml
 
       - name: Run unit + integration suite

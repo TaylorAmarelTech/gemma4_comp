@@ -27,7 +27,7 @@ audience. Pick one — they don't conflict.
 ## Surface 1 — production image + compose
 
 The repo root ships a **multi-stage, multi-arch Dockerfile** that
-builds all 17 wheels and produces a slim runtime image.
+builds all 18 current wheels and produces a slim runtime image.
 
 ```bash
 # Build (single arch, for local testing)

@@ -17,6 +17,12 @@ the meta `duecare-llm` package tracking the workspace lockstep.
   Styler report tests pass in the minimal evals-as-CI installation.
 - Avoided undefined pandas Styler gradients and bars for constant-value columns,
   removing the report suite's three runtime warnings without hiding warnings.
+- Made the root a dependency-only uv workspace so the documented
+  `uv sync --all-packages` command works without CI-only exclusions.
+- Added the reusable kit as the 18th uv workspace package and installed
+  Starlette's supported `httpx2` test client in clean developer/CI setups.
+- Added a pipeline `--data-dir` boundary and isolated integration fixtures so
+  offline rehearsals and the full test suite do not rewrite tracked datasets.
 - Added a durable maintainer handoff, dated 30-day transition plan, and
   maintenance-mode fallback for ownership transfer by 2026-08-25.
 - Added a read-only, privacy-safe handoff validator and a separate model-free
