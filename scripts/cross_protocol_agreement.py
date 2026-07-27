@@ -38,10 +38,18 @@ OUT = _ROOT / "docs" / "research" / "cross_protocol_agreement.md"
 BASE, CORE = "baseline", "harness_core"
 
 
+def _has_windows_drive_marker(parts: tuple[str, ...]) -> bool:
+    """Return whether POSIX resolution embedded a Windows drive as a path component."""
+    return any(len(part) == 2 and part[0].isalpha() and part[1] == ":" for part in parts)
+
+
 def _label(path: Path) -> str:
     """Repo-relative label; anything outside the repo collapses to its bare filename."""
     try:
-        return path.resolve().relative_to(_ROOT).as_posix()
+        relative = path.resolve().relative_to(_ROOT)
+        if _has_windows_drive_marker(relative.parts):
+            return path.name
+        return relative.as_posix()
     except (ValueError, OSError):
         return path.name
 

@@ -100,6 +100,7 @@ def test_panel_label_never_leaks_an_out_of_repo_absolute_path():
     label = x._label(Path("C:/Users/someone/AppData/Local/Temp/panel.jsonl").resolve())
     assert label == "panel.jsonl"
     assert "Users" not in label and "AppData" not in label
+    assert x._has_windows_drive_marker(("C:", "Users", "someone"))
 
 
 def test_missing_panel_yields_no_rows_rather_than_raising(tmp_path):

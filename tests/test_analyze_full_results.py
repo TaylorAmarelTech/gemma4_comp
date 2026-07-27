@@ -266,3 +266,4 @@ def test_panel_label_never_leaks_an_out_of_repo_absolute_path():
     label = a._panel_label(outside)
     assert label == "panel_perdim.jsonl"
     assert "Users" not in label and "AppData" not in label
+    assert a._has_windows_drive_marker(("C:", "Users", "someone"))

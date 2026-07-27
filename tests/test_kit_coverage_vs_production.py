@@ -112,3 +112,4 @@ def test_label_never_leaks_an_out_of_repo_absolute_path():
     label = k._label(Path("C:/Users/someone/AppData/Local/Temp/results.jsonl").resolve())
     assert label == "results.jsonl"
     assert "Users" not in label and "AppData" not in label
+    assert k._has_windows_drive_marker(("C:", "Users", "someone"))
