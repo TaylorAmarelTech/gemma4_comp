@@ -10,6 +10,9 @@ the meta `duecare-llm` package tracking the workspace lockstep.
 
 ## Unreleased
 
+- Recorded the exact closeout merge, post-merge CI, GitHub Pages, artifact-only
+  website build, and live Render project-status receipts in the maintainer
+  handoff; release/tag and private ownership transfer remain explicit decisions.
 - Added the public `/project-status` continuity page and reconciled deployment
   ownership: Render serves the website, MkDocs owns GitHub Pages, and the static
   website workflow emits artifacts without competing for Pages.

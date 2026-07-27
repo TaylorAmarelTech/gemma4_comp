@@ -12,6 +12,28 @@ while the release boundary and evidence backlog remain in
 **Target transfer:** 2026-08-25
 **Default model posture:** paused and zero planned model calls
 
+## Integrated Closeout Receipt
+
+The model-free closeout landed through
+[pull request 2](https://github.com/TaylorAmarelTech/gemma4_comp/pull/2) on
+`master` as merge commit `07cfdbfd00e1bc304ffc1f8b2736c4d93bbf0eab` on
+2026-07-26 (PDT). The post-merge evidence is:
+
+- the [master CI run](https://github.com/TaylorAmarelTech/gemma4_comp/actions/runs/30235104435)
+  passed both full Python matrices, the 18-wheel build, clean-room install,
+  gitleaks, website/privacy, Kaggle, harness, and entity-intelligence jobs;
+- the [MkDocs Pages run](https://github.com/TaylorAmarelTech/gemma4_comp/actions/runs/30235104493)
+  deployed successfully, including the live
+  [maintainer handoff](https://tayloramareltech.github.io/gemma4_comp/MAINTAINER_HANDOFF/);
+- the [website artifact run](https://github.com/TaylorAmarelTech/gemma4_comp/actions/runs/30235104433)
+  completed without becoming a competing Pages deployer, and Render serves the
+  live [project-status route](https://duecare-ai.com/project-status); and
+- no Ollama or hosted-model calls were made for the closeout or these receipts.
+
+This proves the integrated code/docs/deployment stopping point. It does not
+choose a release tag, publish packages or models, close the strict training
+lane, or complete private ownership transfer.
+
 ## First 30 Minutes
 
 Use a Python 3.12 environment with the repository's development dependencies.
@@ -220,7 +242,6 @@ working tree as the sole copy of release evidence.
 
 | Priority | State at 2026-07-26 | Safe next action |
 |---|---|---|
-| P0 | The closeout branch includes current `origin/master` and passes the integrated gates; pull request 2 is the canonical review boundary, but this document is not proof of its live state | Check PR 2 and the exact `master` SHA; if open, review and merge it, and if merged, verify Actions, Render, and MkDocs Pages receipts before any tag |
 | P0 | Release commit/tag and version decision are not frozen | Choose the bounded release claim, reconcile versions/citation/changelog, run privacy-safe scans and core/handoff gates on the exact commit |
 | P0 | Ownership and platform access still belong to the current maintainer | Complete the private transfer receipt and successor rehearsal; do not place credentials in Git |
 | P1 | Five dense generic-corridor typologies need diversification | Curate the manifest-planned 25 tasks / minimum 75 rows with lawful sources, lineage, and adjudication |
@@ -230,6 +251,7 @@ working tree as the sole copy of release evidence.
 | P2 | Human review evidence is limited | Adjudicate a stratified high-severity and benign-control slice and publish agreement/disagreement policy |
 | P3 | Legacy Ruff debt remains in long benchmark files | Isolate mechanical cleanup into behavior-preserving changes with regression evidence; the former constant-value pandas Styler warnings are fixed |
 | P3 | Strict MkDocs stops on 84 legacy warnings; the two succession pages emit none | Classify unlisted/excluded pages, repo-external targets, and stale anchors before changing navigation or suppressions |
+| P3 | The green Pages run emitted GitHub's Node.js 20 action-runtime deprecation annotation | Verify the current official action majors, update them in a narrow dependency PR, and rerun Pages, website, and CI workflows |
 
 The detailed dataset/source ideas and ordered research backlog are maintained in
 [Publication readiness](PUBLICATION_READINESS.md), not duplicated here.

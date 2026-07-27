@@ -34,12 +34,12 @@ snapshots, and older checklist/status docs are archived under
 
 ## Current Technical Posture
 
-- Root `AGENTS.md` names `master` as the release branch. The working branch
-  `codex/full-flywheel-training-20260714` now includes the latest
-  `origin/master`, its closeout changes are intentionally committed, and the
-  integrated tree has a green regression receipt. Pull request 2 is the
-  canonical reviewed path into `master`; check its live state and the exact
-  `master` SHA before treating deployment or any release/tag decision as done.
+- Root `AGENTS.md` names `master` as the release branch. Pull request 2 merged
+  the reconciled closeout into `master` as
+  `07cfdbfd00e1bc304ffc1f8b2736c4d93bbf0eab` on 2026-07-26 (PDT). The
+  post-merge CI workflow passed both Python matrices, all 18 wheel builds,
+  clean-room installation, gitleaks, website/privacy, Kaggle, harness, and
+  entity-intelligence jobs. A release/tag remains a separate owner decision.
 - The repository has a single model-free publication entry point:
   [`PUBLICATION_READINESS.md`](PUBLICATION_READINESS.md) and
   `python scripts/validate_publication_readiness.py --scope core`. All eight
@@ -54,7 +54,8 @@ snapshots, and older checklist/status docs are archived under
   `apps/duecare-ai.com` on Render; GitHub Pages deploys MkDocs through
   `docs-deploy.yml`; the website static exporter remains an artifact workflow
   and cannot overwrite Pages. The website exposes `/project-status` as the
-  public continuity entry point.
+  public continuity entry point. Post-merge Pages, artifact, and live Render
+  route checks all passed on 2026-07-26.
 - New local/hosted Ollama work is deferred. The rich harness supports a
   non-mutating `--plan` and a startup ceiling through
   `--max-planned-model-calls` / `DUECARE_MAX_PLANNED_MODEL_CALLS`.
