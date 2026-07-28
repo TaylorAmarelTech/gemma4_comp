@@ -43,17 +43,12 @@ python scripts/validate_publication_readiness.py --scope core
 
 ## Near-Term Maintenance
 
-One registered local task is safe to pick up without model credits or external
-writes:
-
-1. Remove legacy Ruff debt in behavior-preserving slices, never by weakening
-   the configured rule set.
-
-The exact work ID is `legacy-ruff-cleanup` in
-[`DEFERRED_WORK.md`](DEFERRED_WORK.md). The first direct-client budget migration
-is complete for the adverse-media verifier; other callers remain future bounded
-migrations under the exact coverage statement in
-[`PROVIDER_BUDGETING.md`](PROVIDER_BUDGETING.md).
+The registered legacy Ruff slice completed on 2026-07-28: the three selected
+files pass the configured rules without suppressions, backed by their offline
+behavior tests. No `ready_local` item remains in the canonical queue. The first
+direct-client budget migration is also complete for the adverse-media verifier;
+other callers remain future bounded migrations under the exact coverage
+statement in [`PROVIDER_BUDGETING.md`](PROVIDER_BUDGETING.md).
 
 ## Evidence And Dataset Priorities
 

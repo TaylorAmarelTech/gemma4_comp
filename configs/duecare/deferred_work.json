@@ -343,38 +343,6 @@
       ]
     },
     {
-      "id": "legacy-ruff-cleanup",
-      "title": "Clear legacy lint debt in behavior-preserving slices",
-      "priority": "P3",
-      "status": "ready_local",
-      "owner_role": "Maintainer",
-      "target": "Separate pull requests after closeout-critical work",
-      "reason": "Long benchmark and verification files retain broad style debt; a mass rewrite would obscure behavioral review and is not a release blocker.",
-      "model_credit_policy": "zero_only",
-      "network_policy": "offline_only",
-      "depends_on": [],
-      "prerequisites": [
-        "A frozen regression baseline for each selected file",
-        "A change limited to one mechanical category or one small semantic finding"
-      ],
-      "next_actions": [
-        "Run ruff check on scripts/rich_harness_lift.py, scripts/verify.py, and tests/test_plan.py and record the current categories.",
-        "Fix one bounded category without broad suppression, then run focused and full deterministic tests.",
-        "Repeat in separate reviewable changes until the repository lint command can be expanded safely."
-      ],
-      "acceptance_gates": [
-        "The selected Ruff scope passes without a file-wide ignore for useful rules.",
-        "No benchmark plan, score, output schema, or fixture changes unexpectedly.",
-        "The full zero-call regression and public gates remain green."
-      ],
-      "evidence": [
-        "scripts/rich_harness_lift.py",
-        "scripts/verify.py",
-        "tests/test_plan.py",
-        "pyproject.toml"
-      ]
-    },
-    {
       "id": "source-freshness-maintenance",
       "title": "Review volatile legal and operational sources on a cadence",
       "priority": "P1",
