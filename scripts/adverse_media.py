@@ -46,9 +46,9 @@ from dataclasses import asdict, dataclass, field
 from pathlib import Path
 
 try:
-    import provider_budget
-except ModuleNotFoundError:  # supports ``python -m scripts.adverse_media``
     from scripts import provider_budget
+except ModuleNotFoundError:  # supports ``python scripts/adverse_media.py``
+    import provider_budget
 
 _ROOT = Path(__file__).resolve().parents[1]
 USER_AGENT = "duecare-adverse-media/1.0 (+defensive anti-trafficking screening)"

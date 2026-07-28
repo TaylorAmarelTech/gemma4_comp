@@ -11,6 +11,10 @@ from scripts import adverse_media as am
 from scripts import provider_budget as pb
 
 
+def test_adverse_media_uses_canonical_provider_budget_module() -> None:
+    assert am.provider_budget is pb
+
+
 @pytest.fixture(autouse=True)
 def _reset_environment_ledger() -> None:
     pb.reset_environment_ledger_for_tests()
