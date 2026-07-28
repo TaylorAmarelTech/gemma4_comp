@@ -23,6 +23,7 @@ TRANSITION_DOC = Path("docs/PROJECT_TRANSITION_PLAN.md")
 REHEARSAL_DOC = Path("docs/SUCCESSOR_REHEARSAL.md")
 TRANSFER_TEMPLATE = Path("docs/PRIVATE_TRANSFER_RECEIPT_TEMPLATE.md")
 DEFERRED_DOC = Path("docs/DEFERRED_WORK.md")
+RESOLUTION_DOC = Path("docs/CLOSEOUT_RESOLUTIONS_2026_07_28.md")
 DEFERRED_REGISTRY = Path("configs/duecare/deferred_work.json")
 DEFERRED_VALIDATOR = Path("scripts/validate_deferred_work.py")
 
@@ -33,6 +34,9 @@ REQUIRED_FILES: tuple[Path, ...] = (
     REHEARSAL_DOC,
     TRANSFER_TEMPLATE,
     DEFERRED_DOC,
+    RESOLUTION_DOC,
+    Path("configs/duecare/closeout_resolutions.json"),
+    Path("scripts/validate_closeout_resolutions.py"),
     DEFERRED_REGISTRY,
     DEFERRED_VALIDATOR,
     Path("docs/PUBLICATION_READINESS.md"),
@@ -59,6 +63,7 @@ HANDOFF_MARKERS: tuple[str, ...] = (
     "SUCCESSOR_REHEARSAL.md",
     "PRIVATE_TRANSFER_RECEIPT_TEMPLATE.md",
     "DEFERRED_WORK.md",
+    "CLOSEOUT_RESOLUTIONS_2026_07_28.md",
     "DUECARE_MAX_PLANNED_MODEL_CALLS",
     "validate_publication_readiness.py --scope handoff",
     "## 2026-07-27 Whole-stack Cost-stop Correction",
@@ -81,7 +86,8 @@ CLAUDE_HANDOFF_MARKERS: tuple[str, ...] = (
     "Meta Muse Spark 1.1",
     "## Dataset And Evaluation Boundary",
     "## Current Deferred Work",
-    "contains 11 items",
+    "contains 0 items",
+    "CLOSEOUT_RESOLUTIONS_2026_07_28.md",
     "## Claude Code Pickup Prompt",
     "## Handoff Acceptance",
     "Saved `.claude/state/` files",
@@ -91,6 +97,7 @@ CLAUDE_HANDOFF_MARKERS: tuple[str, ...] = (
     "stop_ollama_stack.ps1 -Status",
     "4,646 passed",
     "4,648 passed",
+    "4,653 passed",
 )
 
 TRANSITION_MARKERS: tuple[str, ...] = (
@@ -107,10 +114,11 @@ TRANSITION_MARKERS: tuple[str, ...] = (
     "## Final 72 Hours",
     "## Owner-Only Actions",
     "## Decision Register",
-    "## Exit Criteria",
+    "## Maintenance-Mode Exit Receipt",
     "## If No Successor Is Available",
     "## Future Improvements",
     "DEFERRED_WORK.md",
+    "CLOSEOUT_RESOLUTIONS_2026_07_28.md",
 )
 
 DISCOVERY_LINKS: dict[Path, tuple[str, ...]] = {
@@ -119,30 +127,35 @@ DISCOVERY_LINKS: dict[Path, tuple[str, ...]] = {
         "docs/MAINTAINER_HANDOFF.md",
         "docs/PROJECT_TRANSITION_PLAN.md",
         "docs/DEFERRED_WORK.md",
+        "docs/CLOSEOUT_RESOLUTIONS_2026_07_28.md",
     ),
     Path("PROJECT_BIBLE.md"): (
         "docs/CLAUDE_CODE_HANDOFF.md",
         "docs/MAINTAINER_HANDOFF.md",
         "docs/PROJECT_TRANSITION_PLAN.md",
         "docs/DEFERRED_WORK.md",
+        "docs/CLOSEOUT_RESOLUTIONS_2026_07_28.md",
     ),
     Path("docs/index.md"): (
         "CLAUDE_CODE_HANDOFF.md",
         "MAINTAINER_HANDOFF.md",
         "PROJECT_TRANSITION_PLAN.md",
         "DEFERRED_WORK.md",
+        "CLOSEOUT_RESOLUTIONS_2026_07_28.md",
     ),
     Path("docs/FILE_PURPOSE_GUIDE.md"): (
         "CLAUDE_CODE_HANDOFF.md",
         "MAINTAINER_HANDOFF.md",
         "PROJECT_TRANSITION_PLAN.md",
         "DEFERRED_WORK.md",
+        "CLOSEOUT_RESOLUTIONS_2026_07_28.md",
     ),
     Path("mkdocs.yml"): (
         "CLAUDE_CODE_HANDOFF.md",
         "MAINTAINER_HANDOFF.md",
         "PROJECT_TRANSITION_PLAN.md",
         "DEFERRED_WORK.md",
+        "CLOSEOUT_RESOLUTIONS_2026_07_28.md",
     ),
     Path("CLAUDE.md"): ("docs/CLAUDE_CODE_HANDOFF.md",),
     Path(".claude/rules/05_project_bible_pickup.md"): (
@@ -158,6 +171,7 @@ DOC_CROSS_LINKS: dict[Path, tuple[str, ...]] = {
         "SUCCESSOR_REHEARSAL.md",
         "PRIVATE_TRANSFER_RECEIPT_TEMPLATE.md",
         "DEFERRED_WORK.md",
+        "CLOSEOUT_RESOLUTIONS_2026_07_28.md",
     ),
     TRANSITION_DOC: (
         "CLAUDE_CODE_HANDOFF.md",
@@ -165,6 +179,7 @@ DOC_CROSS_LINKS: dict[Path, tuple[str, ...]] = {
         "PUBLICATION_READINESS.md",
         "SUCCESSOR_REHEARSAL.md",
         "DEFERRED_WORK.md",
+        "CLOSEOUT_RESOLUTIONS_2026_07_28.md",
     ),
     CLAUDE_HANDOFF_DOC: (
         "../PROJECT_BIBLE.md",
@@ -172,6 +187,7 @@ DOC_CROSS_LINKS: dict[Path, tuple[str, ...]] = {
         "PROJECT_TRANSITION_PLAN.md",
         "PUBLICATION_READINESS.md",
         "DEFERRED_WORK.md",
+        "CLOSEOUT_RESOLUTIONS_2026_07_28.md",
         "SUCCESSOR_REHEARSAL.md",
     ),
 }
@@ -332,6 +348,7 @@ def public_continuity_surface_findings(root: Path = ROOT) -> list[str]:
         "PROJECT_TRANSITION_PLAN",
         "PUBLICATION_READINESS",
         "DEFERRED_WORK",
+        "CLOSEOUT_RESOLUTIONS_2026_07_28",
         "docs-deploy.yml",
         "duecare-site-build.yml",
         "duecare-ai-site",

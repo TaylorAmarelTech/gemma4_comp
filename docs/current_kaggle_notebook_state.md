@@ -10,14 +10,14 @@ The active competition scope is exactly three script kernels, also listed in
 [`kaggle/_INDEX.md`](../kaggle/_INDEX.md). The first two are the primary
 recording path; A-00 is the quantitative proof and training/evaluation path.
 
-| Folder | Role | Live Kaggle status checked 2026-07-27 |
+| Folder | Role | Live Kaggle status checked 2026-07-28 |
 |---|---|---|
 | `kaggle/01-duecare-exploration-workbench/` | Broad workbench: chat, harness comparison, bulk review, knowledge extraction, search, sharing, traces, and activity logs. | `COMPLETE` |
 | `kaggle/02-live-demo/` | Focused live demo for judges and video capture. | `CANCEL_ACKNOWLEDGED` |
 | `kaggle/A-00-omni-experiment-workbench/` | Quantitative proof path: baseline, harnessed, synthetic-data, fine-tuning, judging, checkpoints, and report artifacts. | `CANCEL_ACKNOWLEDGED` |
 
 The status values above came from the authenticated Kaggle command line on
-2026-07-27. Cancellation is terminal but is not successful completion. A-00's
+2026-07-28. Cancellation is terminal but is not successful completion. A-00's
 public page still attaches `taylorsamarel/duecare-proof-finetuning-data`, but
 its canceled run and unreviewed output boundary cannot be cited as a completed
 training/evaluation proof. No production Gemma adapter, merged weights, or full
@@ -58,9 +58,11 @@ kernel. It defines DueCare rows as `kaggle_benchmarks` tasks so model calls can
 use Kaggle's model proxy/quota and publish Community Benchmark task/run
 artifacts. It is also optional and not part of the primary recording path.
 
-Live review on 2026-07-27 found the Community Benchmark run `COMPLETE`. The
+Live review on 2026-07-28 found the Community Benchmark run `COMPLETE`. The
 configured Universal LLM Benchmark slug did not resolve publicly and could not
-be verified; keep it source-only until a public URL returns successfully.
+be verified; keep it source-only until a public URL returns successfully. The
+dated closeout decision declined all optional reruns because no named evidence
+gap justified quota use.
 
 ## Archived Or Reference-Only Material
 
@@ -84,7 +86,9 @@ be verified; keep it source-only until a public URL returns successfully.
   ownership, release boundaries, and acceptance.
 - [`docs/PROJECT_TRANSITION_PLAN.md`](PROJECT_TRANSITION_PLAN.md) and
   [`docs/PUBLICATION_READINESS.md`](PUBLICATION_READINESS.md) for the closeout
-  sequence and exact remaining work.
+  boundary and conditional future work.
+- [`docs/CLOSEOUT_RESOLUTIONS_2026_07_28.md`](CLOSEOUT_RESOLUTIONS_2026_07_28.md)
+  for the explicit no-rerun decision and evidence boundary.
 - [`docs/harness_ecosystem.md`](harness_ecosystem.md) for the authoritative
   registered-harness inventory.
 - [`docs/harness_standard_contract.md`](harness_standard_contract.md) for the

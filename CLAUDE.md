@@ -14,8 +14,9 @@ Read these before broad edits:
 4. [`.claude/rules/05_project_bible_pickup.md`](.claude/rules/05_project_bible_pickup.md)
 5. [`docs/MAINTAINER_HANDOFF.md`](docs/MAINTAINER_HANDOFF.md)
 6. [`docs/PUBLICATION_READINESS.md`](docs/PUBLICATION_READINESS.md)
-7. [`docs/DEFERRED_WORK.md`](docs/DEFERRED_WORK.md)
-8. [`docs/codex/PROJECT_BIBLE.md`](docs/codex/PROJECT_BIBLE.md) only when deep
+7. [`docs/CLOSEOUT_RESOLUTIONS_2026_07_28.md`](docs/CLOSEOUT_RESOLUTIONS_2026_07_28.md)
+8. [`docs/DEFERRED_WORK.md`](docs/DEFERRED_WORK.md)
+9. [`docs/codex/PROJECT_BIBLE.md`](docs/codex/PROJECT_BIBLE.md) only when deep
    benchmark, dataset, or autonomous-engine history is needed.
 
 Claude Code, Codex, Fable 5-style agents, and other pickup tools should use the
@@ -44,8 +45,8 @@ making a completion claim.
   advice, the live GREP/RAG layer, or accepted training data.
 - The default comparable benchmark board remains v1/h1 batched evidence.
   Per-dimension, v2, h2, and benign-control evidence is isolated.
-- The generated deferred-work register has 11 gated or recurring items and no
-  `ready_local` item after the registered Ruff cleanup.
+- The dated closeout receipt resolves all 11 inherited items without inventing
+  missing evidence. The generated deferred-work register has zero current items.
 - No trained adapter, package release, or new model-improvement claim is
   completed merely because the core repository gate is green.
 

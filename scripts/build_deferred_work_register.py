@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
-"""Render the public deferred-work register from its canonical JSON source.
+"""Render the public outstanding-work register from its canonical JSON source.
 
-The generated document is intentionally detailed: every unfinished item has a
-real owner role, reason, prerequisites, ordered actions, acceptance gates, and
-evidence paths. Rendering is deterministic and never calls a model or network.
+Every open item has a real owner role, reason, prerequisites, ordered actions,
+acceptance gates, and evidence paths. An empty list is a valid stopping point
+when a separate dated receipt preserves each disposition. Rendering is
+deterministic and never calls a model or network.
 """
 
 from __future__ import annotations
@@ -76,25 +77,44 @@ def render_registry(data: dict[str, Any]) -> str:
         "",
         data["policy"]["privacy_rule"],
         "",
-        "A status records why work is not complete; it is not permission to bypass",
-        "the listed boundary. Empty fields, fabricated approvals, guessed versions,",
-        "and undated completion claims are rejected by",
+        (
+            "A status records why open work is not complete; it is not permission to bypass"
+            if items
+            else "If work reopens, its status must record the real authorization boundary;"
+        ),
+        (
+            "the listed boundary. Empty fields, fabricated approvals, guessed versions,"
+            if items
+            else "empty fields, fabricated approvals, guessed versions, and undated claims are"
+        ),
+        "rejected by",
         "`python scripts/validate_deferred_work.py`.",
         "",
         "## Summary",
         "",
-        "| Priority | Work item | Status | Owner role | Model-credit policy |",
-        "|---|---|---|---|---|",
     ]
-    for item in items:
-        lines.append(
-            "| "
-            f"{item['priority']} | "
-            f"[{item['title']}](#{item['id']}) | "
-            f"{STATUS_LABELS.get(item['status'], item['status'])} | "
-            f"{item['owner_role']} | "
-            f"{item['model_credit_policy']} |"
-        )
+    if items:
+        lines.extend([
+            "| Priority | Work item | Status | Owner role | Model-credit policy |",
+            "|---|---|---|---|---|",
+        ])
+        for item in items:
+            lines.append(
+                "| "
+                f"{item['priority']} | "
+                f"[{item['title']}](#{item['id']}) | "
+                f"{STATUS_LABELS.get(item['status'], item['status'])} | "
+                f"{item['owner_role']} | "
+                f"{item['model_credit_policy']} |"
+            )
+    else:
+        lines.extend([
+            "**No outstanding items.** The 11 inherited closeout items received",
+            "dated dispositions in",
+            "[`CLOSEOUT_RESOLUTIONS_2026_07_28.md`](CLOSEOUT_RESOLUTIONS_2026_07_28.md).",
+            "That receipt distinguishes completed maintenance from declined work,",
+            "claim exclusions, retained ownership, and retained risk.",
+        ])
 
     ready = [item for item in items if item["status"] == "ready_local"]
     recurring = [item for item in items if item["status"] == "recurring_maintenance"]
@@ -104,15 +124,39 @@ def render_registry(data: dict[str, Any]) -> str:
             "",
             "## Pickup Order",
             "",
-            "The safe sequence is:",
+            (
+                "The safe sequence is:"
+                if items
+                else "No pickup sequence is active. To reopen work safely:"
+            ),
             "",
             "1. Preserve the whole-stack cost stop and establish live Git, process,",
             "   scheduler, provider, and publication truth.",
-            "2. Complete local model-free items in small reviewable changes.",
-            "3. Continue recurring source-freshness work without silently replacing",
-            "   older evidence.",
-            "4. Start a gated item only when its owner, prerequisites, and authorization",
-            "   are present; then retain every acceptance artifact.",
+            (
+                "2. Complete local model-free items in small reviewable changes."
+                if items
+                else "2. Confirm a specific reopen condition in the dated receipt is met."
+            ),
+            (
+                "3. Continue recurring source-freshness work without silently replacing"
+                if items
+                else "3. Add a bounded item with a named owner role, prerequisites, actions,"
+            ),
+            (
+                "   older evidence."
+                if items
+                else "   acceptance gates, evidence, and an explicit cost/network boundary."
+            ),
+            (
+                "4. Start a gated item only when its owner, prerequisites, and authorization"
+                if items
+                else "4. Validate the register and closeout receipt before starting the item;"
+            ),
+            (
+                "   are present; then retain every acceptance artifact."
+                if items
+                else "   preserve the prior receipt as immutable dated history."
+            ),
             "",
             "**Ready for model-free repository work:** "
             + (", ".join(f"`{item['id']}`" for item in ready) or "None")

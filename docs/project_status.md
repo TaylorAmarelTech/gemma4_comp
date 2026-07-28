@@ -6,7 +6,7 @@ Current as of 2026-07-28.
 
 The active Kaggle path is exactly three script-kernel folders:
 
-| Kernel | Role | Live status checked 2026-07-27 |
+| Kernel | Role | Live status checked 2026-07-28 |
 |---|---|---|
 | `kaggle/01-duecare-exploration-workbench/` | Broad interactive workbench for chat, harness comparison, extraction, search controls, knowledge packs, traces, and activity logs. | `COMPLETE` |
 | `kaggle/02-live-demo/` | Focused live demo and video narrative path. | `CANCEL_ACKNOWLEDGED` |
@@ -41,9 +41,9 @@ snapshots, and older checklist/status docs are archived under
   [15](https://github.com/TaylorAmarelTech/gemma4_comp/pull/15). Pull request 15
   is the current pre-handoff anchor at merge commit
   `56e7283df1e191793355b340559733b4ef77f9fa`; all 16 PR checks passed, and the
-  exact local broad regression passed 4,646 tests with 9 skips. A release/tag
-  remains a separate owner decision, and every later candidate must rerun its
-  own gates.
+  exact local broad regression passed 4,646 tests with 9 skips. Maintenance
+  mode was enacted on 2026-07-28 with no release tag; every future release
+  candidate must rerun its own gates.
 - The wrap-up validation made no Ollama, hosted-model, or Kaggle-quota calls.
   Render remains the production website/API host; the independent
   [`duecare-ai-site`](https://tayloramareltech.github.io/duecare-ai-site/)
@@ -62,13 +62,15 @@ snapshots, and older checklist/status docs are archived under
   [`MAINTAINER_HANDOFF.md`](MAINTAINER_HANDOFF.md).
 - The repository has a single model-free publication entry point:
   [`PUBLICATION_READINESS.md`](PUBLICATION_READINESS.md) and
-  `python scripts/validate_publication_readiness.py --scope core`. All eleven
-  core gates passed in the closeout candidate on 2026-07-27; rerun them on the
-  exact release commit.
-- [`DEFERRED_WORK.md`](DEFERRED_WORK.md) is the generated, validated source for
-  every unfinished item's owner role, prerequisites, authorization boundary,
-  ordered actions, evidence, and acceptance gates.
-- All 18 Python distributions remain unpublished on PyPI. One fail-closed OIDC
+  `python scripts/validate_publication_readiness.py --scope core`. All twelve
+  current core gates pass in the maintenance candidate; rerun them on any
+  future exact release commit.
+- [`CLOSEOUT_RESOLUTIONS_2026_07_28.md`](CLOSEOUT_RESOLUTIONS_2026_07_28.md)
+  records the honest outcome and claim boundary for all 11 inherited items.
+  [`DEFERRED_WORK.md`](DEFERRED_WORK.md) contains zero current items and is
+  reserved for specifically reopened work.
+- All 18 Python distributions remain unpublished on PyPI by explicit closeout
+  decision. One fail-closed OIDC
   workflow owns package publication; a reviewed independent-SemVer manifest
   now reconciles the intentionally mixed versions and selects one package per
   production tag.
@@ -76,8 +78,8 @@ snapshots, and older checklist/status docs are archived under
   [`CLAUDE_CODE_HANDOFF.md`](CLAUDE_CODE_HANDOFF.md) is the tracked coding-agent
   pickup, [`MAINTAINER_HANDOFF.md`](MAINTAINER_HANDOFF.md) is the human
   operational pickup, and
-  [`PROJECT_TRANSITION_PLAN.md`](PROJECT_TRANSITION_PLAN.md) schedules the
-  2026-07-26 through 2026-08-25 closeout. The separate `--scope handoff` gate is
+  [`PROJECT_TRANSITION_PLAN.md`](PROJECT_TRANSITION_PLAN.md) preserves the
+  2026-07-26 through 2026-08-25 successor playbook. The separate `--scope handoff` gate is
   read-only and keeps both documents linked to live pickup evidence.
 - Public deployment ownership is reconciled: `duecare-ai.com` deploys from
   `apps/duecare-ai.com` on Render; the separate `duecare-ai-site` repository
@@ -179,11 +181,11 @@ Latest pre-handoff offline receipt on 2026-07-28:
 
 - publication handoff: 2/2 gates passed, including 23/23 succession-document
   checks and 65/65 live pickup checks;
-- publication core: 11/11 gates passed, including provider-budget coverage,
-  deferred-work integrity, and the 18-package release-ownership/install-truth
-  gate;
+- publication core: 12/12 gates pass, including provider-budget coverage,
+  zero-item deferred-work integrity, the dated 11-item closeout receipt, and the
+  18-package release-ownership/install-truth gate;
 - combined `packages tests` regression in the closeout 18-package workspace:
-  4,648 passed and 9 skipped with no warning summary under the zero-call
+  4,653 passed and 9 skipped in 8 minutes 4 seconds with no warning summary under the zero-call
   transport lock; the focused
   43-test package run also passes with pandas `RuntimeWarning` promoted to an
   error;

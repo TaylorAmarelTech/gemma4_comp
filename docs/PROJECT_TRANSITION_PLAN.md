@@ -10,14 +10,38 @@ boundary, limitations, dataset plan, and model-work backlog remain in
 Every unfinished action is normalized in the generated
 [Deferred work register](DEFERRED_WORK.md); that register wins if a duplicated
 status, owner, boundary, or acceptance test drifts.
+The immutable outcome of the inherited queue is the
+[2026-07-28 closeout resolution receipt](CLOSEOUT_RESOLUTIONS_2026_07_28.md).
 The repeatable technical exercise is the
 [successor pickup rehearsal](SUCCESSOR_REHEARSAL.md).
 
-**Status:** active closeout
+**Status:** maintenance mode enacted; zero current deferred items
 **Start date:** 2026-07-26
 **Target handoff date:** 2026-08-25
 **Model-quota posture:** whole model/flywheel stack cost-stopped; deterministic
 work only unless a separate frozen, budgeted run is approved
+
+## Enacted Closeout Decision - 2026-07-28
+
+The repository owner delegated the remaining bounded decisions, and maintenance
+mode is now effective. Keep Render production, the independent read-only
+continuity site, GitHub Pages documentation, the source repository, and existing
+published research artifacts running. Keep all recurring model/flywheel tasks
+disabled and planned model calls at zero.
+
+All 11 inherited register items have explicit outcomes rather than silent
+deferral: one current source-freshness cycle completed; the release disposition
+was decided; private ownership was retained by the current owner; historical
+provider usage closed with an explicit unknown residual risk; and package,
+model, notebook, per-dimension, training-curation, provenance, and human-study
+work was declined or excluded from claims where its evidence did not exist.
+No package, model, dataset, notebook, image, chart, or private account was
+published or transferred to manufacture a completed checklist.
+
+The dated schedule below remains the tested successor-transfer playbook if a
+maintainer later accepts the project. It is not an open requirement to spend
+credits, recruit reviewers, or publish artifacts before the current owner moves
+on. The next scheduled source-freshness review is 2026-10-28.
 
 If the actual departure date changes, move the calendar dates together while
 preserving the sequence, evidence requirements, and final rehearsal window.
@@ -36,13 +60,14 @@ The project has reached a good stopping point when:
 - package versions, `CITATION.cff`, changelog, release notes, datasets, active
   Kaggle references, and public docs agree at that exact revision;
 - access, recovery, domain/hosting, registries, provider billing, outreach, and
-  archive ownership have private transfer receipts;
+  archive ownership have private transfer receipts, or the current owner is
+  explicitly retained as the private maintenance/recovery authority;
 - core, handoff, and relevant focused gates have saved receipts, while any red
   training or experimental lane is plainly described and isolated;
 - no raw worker data, private case material, credentials, ignored staging
   reports, or unreviewed entity allegations are published; and
-- the successor's first small backlog item has a clear owner, acceptance test,
-  and explicit model-credit budget; and
+- a future successor's first reopened item must have a clear owner, acceptance
+  test, and explicit model-credit budget; and
 - `DEFERRED_WORK.md` is current, placeholder-free, and agrees with the public
   status, release boundary, and owner-only checklist.
 
@@ -200,8 +225,10 @@ successor; local repository edits do not complete them:
   sentinels, or re-enabling of the recurring tasks; and
 - decide whether to retain, transfer, or retire public support commitments.
 
-The exact owner-only checklist is [`USER_TODO.md`](USER_TODO.md), and the
-acceptance contract for each item is [`DEFERRED_WORK.md`](DEFERRED_WORK.md).
+The resolved owner-decision ledger is [`USER_TODO.md`](USER_TODO.md), the dated
+acceptance record is
+[`CLOSEOUT_RESOLUTIONS_2026_07_28.md`](CLOSEOUT_RESOLUTIONS_2026_07_28.md), and
+[`DEFERRED_WORK.md`](DEFERRED_WORK.md) is reserved for genuinely reopened work.
 
 The repository may document commands and public identifiers, but must never
 store the private receipt's secrets, recovery answers, personal contact details,
@@ -211,20 +238,20 @@ or billing information.
 
 | Decision | Current disposition | Revisit trigger |
 |---|---|---|
-| Core release versus new training claim | A bounded core release may proceed while training stays red, provided it explicitly makes no new training/model-improvement claim | Strict quality and provenance gates pass on a new append-only record |
+| Core release versus new training claim | Maintenance mode enacted; no new release and no new training/model-improvement claim | A maintainer proposes a named bounded artifact and the relevant strict gates pass on a new append-only record |
 | Model usage during closeout | Zero planned calls by default; deterministic closeout commands need no Ollama or hosted-model spend. Historical auxiliary-daemon usage before the whole-stack correction is unknown locally. | Owner reconciles provider-side usage and approves a frozen sampled plan with finite allowance and stop condition |
 | Model/flywheel stack | All five recurring tasks disabled, four sentinels present, and zero verified repository daemons; no automatic resume | Explicit current authorization plus live preflight, finite budget, reviewed pricing, and review plan |
 | Comparable benchmark board | Keep v1/h1 batched evidence as default | A versioned successor board is complete and independently documented |
-| Exhaustive per-dimension lane | Generation complete, judging incomplete, experimental and isolated | Exact coverage manifest reaches closure under a frozen budget |
+| Exhaustive per-dimension lane | Exhaustive closure declined as low-value; partial evidence stays experimental and isolated | A preregistered narrower slice has positive expected information value and a frozen budget |
 | Entity-intelligence pipeline | Propose-only, curator-reviewed, separate from worker-facing and training paths | A reviewed governance and evidence-admission change is approved |
 | Kaggle surface inventory | `01`, `02`, and `A-00` active; `03` and `04` optional; notebook-era variants archived | Root `AGENTS.md` and `kaggle/_INDEX.md` change together |
-| Release version/tag | Pending a deliberate owner decision | Week 2 release-candidate reconciliation is reviewed |
+| Release version/tag | No release tag or PyPI publication during closeout | A real consumer need and a maintainer-owned package release proposal exist |
 | Target branch | Root rules name `master`; pull request 15 is the current pre-handoff anchor at `56e7283df1e191793355b340559733b4ef77f9fa`, with all 16 pull-request checks green and a 4,646-pass local broad regression | Continue from live `master`; rerun gates on the exact candidate before any tag |
-| Successor | Transfer path preferred; maintenance mode is the safe fallback | A successor accepts and completes the rehearsal |
+| Successor | Current owner retains private maintenance/recovery authority; no transfer is claimed | A named successor is authorized, accepts, and completes the rehearsal plus private receipt |
 
-### Closeout Decision Snapshot - 2026-07-27
+### Historical Pre-decision Snapshot - 2026-07-27
 
-The current owner instructions authorize reconciling and publishing the GitHub
+This earlier snapshot authorized reconciling and publishing the GitHub
 source, documentation, website, and Pages changes after the deterministic gates
 pass. The bounded local release-candidate disposition is:
 
@@ -242,35 +269,42 @@ pass. The bounded local release-candidate disposition is:
 - prefer a tested successor transfer, with documented maintenance mode as the
   automatic safe outcome if no successor accepts by the final-decision window.
 
-This snapshot authorizes repository reconciliation; it does not claim that
+It is superseded by the enacted 2026-07-28 maintenance decision above. This
+snapshot authorized repository reconciliation; it did not claim that
 private accounts have been transferred or that external registries have been
 published. Those outcomes require the owner-only evidence listed above.
 
-## Exit Criteria
+## Maintenance-Mode Exit Receipt
 
-Before declaring the transition complete, retain evidence that:
+The no-release maintenance branch is complete when the final published
+revision preserves each statement below. These checks close the current
+transition; they do not claim a successor transfer, a package/model/dataset
+release, independent human review, or reconciliation of historical pre-ledger
+provider usage.
 
-- [ ] `validate_publication_readiness.py --scope handoff` passes on the final
-      revision.
-- [ ] `validate_publication_readiness.py --scope core` passes on the final
-      revision.
-- [ ] Focused and broad regression commands, skips, warnings, platform caveats,
-      and any intentionally red training gate are recorded exactly.
-- [ ] Public docs, purpose maps, Project Bible, status, roadmap, Kaggle index,
-      deferred-work register, changelog, versions, citation, tag, and release
-      notes agree.
-- [ ] A category/count-only sensitive-data scan and a secret scanner have been
-      run without printing matched payloads into the receipt.
-- [ ] Release artifacts and critical evidence have checksums and a tested
-      isolated restore.
-- [ ] Each platform has a privately retained access, recovery, least-privilege,
-      and revocation receipt.
-- [ ] The successor passed fresh-shell pickup, safe-change, architecture,
-      incident, and restore rehearsals; or maintenance mode was enacted.
-- [ ] The whole model/flywheel stack remains cost-stopped and model work has no
+- [x] `validate_publication_readiness.py --scope handoff` passes (2/2 checks).
+- [x] `validate_publication_readiness.py --scope core` passes (12/12 checks).
+- [x] The exact broad regression is recorded: 4,653 passed and 9 skipped in
+      8:04, with the intentionally red training and partial experimental lanes
+      excluded from release claims.
+- [x] Public docs, purpose maps, Project Bible, status, roadmap, Kaggle index,
+      generated zero-item deferred-work register, unchanged package versions,
+      unchanged citation metadata, and explicit no-release decision agree.
+- [x] The handoff validator reports category/count-only sensitive-data results;
+      a redacted `gitleaks` scan found no leaks in the 243 KB staged change,
+      and the final GitHub revision must also pass the full-history CI job.
+- [x] The durable archive reassembled 52/52 checksum-bound files in an isolated
+      restore rehearsal. No new release artifact was created by decision.
+- [x] Private platform transfer was declined. The current owner remains the
+      maintenance and recovery authority; the public repository contains no
+      credentials or unverified private access receipt.
+- [x] The automated successor rehearsal passed all five scenarios, and the
+      no-successor maintenance-mode alternative was enacted.
+- [x] The whole model/flywheel stack is cost-stopped, recurring tasks remain
+      disabled, planned model calls are zero, and future model work has no
       implied authorization.
-- [ ] The final release/no-release/maintenance decision and effective date are
-      recorded.
+- [x] The final decision is maintenance mode effective 2026-07-28, with no new
+      package, model, dataset, notebook, or benchmark release.
 
 ## If No Successor Is Available
 

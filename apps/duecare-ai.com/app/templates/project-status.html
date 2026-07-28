@@ -48,11 +48,12 @@
     <div>
       <span class="kicker">Project continuity &middot; snapshot 2026-07-28</span>
       <h1>A stable stopping point with an explicit path forward.</h1>
-      <p class="ps-lede">DueCare is in a time-boxed maintainer transition through <strong>2026-08-25</strong>. Core code, public documentation, active Kaggle surfaces, and published dataset claims have a green model-free release gate. New model spending and a new training-improvement claim remain deliberately paused until their separate evidence gates are ready.</p>
+      <p class="ps-lede">DueCare entered documented maintenance mode on <strong>2026-07-28</strong>. Core code, public documentation, active Kaggle source surfaces, and published dataset claims have a green model-free gate. All 11 inherited closeout items have explicit outcomes, while model spending, new training claims, and unsupported human-validity claims remain stopped or excluded.</p>
       <div class="ps-actions">
         <a class="btn" href="https://tayloramareltech.github.io/gemma4_comp/CLAUDE_CODE_HANDOFF/">Claude Code handoff <span aria-hidden="true">&rarr;</span></a>
         <a class="btn" href="https://tayloramareltech.github.io/gemma4_comp/MAINTAINER_HANDOFF/">Maintainer handoff <span aria-hidden="true">&rarr;</span></a>
         <a class="btn btn-ghost" href="https://tayloramareltech.github.io/gemma4_comp/PROJECT_TRANSITION_PLAN/">30-day transition</a>
+        <a class="btn btn-ghost" href="https://tayloramareltech.github.io/gemma4_comp/CLOSEOUT_RESOLUTIONS_2026_07_28/">11-item decision receipt</a>
         <a class="btn btn-ghost" href="https://tayloramareltech.github.io/gemma4_comp/DEFERRED_WORK/">Deferred work register</a>
         <a class="btn btn-ghost" href="https://github.com/TaylorAmarelTech/gemma4_comp">Source repository</a>
       </div>
@@ -60,9 +61,10 @@
     <aside class="ps-receipt" aria-label="Latest offline validation receipt">
       <span class="label">Latest offline receipt</span>
       <dl>
-        <dt>Core release gates</dt><dd>11 / 11 pass</dd>
+        <dt>Core maintenance gates</dt><dd>12 / 12 pass</dd>
         <dt>Handoff gates</dt><dd>2 / 2 pass</dd>
-        <dt>Combined regression</dt><dd>4,648 passed</dd>
+        <dt>Outstanding register</dt><dd>0 items</dd>
+        <dt>Combined regression</dt><dd>4,653 passed</dd>
         <dt>Validator model calls</dt><dd>0</dd>
         <dt>Model/flywheel stack</dt><dd>cost-stopped</dd>
       </dl>
@@ -76,12 +78,12 @@
   <h2>Release-ready and research-incomplete are kept separate.</h2>
   <p class="intro">A green core gate means the public repository is coherent at the checked revision. It does not silently turn an unfinished dataset, adapter, or experimental judge lane into a completed scientific claim.</p>
   <div class="ps-grid">
-    <article class="ps-card"><span class="cap">Stable</span><h3>Core public surface</h3><p>Public messaging, source-checkout smoke, manifest-backed dataset counts, model-fallback registry, provider-budget coverage, active Kaggle kernels, generated page sources, the validated deferred-work register, package-release ownership, and package-test collection pass without a model or network call.</p></article>
+    <article class="ps-card"><span class="cap">Stable</span><h3>Core public surface</h3><p>Public messaging, source-checkout smoke, manifest-backed dataset counts, model-fallback registry, provider-budget coverage, active Kaggle kernels, generated page sources, the validated deferred-work register and closeout receipt, package-release ownership, and package-test collection pass without a model or network call.</p></article>
     <article class="ps-card"><span class="cap">Preserved</span><h3>Dated benchmark evidence</h3><p>Existing results retain their original model, prompt set, rubric, judge, and date. They are benchmark response-quality evidence, not field-effectiveness, victim-identification, or production-reliability claims.</p></article>
     <article class="ps-card"><span class="cap">Cost-stopped</span><h3>Model and flywheel work</h3><p>All five recurring tasks are disabled, four daemon sentinels are present, and zero verified repository daemons remain. Zero-call mode blocks rich-harness planning and primary-router HTTP attempts. Restarting any model caller requires reviewed pricing, finite attempt/token/cash caps, preflight, and explicit authorization.</p></article>
   </div>
-  <div class="ps-boundary"><strong>Operational correction, 2026-07-27.</strong>A live audit found auxiliary discovery and server-automation callers still active after the main engine was paused. No local budget ledger covered that background period, so this project does not claim its historical provider usage was zero; account-side reconciliation remains private owner work. The whole stack is now stopped and its launch controls fail closed.</div>
-  <div class="ps-boundary"><strong>The strict training lane is not ready.</strong>Five dense generic-corridor typologies require a metadata-only 25-task, 75-slot curation expansion. All 75 content slots are honestly unfilled, and all 12 official-source candidates remain training-blocked pending rights review and immutable snapshots. Quality and provenance stay red until independently adjudicated rows, fingerprints, and a verified model card are regenerated through the normal append-only path.</div>
+  <div class="ps-boundary"><strong>Retained provider risk, recorded 2026-07-28.</strong>A live audit found auxiliary discovery and server-automation callers still active after the main engine was paused. No local budget ledger covered that earlier period, so this project does not claim its historical provider usage was zero or reconciled. The unknown private account-side amount is an explicit residual risk; the whole stack is now stopped and its launch controls fail closed.</div>
+  <div class="ps-boundary"><strong>The strict training lane is excluded from closeout claims.</strong>Five dense generic-corridor typologies produced a metadata-only 25-task, 75-slot curation protocol. All 75 content slots are honestly unfilled, and all 12 official-source candidates remain training-blocked pending rights review and immutable snapshots. No provenance refresh, training run, or human approval was invented to make this lane green.</div>
 </div></section>
 
 <section class="ps-section" data-screen-label="Project status &middot; Deployment"><div class="wrap">
@@ -104,6 +106,7 @@
 $env:DUECARE_MAX_PLANNED_MODEL_CALLS='0'
 python scripts/validate_publication_readiness.py --scope handoff
 python scripts/validate_publication_readiness.py --scope core
+python scripts/validate_closeout_resolutions.py
 python scripts/validate_provider_budget_coverage.py
 python scripts/autonomous_engine.py --status
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/stop_ollama_stack.ps1 -Status</pre></div>
@@ -112,7 +115,8 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/stop_ollama_stac
       <a href="https://tayloramareltech.github.io/gemma4_comp/MAINTAINER_HANDOFF/"><strong>Maintainer handoff</strong><br />Operations, boundaries, recovery, access transfer, and acceptance.</a>
       <a href="https://tayloramareltech.github.io/gemma4_comp/PROJECT_TRANSITION_PLAN/"><strong>30-day transition plan</strong><br />Weekly closeout, owner actions, rehearsal, and maintenance fallback.</a>
       <a href="https://tayloramareltech.github.io/gemma4_comp/PUBLICATION_READINESS/"><strong>Publication readiness</strong><br />Release boundary, limitations, data plan, Ollama plan, and ordered backlog.</a>
-      <a href="https://tayloramareltech.github.io/gemma4_comp/DEFERRED_WORK/"><strong>Deferred work register</strong><br />Canonical owners, prerequisites, authorization boundaries, next actions, evidence, and acceptance gates.</a>
+      <a href="https://tayloramareltech.github.io/gemma4_comp/CLOSEOUT_RESOLUTIONS_2026_07_28/"><strong>11-item closeout receipt</strong><br />Dated outcomes, rationale, verification, claim boundaries, evidence, and exact reopen conditions.</a>
+      <a href="https://tayloramareltech.github.io/gemma4_comp/DEFERRED_WORK/"><strong>Deferred work register</strong><br />Validated zero-item queue reserved for genuinely reopened work.</a>
       <a href="https://tayloramareltech.github.io/gemma4_comp/PROVIDER_BUDGETING/"><strong>Provider budgeting</strong><br />Atomic attempt/token/cash controls, sanitized receipts, and the exact coverage boundary.</a>
       <a href="https://tayloramareltech.github.io/gemma4_comp/SUCCESSOR_REHEARSAL/"><strong>Successor rehearsal</strong><br />One model-free pickup command with a privacy-minimized local receipt.</a>
     </nav>
@@ -120,13 +124,13 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/stop_ollama_stac
 </div></section>
 
 <section class="ps-section" data-screen-label="Project status &middot; Next"><div class="wrap">
-  <span class="ix">04 &middot; What remains</span>
-  <h2>The next work is explicit, bounded, and optional by lane.</h2>
-  <p class="intro">The generated <a href="https://tayloramareltech.github.io/gemma4_comp/DEFERRED_WORK/">deferred-work register</a> is authoritative. It rejects empty fields and unresolved tokens, and separates model-free maintenance from private, human-review, owner-decision, and budget-gated work.</p>
+  <span class="ix">04 &middot; Final decisions</span>
+  <h2>Zero outstanding items, without pretending every idea shipped.</h2>
+  <p class="intro">The <a href="https://tayloramareltech.github.io/gemma4_comp/CLOSEOUT_RESOLUTIONS_2026_07_28/">dated closeout receipt</a> is authoritative for all 11 inherited items. The validated <a href="https://tayloramareltech.github.io/gemma4_comp/DEFERRED_WORK/">deferred-work register</a> now contains zero items. A future maintainer reopens work only when a receipt condition is actually met.</p>
   <div class="ps-grid" style="margin-top:28px;">
-    <article class="ps-card"><span class="cap">P0 &middot; Release</span><h3>Freeze an approved tag</h3><ul><li>All 18 distributions build as wheels and source archives and clean-install as one cohort, but remain unpublished on PyPI.</li><li>Independent per-package semantic versions and exact tag syntax are frozen in one manifest.</li><li>An owner still chooses the first release package and reruns core/handoff gates on that exact revision.</li></ul></article>
-    <article class="ps-card"><span class="cap">P1 &middot; Data</span><h3>Close the curation queue</h3><ul><li>Approve lawful, immutable source snapshots and record compatible rights.</li><li>Fill and independently adjudicate the exact 75 risk, benign-neighbour, and corridor-counterfactual slots.</li><li>Regenerate quality and provenance sequentially; do not fabricate approvals.</li></ul></article>
-    <article class="ps-card"><span class="cap">P2 &middot; Providers</span><h3>Extend the completed ledger</h3><ul><li>The primary router already budgets every attempt and retry atomically.</li><li>Migrate standalone, application, and package clients one at a time with zero-transport tests.</li><li>Treat Kimi K3 and Meta Muse Spark 1.1 as required future comparison lanes after revalidating exact IDs, access, capabilities, and pricing.</li></ul></article>
+    <article class="ps-card"><span class="cap">Release &middot; decided</span><h3>Maintain, do not publish for appearance</h3><ul><li>All 18 distributions build, but remain unpublished on PyPI by explicit decision.</li><li>Independent per-package semantic versions and guarded tag syntax remain ready if a real consumer need emerges.</li><li>No release tag or optional Kaggle rerun was created during closeout.</li></ul></article>
+    <article class="ps-card"><span class="cap">Data &middot; excluded</span><h3>Keep missing human evidence visible</h3><ul><li>The 75-slot corridor workbook remains at zero admitted rows because rights and independent review are absent.</li><li>The 364-item human packet is validated, but no ratings or agreement result exist.</li><li>Strict training quality and provenance stay red; no model-improvement or field-effectiveness claim is made.</li></ul></article>
+    <article class="ps-card"><span class="cap">Providers &middot; no call</span><h3>Preserve credits and exact boundaries</h3><ul><li>The primary router budgets attempts, tokens, and cash atomically, while the whole stack stays cost-stopped.</li><li>The exhaustive per-dimension sweep was stopped as partial, low-value experimental work.</li><li>Kimi K3 and Meta Muse Spark 1.1 remain required future comparison lanes only after exact IDs, access, capabilities, prices, and a finite study budget are reverified.</li></ul></article>
   </div>
 </div></section>
 
