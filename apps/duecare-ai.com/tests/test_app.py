@@ -1,10 +1,10 @@
 from __future__ import annotations
 
 import json
-
-from fastapi.testclient import TestClient
+import re
 
 from app.main import create_app, detect_pii
+from fastapi.testclient import TestClient
 
 
 def test_detect_pii_blocks_obvious_contact_details() -> None:
@@ -78,6 +78,24 @@ def test_public_website_pages_render_design_templates(tmp_path) -> None:
 
         assert response.status_code == 200, f"{path} returned {response.status_code}"
         assert marker in response.text, f"{path} missing marker {marker!r}"
+
+
+def test_homepage_story_keeps_each_explanation_in_the_content_column(tmp_path) -> None:
+    client = TestClient(create_app(data_dir=tmp_path))
+
+    response = client.get("/")
+
+    assert response.status_code == 200
+    step_blocks = re.findall(
+        r'<li>\s*<div class="step-copy">.*?'
+        r'<h4 class="step-title">.*?</h4>\s*'
+        r'<p class="step-body">.*?</p>\s*</div>\s*</li>',
+        response.text,
+        flags=re.DOTALL,
+    )
+    assert len(step_blocks) == 3
+    assert "grid-template-columns: 28px minmax(0, 1fr)" in response.text
+    assert '<section id="story" class="tight" aria-labelledby="story-heading"' in response.text
 
 
 def test_study_and_finetuning_pages_keep_model_and_deployment_claims_separate(tmp_path) -> None:
