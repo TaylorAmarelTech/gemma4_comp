@@ -171,10 +171,12 @@
 
 
   /* Section: scenario */
+  .story-heading { max-width: 20ch; margin: 14px 0 0; }
+  .story-lede { margin-top: 18px; max-width: 68ch; }
   .scenario {
     display: grid; grid-template-columns: 1.05fr 1fr; gap: 0;
     border: 1px solid var(--line); border-radius: 14px; overflow: hidden;
-    background: var(--paper);
+    background: var(--paper); margin-top: 28px;
   }
   @media (max-width: 920px) { .scenario { grid-template-columns: 1fr; } }
   .scenario .left {
@@ -182,7 +184,7 @@
     border-right: 1px solid var(--line);
   }
   @media (max-width: 920px) { .scenario .left { border-right: 0; border-bottom: 1px solid var(--line); } }
-  .scenario .right { padding: 32px; }
+  .scenario .right { padding: 32px; min-width: 0; }
   .scenario h3 { margin-bottom: 8px; }
   .composite-tag {
     display: inline-flex; gap: 6px; align-items: center;
@@ -195,11 +197,11 @@
   .composite-tag::before { content: ""; width: 6px; height: 6px; background: var(--ink-3); border-radius: 50%; }
   .msg-bubble {
     background: var(--paper); border: 1px solid var(--line); border-radius: 10px;
-    padding: 12px 14px; font-size: 14px; line-height: 1.5; max-width: 90%;
+    padding: 16px 18px; margin: 0; font-size: 15px; line-height: 1.6; max-width: 90%;
   }
   .msg-meta {
     font-family: var(--mono); font-size: 11px; color: var(--ink-3);
-    margin-top: 6px;
+    margin-top: 6px; font-style: normal;
   }
   .msg-stream { display: flex; flex-direction: column; gap: 14px; margin-top: 16px; }
   .scenario .right ol {
@@ -208,8 +210,8 @@
   }
   .scenario .right li {
     counter-increment: step;
-    display: grid; grid-template-columns: 28px 1fr; gap: 14px;
-    padding-left: 0;
+    display: grid; grid-template-columns: 28px minmax(0, 1fr); gap: 14px;
+    align-items: start; padding-left: 0;
   }
   .scenario .right li::before {
     content: counter(step, decimal-leading-zero);
@@ -218,8 +220,20 @@
     width: 28px; height: 22px; display: grid; place-items: center;
     background: var(--paper);
   }
-  .scenario .right li .step-title { font-weight: 600; font-size: 14px; }
-  .scenario .right li .step-body { font-size: 13.5px; color: var(--ink-2); margin-top: 2px; }
+  .scenario .right .step-copy { min-width: 0; }
+  .scenario .right .step-title {
+    margin: 0; font-weight: 650; font-size: 14px; line-height: 1.4;
+  }
+  .scenario .right .step-body {
+    font-size: 13.5px; color: var(--ink-2); line-height: 1.55;
+    margin: 4px 0 0; max-width: 52ch;
+  }
+  @media (max-width: 560px) {
+    .scenario .left, .scenario .right { padding: 22px; }
+    .msg-bubble { max-width: 100%; }
+    .scenario .right li { grid-template-columns: 26px minmax(0, 1fr); gap: 11px; }
+    .scenario .right li::before { width: 26px; }
+  }
 
   /* System diagram */
   .sysdiagram {
@@ -600,33 +614,39 @@
 
 
 <!-- ============== HUMAN STORY ============== -->
-<section id="story" class="tight" data-screen-label="Homepage · Worker story">
+<section id="story" class="tight" aria-labelledby="story-heading" data-screen-label="Homepage · Worker story">
   <div class="wrap">
     <span class="kicker">One worker, one question</span>
-    <h2 style="max-width: 20ch; margin: 14px 0 0;">The gap is one grounded answer wide.</h2>
-    <p class="lede" style="margin-top: 18px;">The same model, asked the same question, with and without the grounding layer. The bare answer sounds reasonable. The grounded answer flags the indicator, cites the law, and points to a verified human.</p>
-    <div class="scenario" style="margin-top: 28px;">
+    <h2 id="story-heading" class="story-heading">The gap is one grounded answer wide.</h2>
+    <p class="lede story-lede">The same model, asked the same question, with and without the grounding layer. The bare answer sounds reasonable. The grounded answer flags the indicator, cites the law, and points to a verified human.</p>
+    <div class="scenario">
       <div class="left">
         <span class="composite-tag">Composite worker &middot; illustrative</span>
         <div class="msg-stream">
-          <div class="msg-bubble">&ldquo;A recruiter in Kathmandu says the Gulf job is guaranteed, but I have to pay NPR&nbsp;150,000 up front and hand over my passport when I land. Is that normal?&rdquo;</div>
-          <div class="msg-meta">Ramesh &middot; Nepal &rarr; Gulf domestic-work corridor</div>
+          <blockquote class="msg-bubble">&ldquo;A recruiter in Kathmandu says the Gulf job is guaranteed, but I have to pay NPR&nbsp;150,000 up front and hand over my passport when I land. Is that normal?&rdquo;</blockquote>
+          <cite class="msg-meta">Ramesh &middot; Nepal &rarr; Gulf domestic-work corridor</cite>
         </div>
       </div>
-      <div class="right">
-        <h3>What the grounding layer adds</h3>
+      <div class="right" aria-labelledby="grounding-adds-heading">
+        <h3 id="grounding-adds-heading">What the grounding layer adds</h3>
         <ol>
           <li>
-            <div class="step-title">Flags the fee as an indicator</div>
-            <div class="step-body">An ILO-indicator rule fires on &ldquo;pay up front&rdquo;: charging recruitment fees to the worker is a forced-labour indicator under ILO&nbsp;C181. The bare model had called it &ldquo;sometimes standard.&rdquo;</div>
+            <div class="step-copy">
+              <h4 class="step-title">Flags the fee as an indicator</h4>
+              <p class="step-body">An ILO-indicator rule fires on &ldquo;pay up front&rdquo;: charging recruitment fees to the worker is a forced-labour indicator under ILO&nbsp;C181. The bare model had called it &ldquo;sometimes standard.&rdquo;</p>
+            </div>
           </li>
           <li>
-            <div class="step-title">Cites the corridor rule, not a guess</div>
-            <div class="step-body">Retrieval pulls the corridor pack: in this corridor the employer bears recruitment costs, not the worker. The answer quotes that rule with its source.</div>
+            <div class="step-copy">
+              <h4 class="step-title">Cites the corridor rule, not a guess</h4>
+              <p class="step-body">Retrieval pulls the corridor pack: in this corridor the employer bears recruitment costs, not the worker. The answer quotes that rule with its source.</p>
+            </div>
           </li>
           <li>
-            <div class="step-title">Names the passport risk and a verified route</div>
-            <div class="step-body">Surrendering a passport on arrival is flagged as document retention. A tool call resolves a current regulator or NGO contact, so the referral is verified, never invented.</div>
+            <div class="step-copy">
+              <h4 class="step-title">Names the passport risk and a verified route</h4>
+              <p class="step-body">Surrendering a passport on arrival is flagged as document retention. A tool call resolves a current regulator or NGO contact, so the referral is verified, never invented.</p>
+            </div>
           </li>
         </ol>
       </div>
