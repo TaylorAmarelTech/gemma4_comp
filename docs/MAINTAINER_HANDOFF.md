@@ -26,15 +26,13 @@ waiting; it does not relabel declined model/package/notebook work, excluded
 training/human claims, unknown historical provider usage, or an unperformed
 private transfer as completed.
 
-The current pre-handoff anchor is
-[pull request 15](https://github.com/TaylorAmarelTech/gemma4_comp/pull/15),
-merged to `master` as `56e7283df1e191793355b340559733b4ef77f9fa`.
-All 16 pull-request checks passed. The exact local broad regression at that
-revision passed **4,646 tests with 9 skips** for
-`python -m pytest packages tests -q`; the 11 core publication gates, package
-collection, source-checkout smoke, privacy checks, active Kaggle contracts,
-clean-room install, package builds, and container build also passed. No Ollama,
-hosted-model, or Kaggle-quota call was made.
+The immediate fully merged predecessor to this maintenance closeout is
+[pull request 16](https://github.com/TaylorAmarelTech/gemma4_comp/pull/16),
+merged to `master` as `1c8f6b25729da869b2775a29321ab3b74bd4715f`.
+All 16 checks passed. Pull request 15's **4,646 passed, 9 skipped** local run is
+an older historical receipt. Treat both predecessor receipts as context, not
+as proof of the checkout you inherit. No Ollama, hosted-model, or Kaggle-quota
+call was made.
 
 The final model-free sequence was deliberately reviewable:
 

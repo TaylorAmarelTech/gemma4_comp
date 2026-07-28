@@ -50,11 +50,12 @@ explicitly asks to restore them.
 > **Re-verified 2026-07-28 -- read this box before trusting the 2026-07-14 snapshot below.**
 >
 > - **Repository reconciliation is complete; maintenance mode is enacted.**
->   Root `AGENTS.md` names `master` as the active branch. Pull
->   request 15 is the current pre-handoff anchor at
->   `56e7283df1e191793355b340559733b4ef77f9fa`; all 16 PR checks passed and the
->   exact local broad regression passed 4,646 tests with 9 skips. Verify live Git state and rerun the
->   release gates on any later candidate rather than inheriting that receipt.
+>   Root `AGENTS.md` names `master` as the active branch. Pull request 16 is the
+>   immediate fully merged predecessor to this closeout at
+>   `1c8f6b25729da869b2775a29321ab3b74bd4715f`; all 16 checks passed. Pull
+>   request 15 and its 4,646-pass local run are older historical receipts.
+>   Verify live Git state and rerun the release gates rather than inheriting
+>   either predecessor receipt.
 > - **Canonical stopping point:** start with
 >   `docs/PUBLICATION_READINESS.md`. Its current model-free core lane has 12
 >   checks, including the dated closeout receipt; the historical PR #15 lane

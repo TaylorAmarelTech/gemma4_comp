@@ -71,11 +71,11 @@ Do not reuse the counts in this document as proof for a later revision.
 
 - `master` is the active branch. Always start from live Git; do not reset or
   erase a dirty worktree merely because a handoff expected it to be clean.
-- Pull request
-  [#15](https://github.com/TaylorAmarelTech/gemma4_comp/pull/15) is the most
-  recent fully merged pre-handoff receipt anchor, at merge commit
-  `56e7283df1e191793355b340559733b4ef77f9fa`. Its 16 required checks passed.
-  This SHA is historical context, not a substitute for `git rev-parse HEAD`.
+- The immediate fully merged predecessor to this maintenance closeout is pull
+  request [#16](https://github.com/TaylorAmarelTech/gemma4_comp/pull/16), merge
+  commit `1c8f6b25729da869b2775a29321ab3b74bd4715f`. Its 16 checks passed. This
+  immutable predecessor receipt is historical context, not a substitute for
+  `git rev-parse HEAD` or the checks on live `master`.
 - The model-free core publication scope is green at the recorded revision. The
   strict training scope remains intentionally red and excluded from closeout
   claims; a future reopen requires source, rights, lineage, diversity, privacy,
@@ -120,6 +120,7 @@ The final model-free sequence was intentionally split into reviewable changes:
 | [#13](https://github.com/TaylorAmarelTech/gemma4_comp/pull/13) | `47277c62` | Put the optional adverse-media verifier behind the shared atomic provider budget; all five registered transports are covered |
 | [#14](https://github.com/TaylorAmarelTech/gemma4_comp/pull/14) | `a56f9d1b` | Fixed the homepage worker-story grid by placing title and body inside `.step-copy`; Render and the continuity site were visually and structurally verified |
 | [#15](https://github.com/TaylorAmarelTech/gemma4_comp/pull/15) | `56e7283d` | Cleared the registered three-file Ruff slice without suppressions and reduced the deferred register from 12 to 11 items |
+| [#16](https://github.com/TaylorAmarelTech/gemma4_comp/pull/16) | `1c8f6b25` | Finalized the Claude Code handoff, read-only continuity plan, public pickup validation, and pre-closeout reconciliation |
 
 The PR #15 local receipt was `4,646 passed, 9 skipped` for
 `python -m pytest packages tests -q`. The source CI matrices, clean-room install,

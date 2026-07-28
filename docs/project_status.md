@@ -35,13 +35,14 @@ snapshots, and older checklist/status docs are archived under
 
 ## Current Technical Posture
 
-- Root `AGENTS.md` names `master` as the release branch. The final model-free
+- Root `AGENTS.md` names `master` as the release branch. The pre-closeout
   sequence advanced through pull requests
   [11](https://github.com/TaylorAmarelTech/gemma4_comp/pull/11) through
-  [15](https://github.com/TaylorAmarelTech/gemma4_comp/pull/15). Pull request 15
-  is the current pre-handoff anchor at merge commit
-  `56e7283df1e191793355b340559733b4ef77f9fa`; all 16 PR checks passed, and the
-  exact local broad regression passed 4,646 tests with 9 skips. Maintenance
+  [16](https://github.com/TaylorAmarelTech/gemma4_comp/pull/16). Pull request 16
+  is the immediate fully merged predecessor to the maintenance closeout at
+  `1c8f6b25729da869b2775a29321ab3b74bd4715f`; all 16 checks passed. Pull
+  request 15's 4,646-pass run is retained only as older historical evidence.
+  Maintenance
   mode was enacted on 2026-07-28 with no release tag; every future release
   candidate must rerun its own gates.
 - The wrap-up validation made no Ollama, hosted-model, or Kaggle-quota calls.
