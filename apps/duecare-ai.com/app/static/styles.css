@@ -43,6 +43,37 @@
   --shadow-2: 0 1px 0 rgba(14,17,22,0.04), 0 8px 24px -12px rgba(14,17,22,0.10);
 }
 
+/* Read-only GitHub Pages continuity mode. The fallback exporter injects the
+   matching banner and script; these styles are inert on the live FastAPI site. */
+.dc-static-notice {
+  padding: 10px clamp(16px, 4vw, 48px);
+  border-bottom: 1px solid oklch(0.78 0.08 75);
+  background: oklch(0.96 0.04 75);
+  color: oklch(0.28 0.04 65);
+  font-size: 13px;
+  line-height: 1.45;
+  text-align: center;
+}
+.dc-static-notice a { color: inherit; font-weight: 700; }
+.dc-static-form-note {
+  margin: 0 0 16px;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--paper-2);
+  color: var(--ink-2);
+  font-size: 13px;
+}
+.dc-static-fallback :is(input, select, textarea, button):disabled {
+  cursor: not-allowed;
+  opacity: 0.58;
+}
+.dc-static-disabled-link {
+  cursor: not-allowed;
+  opacity: 0.62;
+  text-decoration: line-through;
+}
+
 * { box-sizing: border-box; }
 html, body { margin: 0; padding: 0; }
 html { -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; }

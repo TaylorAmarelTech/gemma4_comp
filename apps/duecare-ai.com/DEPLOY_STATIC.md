@@ -1,73 +1,91 @@
 # Deploying duecare-ai.com as a static site
 
-`scripts/export_static.py` renders the FastAPI site to a static bundle (`dist/`) that any
-static host serves. It drives the **real app** through Starlette's `TestClient`, so the output
-is byte-identical to production — including the `_nav`/`_footer` includes and the baked
-`benchmark_leaderboard.json` — with no template forking.
+`scripts/export_static.py` renders the FastAPI site to a static bundle that any
+static host can serve. It drives the **real app** through Starlette's
+`TestClient`, so page content continues to come from maintained templates and
+committed assets rather than a second website fork. The exporter makes no
+network or model call.
 
 ## Build
 
-```bash
+```powershell
 pip install -r requirements.txt httpx httpx2 # Starlette TestClient prefers httpx2
 python scripts/export_static.py --out dist --api-base https://gemma4-comp.onrender.com
+
+# Backend-free project-path preview. This neither emits CNAME nor changes DNS.
+python scripts/export_static.py --out dist-fallback --fallback `
+  --base-path /duecare-ai-site `
+  --site-url https://tayloramareltech.github.io/duecare-ai-site `
+  --omit-cname
+python scripts/validate_static_fallback.py --site dist-fallback `
+  --base-path /duecare-ai-site `
+  --site-url https://tayloramareltech.github.io/duecare-ai-site
 ```
 
-Produces `dist/` with 51 pages (pretty URLs, `mission/index.html`), the `/static` assets,
-a `CNAME`, and `.nojekyll`. `--api-base` repoints the dynamic pages' relative `fetch('/api/…')`
-calls at the live backend (its CORS already allows the `duecare-ai.com` origin); omit it for a
-fully static bundle where those backend calls no-op. The demo page's committed data fetch is
-always baked to `/static/demo_priority_examples.json`.
+Both modes produce 51 pretty-URL pages and the committed `/static` assets.
+The live-backend bundle emits `CNAME` and repoints relative API fetches to the
+specified origin. The fallback bundle instead:
+
+- renders against an isolated empty hub store;
+- bakes exactly five allowlisted public JSON snapshots plus a checksum manifest;
+- records the source commit in CI (`working-tree` is the explicit local default);
+- installs the API-blocking boundary before any page script executes;
+- visibly labels the snapshot and disables state-changing forms, buttons, and
+  server-only links;
+- supports a GitHub project path as well as a future custom-domain root; and
+- includes `.nojekyll`, canonical `robots.txt`/`sitemap.xml`, and a custom
+  `404.html`.
+
+The fallback bundle never proxies an API request to Render. Its snapshot
+manifest explicitly excludes private submissions, admin state, and raw logs.
+Pass `--source-revision <40-character-git-sha>` in other automated builds so
+the snapshot manifest remains traceable to its exact source.
+`.github/workflows/duecare-site-build.yml` builds, validates, and retains both
+modes as separate artifacts on every relevant `master` update.
 
 ## GitHub Pages
 
-This repo already publishes MkDocs to GitHub Pages via `.github/workflows/docs-deploy.yml`, and
-**a repo can have only ONE Pages site.** So the `duecare-site-build` workflow builds the bundle
-as a downloadable artifact rather than adding a second `deploy-pages` job (which would fight the
-docs deploy). To put the marketing site on Pages, pick one:
+This repository already publishes MkDocs to GitHub Pages through
+`.github/workflows/docs-deploy.yml`, and a repository can have only one Pages
+site. Keep that documentation site unchanged.
 
-1. **Separate repo (recommended).** Push `dist/` to a dedicated `duecare-ai-site` repo with
-   Pages enabled and the `duecare-ai.com` custom domain. The emitted `CNAME` + `.nojekyll` make
-   it turnkey. This lets the site own the domain root, which the absolute `/static/…` and
-   `/route` links require.
-2. **Replace docs.** Repoint `docs-deploy.yml` at `dist/` if the marketing site should own the
-   existing Pages domain instead of MkDocs.
+Use the dedicated `TaylorAmarelTech/duecare-ai-site` repository for the public
+website continuity copy. Its workflow checks out an exact public revision of
+this monorepo, builds the fallback, validates it, and deploys it with GitHub's
+Pages action. The project-path preview intentionally omits `CNAME`, so it does
+not claim `duecare-ai.com` or disturb the Render deployment.
 
-A `user.github.io/repo/` **project-path** deployment would break every absolute `/static/` and
-`/route` reference — deploy at a custom-domain root only.
+At an approved cutover, change the separate repository's build to an empty
+`--base-path`, use `--site-url https://duecare-ai.com`, emit
+`--cname duecare-ai.com`, validate the root-domain artifact, and only then
+change DNS. Never publish the `/duecare-ai-site` project-path build at the
+custom-domain root.
 
-## Recommended Render Retirement Path
+## Recommended Render retirement path
 
-It is worth preserving the public site before Render is retired, but GitHub
-Pages can replace only the static presentation layer. It cannot run FastAPI,
-store submissions, authenticate curators, execute automation, or serve mutable
-API state.
-
-Use a dedicated `duecare-ai-site` repository rather than replacing this
-repository's MkDocs deployment. Publish the exported bundle at the
-`duecare-ai.com` domain root, which preserves the existing absolute `/static/`
-and page links. Build the retirement candidate without `--api-base`; a fallback
-must not keep calling the Render origin after Render is disabled.
+GitHub Pages can replace only the static presentation layer. It cannot run
+FastAPI, store submissions, authenticate curators, execute automation, or
+serve mutable API state.
 
 Treat the routes in three groups:
 
 | Group | Routes and behavior after retirement |
 |---|---|
 | Durable static pages | Keep the landing, mission, project status, privacy, setup, deployment, benchmark, evaluation, harness, study, case, component, kernel, fine-tuning, data, package, tool, use-case, technical-documentation, and demo pages. Their reviewed HTML and committed static assets remain useful without a backend. |
-| Read-only snapshots | Keep hub, stats, research-monitor, server-automation, source-verification, and knowledge-pack views only after their public data is baked into versioned static JSON or HTML. Label the snapshot date and link to the repository source. |
-| Backend-only controls | Disable or replace contribute, newsletter, outreach, local-KB, submission, email-feedback, login, and every mutating control with an explicit archived/unavailable notice. Keep admin, curator, and sentinel routes out of `PAGE_ROUTES` and therefore out of the public export. Do not leave buttons that fail silently or imply data was accepted. |
+| Read-only snapshots | Keep hub, stats, research-monitor, server-automation, source-verification, and knowledge-pack views only through dated, checksum-bound public snapshots. |
+| Backend-only controls | Disable contribute, newsletter, outreach, local-KB, submission, email-feedback, login, and every mutating control with an explicit unavailable notice. Admin, curator, and sentinel routes stay outside the export. |
 
 Before changing DNS or canceling Render:
 
-1. Add a fallback export mode that visibly disables backend-only controls and
-   contains no executable request to the Render hostname.
-2. Bake the safe read-only knowledge-pack and status payloads needed by the
-   snapshot pages; never export private submissions, admin state, or raw logs.
-3. Deploy the candidate to a temporary custom-domain root, crawl every public
-   route and asset, and test on desktop and mobile with Render stopped.
+1. Keep the fallback exporter, allowlisted snapshots, and validator green.
+2. Keep the dedicated Pages project-path preview deployed while Render remains
+   the production website. It is a continuity rehearsal, not a DNS cutover.
+3. Build the root-domain candidate and crawl every public route and asset on
+   desktop and mobile with the Render dependency unavailable.
 4. Verify GitHub Pages HTTPS, the custom-domain challenge, `CNAME`, `.nojekyll`,
    `robots.txt`, `sitemap.xml`, canonical URLs, and the custom 404 page.
-5. Lower DNS TTL, switch `duecare-ai.com`, verify the production route set, and
-   retain the old Render configuration through a documented rollback window.
+5. Lower DNS TTL, switch `duecare-ai.com`, verify production, and retain the
+   old Render configuration through a documented rollback window.
 6. Only then disable Render billing/runtime. Keep the separate MkDocs project
    site at `tayloramareltech.github.io/gemma4_comp/` unchanged.
 
