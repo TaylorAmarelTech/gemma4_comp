@@ -63,7 +63,7 @@ explicitly asks to restore them.
 > - **Canonical unfinished work:** `docs/DEFERRED_WORK.md` is generated from a
 >   validated JSON registry. It distinguishes model-free local maintenance from
 >   private-access, human-review, owner-decision, recurring, and budget-gated
->   work and supplies exact acceptance evidence for all 12 items.
+>   work and supplies exact acceptance evidence for all 11 items.
 > - **Succession is now an explicit 30-day workstream.** Use
 >   `docs/MAINTAINER_HANDOFF.md` for operational pickup and
 >   `docs/PROJECT_TRANSITION_PLAN.md` for the 2026-08-25 target. The read-only

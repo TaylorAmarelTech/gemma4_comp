@@ -32,6 +32,7 @@ def test_rendered_document_names_every_item_and_exact_acceptance_boundary() -> N
 
     assert rendered == builder.DOCUMENT_PATH.read_text(encoding="utf-8")
     assert "Empty fields, fabricated approvals, guessed versions" in rendered
+    assert "**Ready for model-free repository work:** None." in rendered
     for item in data["items"]:
         assert f'<a id="{item["id"]}"></a>' in rendered
         assert item["acceptance_gates"][0] in rendered
@@ -62,7 +63,9 @@ def test_missing_and_cyclic_dependencies_are_rejected() -> None:
 
 def test_ready_local_item_must_remain_offline_and_zero_credit() -> None:
     data = copy.deepcopy(_registry())
-    ready = next(item for item in data["items"] if item["status"] == "ready_local")
+    ready = data["items"][0]
+    ready["status"] = "ready_local"
+    ready["model_credit_policy"] = "zero_only"
     ready["network_policy"] = "owner_authorized_write"
 
     findings = validator.validate_registry(data)
