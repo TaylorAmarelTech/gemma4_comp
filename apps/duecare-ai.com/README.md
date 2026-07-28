@@ -9,6 +9,7 @@ This is the public website and coordination service for **duecare-ai.com**. It i
 | Surface | URL | Responsibility |
 |---|---|---|
 | Main server website / public hub | https://duecare-ai.com/ | Render-hosted FastAPI app from this folder. It serves the public product website, hub APIs, knowledge-pack metadata, anonymized signal intake, and consent-aware submission flows. |
+| Read-only continuity preview | https://tayloramareltech.github.io/duecare-ai-site/ | Backend-free GitHub Pages export from the same templates. It preserves public pages and allowlisted snapshots while visibly disabling submissions, accounts, automation, and mutable APIs. It does not own production DNS while Render remains active. |
 | GitHub source repo | https://github.com/TaylorAmarelTech/gemma4_comp | Monorepo source of truth for packages, Kaggle kernels, docs, validation scripts, GitHub Actions, and this Render app. |
 | GitHub Pages docs | https://tayloramareltech.github.io/gemma4_comp/ | Static MkDocs site generated from `docs/`. It is for onboarding, install docs, architecture, reproducibility, and judge/reviewer documentation; it is not the API server. |
 
@@ -100,6 +101,27 @@ Then open http://127.0.0.1:8000.
 ```bash
 python -m pytest -q
 ```
+
+## Static continuity build
+
+The separate `TaylorAmarelTech/duecare-ai-site` repository publishes a
+read-only Pages preview without changing the Render service or `duecare-ai.com`
+DNS. Build and validate the exact preview locally with:
+
+```powershell
+python scripts/export_static.py --out dist-fallback --fallback `
+  --base-path /duecare-ai-site `
+  --site-url https://tayloramareltech.github.io/duecare-ai-site `
+  --omit-cname
+python scripts/validate_static_fallback.py --site dist-fallback `
+  --base-path /duecare-ai-site `
+  --site-url https://tayloramareltech.github.io/duecare-ai-site
+```
+
+The fallback uses an isolated empty hub store, five checksum-bound public
+snapshots, an early API-blocking script, disabled state-changing controls, and
+a custom 404. See [DEPLOY_STATIC.md](DEPLOY_STATIC.md) for the domain-cutover
+and rollback gate. The live Render build remains the only mutable/API surface.
 
 ## Local smoke test
 

@@ -1,9 +1,8 @@
 name: duecare-site-build
 
-# Builds the duecare-ai.com static bundle (scripts/export_static.py) and uploads it as a
-# downloadable artifact. It does NOT deploy to GitHub Pages: this repo already publishes
-# MkDocs to Pages via docs-deploy.yml, and a repo can have only ONE Pages site. See
-# apps/duecare-ai.com/DEPLOY_STATIC.md for how to publish the bundle (separate repo, recommended).
+# Builds both DueCare website handoff artifacts. The first keeps dynamic calls pointed at the
+# running Render backend. The second is a validated, backend-free continuity bundle used by the
+# dedicated duecare-ai-site Pages repository. This repository keeps its one Pages site for MkDocs.
 
 on:
   push:
@@ -32,9 +31,30 @@ jobs:
         run: pip install -r requirements.txt httpx httpx2
       - name: Render static bundle
         run: python scripts/export_static.py --out dist --api-base https://gemma4-comp.onrender.com
-      - name: Upload static site artifact
+      - name: Upload live-backend static site artifact
         uses: actions/upload-artifact@v7
         with:
           name: duecare-ai-static-site
           path: apps/duecare-ai.com/dist
+          if-no-files-found: error
+      - name: Render backend-free continuity bundle
+        run: >-
+          python scripts/export_static.py
+          --out dist-fallback
+          --fallback
+          --base-path /duecare-ai-site
+          --site-url https://tayloramareltech.github.io/duecare-ai-site
+          --source-revision ${{ github.sha }}
+          --omit-cname
+      - name: Validate backend-free continuity bundle
+        run: >-
+          python scripts/validate_static_fallback.py
+          --site dist-fallback
+          --base-path /duecare-ai-site
+          --site-url https://tayloramareltech.github.io/duecare-ai-site
+      - name: Upload backend-free continuity artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: duecare-ai-read-only-fallback
+          path: apps/duecare-ai.com/dist-fallback
           if-no-files-found: error
