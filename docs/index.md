@@ -48,6 +48,7 @@ reviewed against the same repo.
 | Surface | URL | Role |
 |---|---|---|
 | **Main server website / public hub** | [duecare-ai.com](https://duecare-ai.com/) | Render-hosted FastAPI site and coordination service. It shows the public product story, serves hub APIs, and accepts only public-source proposals, vetted pack metadata, anonymized aggregate signals, hash receipts, and consented contact metadata. |
+| **Read-only continuity site** | [tayloramareltech.github.io/duecare-ai-site](https://tayloramareltech.github.io/duecare-ai-site/) | Independent backend-free copy of the 51 public website routes and five allowlisted snapshots. State-changing controls and mutable APIs are disabled; Render and production DNS remain active. |
 | **GitHub source repo** | [github.com/TaylorAmarelTech/gemma4_comp](https://github.com/TaylorAmarelTech/gemma4_comp) | Source of truth for the monorepo: Kaggle kernels, packages, docs, Render website source, scripts, validation gates, and GitHub Actions. |
 | **GitHub Pages docs** | [tayloramareltech.github.io/gemma4_comp](https://tayloramareltech.github.io/gemma4_comp/) | Static MkDocs documentation generated from `docs/`. This is the easiest route for onboarding, install guides, scenarios, architecture, reproducibility notes, and judge-facing review pages. |
 
@@ -146,7 +147,7 @@ the full per-source map and connector reference live in the
 | Goal | Start |
 |---|---|
 | **Try the workbench** | Open [DueCare App on Kaggle](https://www.kaggle.com/code/taylorsamarel/duecare-app), run it, and open the Cloudflare URL. |
-| **Take over maintenance** | Run the [successor pickup rehearsal](SUCCESSOR_REHEARSAL.md), use the [Maintainer handoff](MAINTAINER_HANDOFF.md), then follow the dated [30-day transition plan](PROJECT_TRANSITION_PLAN.md). |
+| **Take over maintenance** | Start with the tracked [Claude Code handoff](CLAUDE_CODE_HANDOFF.md), run the [successor pickup rehearsal](SUCCESSOR_REHEARSAL.md), use the [Maintainer handoff](MAINTAINER_HANDOFF.md), then follow the dated [30-day transition plan](PROJECT_TRANSITION_PLAN.md). |
 | **Check public project status** | Open the website [Project status & handoff](https://duecare-ai.com/project-status), then verify its receipts against [Publication readiness](PUBLICATION_READINESS.md). |
 | **Pick up unfinished work** | Use the generated [Deferred work register](DEFERRED_WORK.md) for exact owners, prerequisites, authorization boundaries, next actions, evidence, and acceptance gates. |
 | **Review the proof path** | Start with the model-free [Publication readiness](PUBLICATION_READINESS.md) gate, then use [For Judges and Reviewers](FOR_PEER_REVIEW.md) and the active A-00 proof path. |

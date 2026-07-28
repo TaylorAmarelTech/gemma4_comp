@@ -1,6 +1,6 @@
 # Readiness Dashboard
 
-Current as of 2026-07-27. This replaces the historical 2026-05-02
+Current as of 2026-07-28. This replaces the historical 2026-05-02
 appendix-ladder dashboard; the active submission scope is now the active Kaggle
 Gemma 4 path.
 
@@ -35,10 +35,10 @@ and [`kaggle/_INDEX.md`](../kaggle/_INDEX.md).
 
 | Area | Current State |
 |---|---|
-| Offline publication core | 11/11 composed gates passed in the 2026-07-27 closeout candidate, including provider-budget coverage, deferred-work integrity, and package-release ownership/install truth; rerun `python scripts/validate_publication_readiness.py --scope core` on the release commit. |
-| Public deployment | Pull request 8 is the latest validated substantive baseline at `9385a837879209e18f8e013cf969a3e1ecbcfc91`; all 16 PR checks, six merge-triggered workflows, MkDocs Pages, website artifact, Render project status, and all six schema routes passed. The latest 592-link audit found zero confirmed broken links and nine transient/unverified hosts. |
+| Offline publication core | 11/11 composed gates passed in the final model-free closeout, including provider-budget coverage, deferred-work integrity, and package-release ownership/install truth; rerun `python scripts/validate_publication_readiness.py --scope core` on the release commit. |
+| Public deployment | Pull request 15 is the current pre-handoff anchor at `56e7283df1e191793355b340559733b4ef77f9fa`; all 16 PR checks passed. Render production, the independent 51-route read-only `duecare-ai-site` Pages copy, and this repository's MkDocs Pages site have distinct owners; the fallback manifest records its source revision and does not claim production DNS. |
 | Curator governance | Inline grading guidance covers all 75 universal rubric dimensions; the strict curator validator reports zero errors and zero warnings, and CI now fails on either. |
-| Broad tests | Closeout 18-package `packages tests` run under the zero-call transport lock: 4,637 passed, 9 skipped with no warning summary. The focused 43-test kit run also passes with `RuntimeWarning` promoted to an error. |
+| Broad tests | Final tracked-handoff `packages tests` run under the zero-call transport lock: 4,648 passed, 9 skipped in 7 minutes 22 seconds. The registered three-file legacy Ruff slice also passes without file-wide suppression. |
 | Model/flywheel cost stop | All five recurring Windows tasks disabled, four daemon sentinels present, and zero verified repository daemon processes; inspect with `scripts/stop_ollama_stack.ps1 -Status`. |
 | New training readiness | Intentionally red: five dense generic-corridor typologies; 25 privacy-safe curation tasks and a 75-row minimum expansion target. |
 | Harness contract | Documented in [`harness_ecosystem.md`](harness_ecosystem.md), [`harness_pattern.md`](harness_pattern.md), and [`harness_standard_contract.md`](harness_standard_contract.md). |
@@ -62,6 +62,11 @@ for owners, prerequisites, model/network boundaries, evidence, and acceptance.
 4. Download `/kaggle/working` artifacts before Kaggle shutdown.
 5. Capture final demo screenshots/video clips from Kernel 01 and Kernel 02.
 6. Submit with links pointing to the current active Kaggle path.
+
+Future funded comparison work must include Kimi K3 and Meta Muse Spark 1.1 as
+required lanes after exact provider IDs, access, capability, context, and
+pricing are reverified. Unavailable access is a reportable result, not a reason
+to substitute a different model silently.
 
 The manual checklist lives in [`USER_TODO.md`](USER_TODO.md).
 
@@ -97,6 +102,7 @@ Required exported evidence:
 
 ## Start Here
 
+- Coding-agent handoff: [`CLAUDE_CODE_HANDOFF.md`](CLAUDE_CODE_HANDOFF.md)
 - Stopping point and next work: [`PUBLICATION_READINESS.md`](PUBLICATION_READINESS.md)
 - Canonical deferred work: [`DEFERRED_WORK.md`](DEFERRED_WORK.md)
 - Reviewer path: [`FOR_PEER_REVIEW.md`](FOR_PEER_REVIEW.md)

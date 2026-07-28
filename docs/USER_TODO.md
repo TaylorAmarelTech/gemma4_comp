@@ -1,6 +1,6 @@
 # Owner-Only Action Checklist
 
-Current as of 2026-07-27.
+Current as of 2026-07-28.
 
 This page contains only actions that cannot be truthfully completed through a
 local repository edit. The authoritative details and acceptance tests are in
@@ -75,8 +75,11 @@ surfaces remain archived provenance.
 
 - [ ] From a fresh shell on the exact final revision, run the
   [successor rehearsal](SUCCESSOR_REHEARSAL.md) and retain the ignored receipt.
-- [ ] Confirm public website and GitHub Pages deployments show the same release
-  disposition and deferred-work boundary as the repository.
+- [ ] Confirm Render production, the independent read-only `duecare-ai-site`
+  Pages copy, and the MkDocs Pages deployment show the same release disposition
+  and deferred-work boundary as the repository. Verify the fallback manifest's
+  `source_revision` and keep production DNS on Render unless a separate cutover
+  is approved.
 - [ ] Confirm the final branch is merged, required checks are green, `master`
   matches its remote, and the local worktree is clean.
 

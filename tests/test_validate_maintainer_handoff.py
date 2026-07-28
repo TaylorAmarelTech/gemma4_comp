@@ -24,7 +24,14 @@ def test_live_handoff_documents_validate():
     result = vmh.validate(ROOT)
 
     assert result["ok"], [check for check in result["checks"] if not check["ok"]]
-    assert result["passed"] == 17
+    assert result["passed"] == 23
+
+
+def test_claude_code_handoff_is_required_and_structured():
+    assert vmh.CLAUDE_HANDOFF_DOC in vmh.REQUIRED_FILES
+    text = (ROOT / vmh.CLAUDE_HANDOFF_DOC).read_text(encoding="utf-8")
+
+    assert vmh.missing_markers(text, vmh.CLAUDE_HANDOFF_MARKERS) == []
 
 
 def test_deferred_work_register_is_a_succession_gate():
@@ -34,6 +41,24 @@ def test_deferred_work_register_is_a_succession_gate():
         "name": "deferred work register",
         "ok": True,
         "detail": "11 explicit item(s); generated document current",
+    }
+
+
+def test_deferred_work_count_must_match_both_handoffs(tmp_path):
+    register = tmp_path / vmh.DEFERRED_REGISTRY
+    register.parent.mkdir(parents=True)
+    register.write_text('{"items": [{"id": "one"}]}\n', encoding="utf-8")
+    texts = {
+        vmh.HANDOFF_DOC: "currently contains 1 explicit items",
+        vmh.CLAUDE_HANDOFF_DOC: "contains 1 items",
+    }
+
+    assert vmh.deferred_work_handoff_count_check(texts, tmp_path)["ok"] is True
+    texts[vmh.CLAUDE_HANDOFF_DOC] = "contains 2 items"
+    assert vmh.deferred_work_handoff_count_check(texts, tmp_path) == {
+        "name": "deferred work handoff count alignment",
+        "ok": False,
+        "detail": "handoff count does not match the canonical register",
     }
 
 
