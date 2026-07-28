@@ -1,24 +1,25 @@
 # Publication Readiness And Next Work
 
-This is the model-free wrap-up path for DueCare. It separates what can be
-published from what still needs curation or a later, deliberately budgeted
-model run. Current as of 2026-07-28.
+This is the model-free wrap-up path for DueCare. It separates the maintained
+public surface from explicitly excluded claims and work that may be reopened
+later only under a dated condition. Current as of 2026-07-28.
 
 ## Current Posture
 
 | Track | Current state | Publication rule |
 |---|---|---|
-| Core code, docs, active Kaggle surfaces, provider-budget coverage, deferred-work integrity, package-release ownership, and published dataset claims | **11/11 core gates passed offline; pull request 15 at `56e7283d` passed all 16 checks, and the final tracked-handoff candidate passed 4,648 tests with 9 skips locally** | Re-run on the exact release commit before tagging. |
+| Core code, docs, active Kaggle surfaces, provider-budget coverage, deferred-work and closeout-receipt integrity, package-release ownership, and published dataset claims | **12/12 current core gates pass offline; the 2026-07-28 maintenance candidate passed 4,653 tests with 9 skips locally, while pull request 16 at `1c8f6b25` is the immediate fully merged predecessor** | Maintenance mode is enacted; rerun on any future exact release commit before tagging. |
 | Maintainer succession and live pickup | **2/2 handoff gates passed offline; the tracked Claude handoff, Render site, independent read-only continuity Pages site, and MkDocs docs are reconciled** | Re-run from a fresh shell and complete the private/manual acceptance steps before ownership transfer. |
 | Existing dated benchmark and learning-study results | Retained as bounded evidence with their original model, dataset, rubric, and date | Do not silently relabel an old result as a new model or field-effectiveness result. |
 | New fine-tuning dataset | **Not clean yet:** the strict audit reports five dense single/generic-corridor typologies; the deterministic workbook has 75 unfilled slots and no fabricated approvals | Complete source snapshots, rights review, two-person adjudication, and lineage-safe rows; rerun the audit, then refresh provenance before training or a new model claim. |
 | Exhaustive per-dimension judging | Experimental, isolated, and incomplete | Keep it out of the default comparable board until its own exact closure gate passes. |
 | Local/hosted Ollama work | Optional and deferred; the whole Windows model/flywheel stack is cost-stopped and the primary router has an atomic attempt/token/cash ledger | Plan offline first; unlock a small allowance only for a frozen, priced run, and keep direct/notebook clients outside the router explicitly labeled. |
 
-The generated [`DEFERRED_WORK.md`](DEFERRED_WORK.md) register is authoritative
-for unfinished work. It prevents roadmap drift by validating owners,
-prerequisites, dependencies, model/network boundaries, evidence paths, ordered
-actions, acceptance gates, and the absence of unresolved tokens.
+The dated
+[`CLOSEOUT_RESOLUTIONS_2026_07_28.md`](CLOSEOUT_RESOLUTIONS_2026_07_28.md)
+receipt is authoritative for the 11 inherited decisions. The generated
+[`DEFERRED_WORK.md`](DEFERRED_WORK.md) register contains zero current items and
+is reserved for work whose receipt reopen condition is actually met.
 
 ## Registry And Kaggle Publication Truth
 
@@ -30,7 +31,7 @@ actions, acceptance gates, and the absence of unresolved tokens.
   `package-NAME-vMAJOR.MINOR.PATCH` tag must match exactly one row in the
   reviewed independent-SemVer manifest. The current `0.1.0` / `0.1.2` /
   `0.17.0` mix is intentional and no longer a policy blocker.
-- Live Kaggle status checked 2026-07-27: active 01 is `COMPLETE`; active 02 and
+- Live Kaggle status checked 2026-07-28: active 01 is `COMPLETE`; active 02 and
   A-00 are `CANCEL_ACKNOWLEDGED`; optional 04 is `COMPLETE`; optional 03 has no
   verified public URL. A canceled run is not completion evidence.
 - No additional notebook is required for repository closure. The private and
@@ -69,18 +70,21 @@ python scripts/validate_publication_readiness.py --scope core
 
 This runs public-surface and messaging audits, the source-checkout harness
 smoke test, published dataset-claim verification, fallback-registry validation,
-both active Kaggle static gates, the generated deferred-work register,
+both active Kaggle static gates, the generated deferred-work register, the
+dated closeout-resolution receipt,
 package-release reconciliation, and package test collection. The runner sets
 Ollama's planned-call allowance to zero and forces common Hugging Face and
 Weights & Biases integrations offline for its child checks.
 
-Current audit receipt: all eleven core gates passed in the final model-free
-closeout without a model or network call. The current pre-handoff anchor landed
-through [pull request 15](https://github.com/TaylorAmarelTech/gemma4_comp/pull/15)
-as `56e7283df1e191793355b340559733b4ef77f9fa`; all 16 pull-request checks
-passed, and its exact local broad regression passed 4,646 tests with 9 skips.
-The subsequent tracked-handoff candidate passed 4,648 tests with 9 skips in 7
-minutes 22 seconds under the zero-call lock.
+Current audit receipt: all twelve current core gates pass in the model-free
+maintenance candidate without a model or network call. Its immediate fully
+merged predecessor landed through
+[pull request 16](https://github.com/TaylorAmarelTech/gemma4_comp/pull/16) as
+`1c8f6b25729da869b2775a29321ab3b74bd4715f`; all 16 checks passed. Pull request
+15's exact local broad regression passed 4,646 tests with 9 skips, and the
+subsequent tracked-handoff candidate passed 4,648 tests with 9 skips; both are
+historical. The current maintenance candidate passed 4,653 tests with 9 skips in 8 minutes 4
+seconds under the zero-call lock and offline provider/model flags.
 These receipts are not a substitute
 for rerunning the command on an eventual release tag.
 
@@ -93,7 +97,8 @@ python scripts/validate_publication_readiness.py --scope training
 It first requires all 75 source-bound and independently adjudicated rows, then
 runs the strict quality audit, validates the corridor plan, and verifies the
 fine-tune registry/model-card/trainer provenance chain. A nonzero result is the
-honest expected state until the corridor queue is curated.
+honest maintenance state. It changes only if a future, independently reviewed
+corridor dataset is deliberately admitted.
 
 For local handoff state and live automation status, also run:
 
@@ -329,7 +334,7 @@ The authoritative live/generated evidence is:
 | Question | Artifact or command |
 |---|---|
 | Is the public repository coherent? | `validate_publication_readiness.py --scope core` |
-| What unfinished work can be picked up safely? | `DEFERRED_WORK.md` plus `validate_deferred_work.py` |
+| What work is currently outstanding? | The zero-item `DEFERRED_WORK.md` plus the dated closeout receipt and both validators |
 | Is local automation paused and internally coherent? | `validate_project_bible_pickup.py` plus `autonomous_engine.py --status` |
 | Is the new training dataset safe to advance? | `reports/training/quality_audit.json` and `--scope training` |
 | What must curators add? | `reports/training/corridor_curation_workbook.json`, the candidate-only source catalog, and `validate_corridor_curation.py --require-complete` |
@@ -382,7 +387,7 @@ worker-facing answers, benchmark labels, or training rows automatically.
 - The training gate is red because of corridor coverage and the resulting
   stale fingerprints in an older planned registry record. This is a truthful
   provenance stop, not a reason to rewrite the ledger.
-- The current integrated `packages tests` regression passed 4,648 tests with nine
+- The current integrated `packages tests` regression passed 4,653 tests with nine
   skips and no warning summary in the locked 18-package workspace. Mocked and
   loopback provider tests explicitly isolate their fake transports while the
   real zero-call denial tests remain enabled. The
@@ -422,10 +427,10 @@ worker-facing answers, benchmark labels, or training rows automatically.
   returned 200; nine additional hosts were transient, DNS/SSL-blocked,
   redirect-looped, or bot-blocked and remain explicitly unverified rather than
   mislabeled as broken.
-- Root `AGENTS.md` names `master` as the active release branch. Pull request 15
-  is the current pre-handoff anchor at
-  `56e7283df1e191793355b340559733b4ef77f9fa`; all 16 PR checks passed, the
-  broad local regression passed 4,646 tests with 9 skips, and Render, the
+- Root `AGENTS.md` names `master` as the active release branch. Pull request 16
+  is the immediate fully merged predecessor to this maintenance closeout at
+  `1c8f6b25729da869b2775a29321ab3b74bd4715f`; all 16 checks passed. Pull
+  request 15's 4,646-pass run is older historical evidence. Render, the
   independent continuity site, and MkDocs retain distinct ownership. A release tag/version
   remains a separate owner decision.
 - Archived notebook-era surfaces are provenance. Do not restore them to the
@@ -433,13 +438,14 @@ worker-facing answers, benchmark labels, or training rows automatically.
 - Never treat a dirty working tree as disposable. Inspect and preserve
   unrelated edits instead of trying to manufacture a clean status.
 
-## Canonical Deferred Work
+## Canonical Decisions And Deferred Work
 
-[`DEFERRED_WORK.md`](DEFERRED_WORK.md) replaces the duplicated backlog table
-that previously lived here. Its 11 items distinguish zero model-free local
-tasks, one recurring maintenance task, and ten actions gated by private access,
-human review, owner decision, or a finite approved budget. The generated
-register is checked by the core release gate, the handoff validator, focused
+[`CLOSEOUT_RESOLUTIONS_2026_07_28.md`](CLOSEOUT_RESOLUTIONS_2026_07_28.md)
+replaces the duplicated 11-item backlog table that previously lived here. It
+distinguishes completed maintenance and decisions from declined work, claim
+exclusions, retained current-owner authority, and unknown historical provider
+usage. [`DEFERRED_WORK.md`](DEFERRED_WORK.md) now has zero current items. Both
+artifacts are checked by the core release gate, the handoff validator, focused
 tests, and CI.
 
 Good research extensions after the release boundary is stable include a
@@ -466,21 +472,20 @@ new versioned evidence lane rather than changing the existing board in place.
       versions, changelog, tag, and the currently unversioned `CITATION.cff`;
       do not bump them implicitly during cleanup.
 
-## Recommended Next Sequence
+## Conditional Future Sequence
 
-The acceptance details and authorization boundaries for this sequence are in
-[`DEFERRED_WORK.md`](DEFERRED_WORK.md); this summary does not grant permission
-for model spend, private access, or external publication.
+There is no current closeout backlog. If a dated receipt reopen condition is
+met, use this dependency order without treating it as standing authorization:
 
-1. Approve immutable source snapshots, then fill and adjudicate the 75-row
-   corridor workbook with full lineage and source metadata.
-2. Clear the strict quality and provenance gates and append a new planned
-   fine-tune record through the normal engine.
-3. When spend is separately authorized, configure the completed covered-call
-   ledger with reviewed pricing and run a small frozen Ollama smoke matrix with
-   checkpoint reuse.
-4. Expand only the cells justified by confidence intervals or disagreement,
-   complete the isolated per-dimension lane, and obtain human adjudication on a
-   representative high-severity slice.
-5. Re-run the core publication gate, choose versions, tag the exact commit, and
-   publish the bounded artifacts plus this limitations register.
+1. Obtain compatible source rights and immutable snapshots before any
+   independently adjudicated corridor row is admitted.
+2. Refresh strict quality and append-only provenance only after genuinely new
+   admitted data exists; do not refresh metadata to disguise a red gate.
+3. Run Kimi K3, Meta Muse Spark 1.1, or any other provider only for a frozen,
+   preregistered question with exact identifiers and finite attempt/token/cash
+   caps.
+4. Prefer a small uncertainty-reducing judge or human-review slice over
+   resuming the declined exhaustive per-dimension sweep.
+5. Publish a package, notebook, model, or dataset only when a real consumer or
+   evidence need has a maintainer, exact revision, support boundary, and
+   passing gates.

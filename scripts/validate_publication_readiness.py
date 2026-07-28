@@ -62,6 +62,11 @@ CORE_GATES: tuple[Gate, ...] = (
         ("scripts/validate_deferred_work.py",),
         "outstanding work has explicit owners, boundaries, actions, and acceptance gates",
     ),
+    Gate(
+        "closeout resolution receipt",
+        ("scripts/validate_closeout_resolutions.py",),
+        "all 11 inherited items retain dated decisions and honest claim boundaries",
+    ),
     Gate("package release surface", ("scripts/validate_package_release.py",),
          "18-package inventory, build order, install truth, and sole publisher ownership"),
     Gate("package test collection", ("-m", "pytest", "packages", "--collect-only", "-q"),

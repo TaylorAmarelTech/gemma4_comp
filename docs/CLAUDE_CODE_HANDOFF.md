@@ -28,9 +28,11 @@ are historical evidence only.
    closeout and maintenance-mode fallback.
 6. [`PUBLICATION_READINESS.md`](PUBLICATION_READINESS.md) for the bounded
    release claim and intentionally red training lane.
-7. [`DEFERRED_WORK.md`](DEFERRED_WORK.md) for the generated queue, ownership,
-   authorization boundaries, and acceptance evidence.
-8. [`codex/PROJECT_BIBLE.md`](codex/PROJECT_BIBLE.md) only when deeper benchmark,
+7. [`CLOSEOUT_RESOLUTIONS_2026_07_28.md`](CLOSEOUT_RESOLUTIONS_2026_07_28.md)
+   for the final item-by-item disposition and claim boundaries.
+8. [`DEFERRED_WORK.md`](DEFERRED_WORK.md) for genuinely reopened work; it
+   contains zero current items at this handoff.
+9. [`codex/PROJECT_BIBLE.md`](codex/PROJECT_BIBLE.md) only when deeper benchmark,
    dataset, or autonomous-engine history is needed.
 
 Root [`Plans.md`](../Plans.md) exists only as a compatibility bridge for older
@@ -69,20 +71,21 @@ Do not reuse the counts in this document as proof for a later revision.
 
 - `master` is the active branch. Always start from live Git; do not reset or
   erase a dirty worktree merely because a handoff expected it to be clean.
-- Pull request
-  [#15](https://github.com/TaylorAmarelTech/gemma4_comp/pull/15) is the most
-  recent fully merged pre-handoff receipt anchor, at merge commit
-  `56e7283df1e191793355b340559733b4ef77f9fa`. Its 16 required checks passed.
-  This SHA is historical context, not a substitute for `git rev-parse HEAD`.
+- The immediate fully merged predecessor to this maintenance closeout is pull
+  request [#16](https://github.com/TaylorAmarelTech/gemma4_comp/pull/16), merge
+  commit `1c8f6b25729da869b2775a29321ab3b74bd4715f`. Its 16 checks passed. This
+  immutable predecessor receipt is historical context, not a substitute for
+  `git rev-parse HEAD` or the checks on live `master`.
 - The model-free core publication scope is green at the recorded revision. The
-  strict training scope remains intentionally red until the source, rights,
-  lineage, diversity, privacy, and independent-adjudication gates close.
-- The generated deferred-work register contains 11 items. There is no
-  `ready_local` item after the registered Ruff cleanup completed. Remaining
-  work is private-access, owner-decision, human-review, recurring-maintenance,
-  or budget gated.
-- A release tag, package publication, model publication, new training claim,
-  and private account transfer are not completed by repository cleanup.
+  strict training scope remains intentionally red and excluded from closeout
+  claims; a future reopen requires source, rights, lineage, diversity, privacy,
+  and independent-adjudication gates to close.
+- The generated deferred-work register contains 0 items. All 11 inherited
+  items have explicit dated outcomes in the closeout receipt: completed cycle,
+  decided, declined, excluded, current-owner retention, or retained risk.
+- Maintenance mode is effective 2026-07-28. No release tag, package/model/data
+  publication, notebook rerun, new training claim, human study, or private
+  account transfer was performed merely to close the queue.
 
 ## Public Services Kept Running
 
@@ -117,6 +120,7 @@ The final model-free sequence was intentionally split into reviewable changes:
 | [#13](https://github.com/TaylorAmarelTech/gemma4_comp/pull/13) | `47277c62` | Put the optional adverse-media verifier behind the shared atomic provider budget; all five registered transports are covered |
 | [#14](https://github.com/TaylorAmarelTech/gemma4_comp/pull/14) | `a56f9d1b` | Fixed the homepage worker-story grid by placing title and body inside `.step-copy`; Render and the continuity site were visually and structurally verified |
 | [#15](https://github.com/TaylorAmarelTech/gemma4_comp/pull/15) | `56e7283d` | Cleared the registered three-file Ruff slice without suppressions and reduced the deferred register from 12 to 11 items |
+| [#16](https://github.com/TaylorAmarelTech/gemma4_comp/pull/16) | `1c8f6b25` | Finalized the Claude Code handoff, read-only continuity plan, public pickup validation, and pre-closeout reconciliation |
 
 The PR #15 local receipt was `4,646 passed, 9 skipped` for
 `python -m pytest packages tests -q`. The source CI matrices, clean-room install,
@@ -124,10 +128,11 @@ harness anti-regression, privacy scan, active Kaggle contract, package build,
 and container build also passed. No Ollama or hosted-model call was made for
 these closeout changes.
 
-After the tracked handoff and public-status reconciliation, the exact final
-local candidate passed `4,648 passed, 9 skipped` for the same broad command in
-7 minutes 22 seconds under `DUECARE_MAX_PLANNED_MODEL_CALLS=0`. This is the
-current local receipt; PR #15's count remains above as dated merge history.
+The 2026-07-28 maintenance candidate passed `4,653 passed, 9 skipped` for the
+same broad command in 8 minutes 4 seconds under
+`DUECARE_MAX_PLANNED_MODEL_CALLS=0` and offline provider/model flags. This is
+the current local receipt. The earlier `4,648 passed` tracked-handoff result and PR
+#15's 4,646-pass result remain dated history.
 
 The homepage layout regression has an explicit acceptance check: live and
 fallback HTML must contain `class="step-copy"`, must not contain the old sibling
@@ -207,20 +212,16 @@ result.
 
 ## Current Deferred Work
 
-[`DEFERRED_WORK.md`](DEFERRED_WORK.md) is authoritative. At this handoff it has:
+[`DEFERRED_WORK.md`](DEFERRED_WORK.md) contains 0 items. The dated
+[`closeout resolution receipt`](CLOSEOUT_RESOLUTIONS_2026_07_28.md) preserves
+all 11 inherited decisions and is authoritative for what was completed,
+declined, excluded, retained, or closed with residual risk.
 
-- 2 private-access items;
-- 2 owner-decision items;
-- 3 human-review items;
-- 3 budget-gated items; and
-- 1 recurring source-freshness item.
-
-There is no model-free local item waiting. The highest-value remaining actions
-therefore require real authority or evidence: private provider reconciliation,
-release disposition, first package publication, rights/source review, corridor
-curation, training-provenance refresh, a bounded model smoke, per-dimension
-closure, optional Kaggle reruns, human-gold calibration, and recurring source
-freshness.
+There is no model-free or gated closeout item waiting. Work reopens only when a
+specific receipt condition is met—for example, a real package consumer, a
+named successor, qualified independent human reviewers, compatible source
+rights and snapshots, or a preregistered finite model study. The next scheduled
+source-freshness review is 2026-10-28.
 
 ## Claude Code Pickup Prompt
 
@@ -229,7 +230,8 @@ Use this exact prompt from the repository root:
 ```text
 Read AGENTS.md, docs/CLAUDE_CODE_HANDOFF.md, PROJECT_BIBLE.md,
 .claude/rules/05_project_bible_pickup.md, docs/MAINTAINER_HANDOFF.md,
-docs/PUBLICATION_READINESS.md, and docs/DEFERRED_WORK.md. Treat live Git,
+docs/PUBLICATION_READINESS.md, docs/CLOSEOUT_RESOLUTIONS_2026_07_28.md, and
+docs/DEFERRED_WORK.md. Treat live Git,
 filesystem, process, validator, and hosting state as authoritative; treat saved
 .claude/state and ignored reports as historical evidence only. Set
 DUECARE_MAX_PLANNED_MODEL_CALLS=0. Run the handoff, deferred-work, core, Project
@@ -249,9 +251,9 @@ the private least-privilege access and recovery transfer, a documentation-only
 change rehearsal, an archive restore check, and the acceptance list in
 [`MAINTAINER_HANDOFF.md`](MAINTAINER_HANDOFF.md).
 
-If no successor is available by the decision window, use the documented
-maintenance-mode path. Keep Render, the independent read-only continuity site,
-the MkDocs documentation, and the public source available unless the owner
-makes a separate retirement decision. Keep model callers stopped, label
-volatile legal or operational facts as freshness-limited, and leave the 11
-gated/recurring items explicit rather than converting them into vague promises.
+Maintenance mode is already enacted because no successor has accepted. Keep
+Render, the independent read-only continuity site, MkDocs documentation, and
+public source available unless the owner makes a separate retirement decision.
+Keep model callers stopped, label volatile legal or operational facts as
+freshness-limited, and preserve the dated 11-item receipt rather than reviving
+declined work as vague promises.

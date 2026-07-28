@@ -1,88 +1,77 @@
-# Owner-Only Action Checklist
+# Owner Decision Ledger
 
 Current as of 2026-07-28.
 
-This page contains only actions that cannot be truthfully completed through a
-local repository edit. The authoritative details and acceptance tests are in
-[`DEFERRED_WORK.md`](DEFERRED_WORK.md); the matching item ID is shown for every
-action below.
+The repository owner delegated the bounded closeout decisions. All 11 inherited
+items now have a dated disposition in the canonical
+[closeout resolution receipt](CLOSEOUT_RESOLUTIONS_2026_07_28.md), and the
+[deferred-work register](DEFERRED_WORK.md) contains zero current items.
 
-## Before Any Model Caller Resumes
+Checked here means **the decision or current maintenance cycle is recorded**.
+It does not mean a declined model run, package publication, Kaggle rerun,
+private transfer, training-data admission, or human study was performed.
 
-- [ ] Privately reconcile provider usage from the last owner-verified receipt
-  through the current cost-stop receipt. Retain billing and account details
-  outside Git and record only the date, reviewer role, provider category, and
-  discrepancy count. (`provider-usage-reconciliation`)
-- [ ] Approve a finite run plan with immutable model IDs, maximum attempts,
-  input/output token caps, cash cap, stop conditions, and a unique run ID.
-  (`bounded-model-smoke`, `per-dimension-judging`, or
-  `optional-kaggle-reruns`)
-- [ ] Include Kimi K3 and Meta Muse Spark 1.1 as required lanes in the first
-  approved frozen smoke matrix. Reverify their live identifiers and prices at
-  execution time; record an unavailable lane rather than silently substituting
-  a different model. (`bounded-model-smoke`)
-- [ ] Remove no sentinel and enable no scheduled task until the approved run is
-  ready; restore the whole-stack cost stop immediately afterward.
+## Final Dispositions
 
-## Release Disposition
+- [x] Historical provider usage closed with explicit retained risk. The local
+  repository cannot reconstruct the pre-ledger interval and does not claim
+  zero usage. (`provider-usage-reconciliation`)
+- [x] Private platform and recovery authority retained by the current owner.
+  No successor transfer or access revocation is claimed.
+  (`private-platform-transfer`)
+- [x] Maintenance mode enacted on 2026-07-28 while Render, the independent
+  continuity site, MkDocs Pages, source, and existing research artifacts stay
+  available. (`release-disposition`)
+- [x] First PyPI package publication explicitly declined for closeout. No tag
+  or registry write was created. (`first-package-publication`)
+- [x] The 75-row corridor expansion closed at zero admitted rows and is
+  excluded from training claims because rights, snapshots, native-language
+  review, and two-person adjudication do not exist. (`corridor-curation`)
+- [x] Training provenance refresh declined for unchanged candidate data; the
+  strict quality/provenance lane intentionally remains red.
+  (`training-provenance-refresh`)
+- [x] Kimi K3 and Meta Muse Spark 1.1 availability/pricing recorded without a
+  model call; the paid smoke was declined to preserve credits.
+  (`bounded-model-smoke`)
+- [x] Exhaustive per-dimension judging stopped as low-value partial experimental
+  work and remains isolated from the default board. (`per-dimension-judging`)
+- [x] Optional Kaggle reruns declined because no named evidence gap justified
+  quota use. Canceled and inaccessible kernels were not relabeled as successful.
+  (`optional-kaggle-reruns`)
+- [x] The 364-item human-review packet is validated, but the unperformed study
+  is excluded from human-agreement and field-effectiveness claims.
+  (`human-gold-calibration`)
+- [x] The 2026-07-28 source-freshness cycle completed; the next scheduled review
+  is 2026-10-28 or earlier if a volatile fact changes.
+  (`source-freshness-maintenance`)
 
-- [ ] By the 2026-08-22 decision window, choose one outcome: a bounded release,
-  a dated no-release deferral, or maintenance mode. Record the effective date,
-  supported surfaces, security intake posture, and excluded claims in
-  [`PROJECT_TRANSITION_PLAN.md`](PROJECT_TRANSITION_PLAN.md).
-  (`release-disposition`)
-- [ ] If a Python package will be published, select one manifest row and one
-  exact package-specific tag. Let the sole trusted-publisher workflow perform
-  the production write; do not use a direct credential upload.
-  (`first-package-publication`)
-- [ ] If a Kaggle notebook is rerun or published, require a distinct evidence
-  purpose, preserve the output bundle, and reconcile its state in
-  [`kaggle/_INDEX.md`](../kaggle/_INDEX.md). The current repository closeout
-  does not require an additional notebook. (`optional-kaggle-reruns`)
+## Standing Owner Controls
 
-The active source inventory remains exactly:
+These are controls, not currently overdue tasks:
+
+- Keep all five recurring tasks disabled, all four stop sentinels present, and
+  planned model calls at zero during deterministic maintenance.
+- Keep private credentials, billing details, reviewer identities, recovery
+  material, and access receipts outside Git.
+- Use [`PRIVATE_TRANSFER_RECEIPT_TEMPLATE.md`](PRIVATE_TRANSFER_RECEIPT_TEMPLATE.md)
+  only if a named successor is later authorized and accepts access.
+- Reopen work in `configs/duecare/deferred_work.json` only after a specific
+  reopen condition in the dated receipt is met.
+- Reverify provider IDs, access, context, modalities, and prices immediately
+  before any future Kimi K3 or Meta Muse Spark 1.1 run.
+- Rerun the [successor rehearsal](SUCCESSOR_REHEARSAL.md) on the exact revision
+  whenever maintenance ownership changes.
+
+No owner response is needed to close the current queue.
+
+## Active Kaggle Source Boundary
+
+Maintenance preserves exactly these primary source surfaces without requiring
+a quota-consuming rerun:
 
 - `kaggle/01-duecare-exploration-workbench/`
 - `kaggle/02-live-demo/`
 - `kaggle/A-00-omni-experiment-workbench/`
 
-The `03` and `04` benchmark surfaces are optional; notebook-era appendix
-surfaces remain archived provenance.
-
-## Dataset And Evaluation Review
-
-- [ ] Assign two independent curators and the required native-language review
-  capacity for the 75-row corridor workbook. Approve source rights and immutable
-  snapshots before writing content. (`corridor-curation`)
-- [ ] After curation passes, approve the refreshed append-only training
-  provenance record. Do not rewrite the older planned-run evidence.
-  (`training-provenance-refresh`)
-- [ ] Recruit qualified domain reviewers for a human gold set and agreement
-  study; record consent, role, rubric revision, and disagreement procedure
-  privately where identities are sensitive. (`human-gold-calibration`)
-
-## Private Access Transfer
-
-- [ ] Name the authorized successor or private maintenance owner.
-- [ ] Transfer GitHub, Kaggle, hosting, domain, package-registry, model-provider,
-  monitoring, mailbox, billing-visibility, recovery, and revocation authority
-  one platform at a time using
-  [`PRIVATE_TRANSFER_RECEIPT_TEMPLATE.md`](PRIVATE_TRANSFER_RECEIPT_TEMPLATE.md).
-- [ ] Verify least-privilege login, recovery, audit visibility, and revocation
-  before removing outgoing access. (`private-platform-transfer`)
-
-## Final Acceptance
-
-- [ ] From a fresh shell on the exact final revision, run the
-  [successor rehearsal](SUCCESSOR_REHEARSAL.md) and retain the ignored receipt.
-- [ ] Confirm Render production, the independent read-only `duecare-ai-site`
-  Pages copy, and the MkDocs Pages deployment show the same release disposition
-  and deferred-work boundary as the repository. Verify the fallback manifest's
-  `source_revision` and keep production DNS on Render unless a separate cutover
-  is approved.
-- [ ] Confirm the final branch is merged, required checks are green, `master`
-  matches its remote, and the local worktree is clean.
-
-Unchecked boxes are genuine human or owner gates, not documentation
-placeholders. Repository maintainers should not mark them complete without the
-dated evidence specified in [`DEFERRED_WORK.md`](DEFERRED_WORK.md).
+Optional `03` and `04` benchmark surfaces remain outside the primary recording
+path, and notebook-era appendix material remains archived provenance.

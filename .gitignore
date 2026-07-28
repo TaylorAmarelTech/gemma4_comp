@@ -13,6 +13,7 @@ __pycache__/
 build/
 dist/
 /site/
+/apps/duecare-ai.com/dist-fallback/
 *.egg-info/
 *.egg
 .eggs/

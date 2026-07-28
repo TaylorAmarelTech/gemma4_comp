@@ -1,0 +1,223 @@
+{
+  "schema_version": "duecare.closeout-resolutions.v1",
+  "closed_on": "2026-07-28",
+  "scope": "Final disposition of the 11 items inherited in the 2026-07-28 deferred-work register.",
+  "authority": "The repository owner delegated these bounded closeout decisions to the maintainer. The delegation does not create private account evidence, independent human review, source rights, provider billing records, or publication receipts that do not exist.",
+  "maintenance_mode": {
+    "effective_on": "2026-07-28",
+    "public_surfaces": "Keep the Render production site, the independent read-only continuity site, GitHub Pages documentation, repository, and already-published research artifacts available.",
+    "model_posture": "Keep every recurring model and flywheel task disabled, retain all stop sentinels, and use zero planned model calls for deterministic maintenance.",
+    "publication_posture": "Do not create a release tag or publish a package, model, dataset, notebook rerun, image, or chart merely to close the project.",
+    "claim_posture": "Preserve dated evidence and limitations. Do not promote candidate training data, partial per-dimension judging, or an unperformed human study into completed claims.",
+    "next_freshness_review": "2026-10-28"
+  },
+  "items": [
+    {
+      "id": "provider-usage-reconciliation",
+      "title": "Historical provider usage",
+      "outcome": "retained_risk",
+      "decision": "Close the repository action with historical usage explicitly unreconciled and account-side truth retained outside Git.",
+      "rationale": "The local budget ledger began after auxiliary callers had existed, this checkout cannot reconstruct the earlier account interval, and no provider credential is available in the maintenance process. A zero-usage statement would be unsupported.",
+      "verification": "The whole-stack stop receipt is green, all five recurring tasks are disabled, four stop sentinels are present, and the bounded closeout budget receipt records zero authorized calls for its own later run only.",
+      "claim_boundary": "Never describe historical provider usage as zero or reconciled. The accepted residual risk is an unknown private account-side amount before the cost stop; no model caller may resume under this closeout decision.",
+      "reversible": false,
+      "reopen_conditions": [
+        "A private account owner chooses to produce a dated, redacted provider reconciliation receipt."
+      ],
+      "evidence": [
+        "docs/PROVIDER_BUDGETING.md",
+        "docs/MAINTAINER_HANDOFF.md",
+        "scripts/stop_ollama_stack.ps1"
+      ]
+    },
+    {
+      "id": "private-platform-transfer",
+      "title": "Private platform ownership and recovery",
+      "outcome": "owner_retained",
+      "decision": "Retain private maintenance and recovery authority with the current owner; do not attempt an artificial transfer or access removal.",
+      "rationale": "No named successor or private acceptance receipt exists. Public source, deployment ownership, continuity, and recovery instructions are documented, while credentials and account details correctly remain outside Git.",
+      "verification": "The public recovery path, continuity deployment, transfer template, and fresh-shell successor rehearsal are present and independently checkable without private secrets.",
+      "claim_boundary": "This is an ownership-retention decision, not a completed successor transfer. Future transfer requires the private receipt and live account acceptance described by the handoff.",
+      "reversible": true,
+      "reopen_conditions": [
+        "A named successor accepts maintenance responsibility and the current owner authorizes private transfer."
+      ],
+      "evidence": [
+        "apps/duecare-ai.com/DEPLOY_STATIC.md",
+        "docs/PRIVATE_TRANSFER_RECEIPT_TEMPLATE.md",
+        "docs/MAINTAINER_HANDOFF.md",
+        "docs/SUCCESSOR_REHEARSAL.md"
+      ]
+    },
+    {
+      "id": "release-disposition",
+      "title": "Release or maintenance disposition",
+      "outcome": "decided",
+      "decision": "Enter maintenance mode on 2026-07-28 while keeping every current public surface running.",
+      "rationale": "The repository and deployments are coherent, but a new release would add operational obligations without closing the separate human, data, provider, or private-account evidence gaps.",
+      "verification": "The portable core and handoff gates define the maintained scope, and the transition plan records the enacted maintenance posture and future reopen path.",
+      "claim_boundary": "Maintenance-ready does not mean a package, model, training improvement, human-validity result, or private handoff has been released.",
+      "reversible": true,
+      "reopen_conditions": [
+        "A future maintainer proposes a bounded release with a named artifact, owner, exact revision, and rerun acceptance gates."
+      ],
+      "evidence": [
+        "docs/PROJECT_TRANSITION_PLAN.md",
+        "docs/PUBLICATION_READINESS.md",
+        "configs/duecare/package_release.toml"
+      ]
+    },
+    {
+      "id": "first-package-publication",
+      "title": "First Python package publication",
+      "outcome": "declined",
+      "decision": "Do not publish the first package during closeout and do not create a production tag.",
+      "rationale": "All 18 distribution surfaces validate and the OIDC workflow is ready, but publishing solely to empty a checklist would create a long-lived registry commitment during maintenance mode without a demonstrated downstream need.",
+      "verification": "The package-release validator passes for the source cohort; no PyPI write, direct upload, or release tag is part of this decision.",
+      "claim_boundary": "The packages are buildable source surfaces, not publicly released PyPI distributions. Future publication must use the sole guarded OIDC workflow and an exact package-specific tag.",
+      "reversible": true,
+      "reopen_conditions": [
+        "A real consumer needs an independently versioned package and a maintainer accepts release and support ownership."
+      ],
+      "evidence": [
+        "configs/duecare/package_release.toml",
+        "docs/PACKAGE_INVENTORY.md",
+        "scripts/validate_package_release.py",
+        ".github/workflows/pypi-publish.yml"
+      ]
+    },
+    {
+      "id": "corridor-curation",
+      "title": "Seventy-five-row corridor curation",
+      "outcome": "excluded",
+      "decision": "Close the curation action at zero admitted rows and exclude the proposed expansion from training and publication claims.",
+      "rationale": "All 12 catalog entries are candidate-only with rights review required, immutable snapshots absent, and no independent native-language adjudication. One AI maintainer cannot lawfully manufacture those approvals or the required two-person review.",
+      "verification": "A dated reachability review found seven direct responses, two redirects, three transient endpoints, and no confirmed broken source; reachability did not change any source's blocked training status.",
+      "claim_boundary": "The 25-task, 75-slot workbook remains a reusable protocol, not a completed dataset. It contributes zero rows to training and no corridor-diversity improvement claim.",
+      "reversible": true,
+      "reopen_conditions": [
+        "Qualified curators obtain compatible rights and immutable snapshots, then independently adjudicate every admitted row with native-language coverage."
+      ],
+      "evidence": [
+        "configs/duecare/training/corridor_curation_sources.json",
+        "scripts/build_corridor_curation_workbook.py",
+        "scripts/validate_corridor_curation.py",
+        "docs/PUBLICATION_READINESS.md"
+      ]
+    },
+    {
+      "id": "training-provenance-refresh",
+      "title": "Training quality and provenance refresh",
+      "outcome": "excluded",
+      "decision": "Do not regenerate or append a provenance approval for unchanged candidate training data; preserve the strict red gate.",
+      "rationale": "The strict audit still reports five dense generic-corridor shortcut risks, three fingerprint mismatches, and no valid model card. Refreshing metadata without new admitted data would disguise rather than repair the evidence gap.",
+      "verification": "The quality and provenance validators fail for the documented substantive reasons while leakage remains zero; no training run or model publication was performed.",
+      "claim_boundary": "The old candidate bundle and provenance history remain research artifacts only. No new training-quality, model-improvement, or release-readiness claim is authorized.",
+      "reversible": true,
+      "reopen_conditions": [
+        "A new admitted dataset closes the strict quality findings and a real training run produces manifest-bound fingerprints and a valid model card."
+      ],
+      "evidence": [
+        "scripts/audit_training_quality.py",
+        "scripts/build_corridor_expansion_plan.py",
+        "scripts/validate_training_provenance.py",
+        "scripts/training_engine.py"
+      ]
+    },
+    {
+      "id": "bounded-model-smoke",
+      "title": "Kimi K3 and Meta Muse Spark 1.1 smoke test",
+      "outcome": "declined",
+      "decision": "Record current provider availability and pricing, but make no model call during closeout.",
+      "rationale": "The owner is preserving Ollama and hosted-model credits for later projects, no credential is present in this maintenance process, and a tiny smoke would not close a release-critical evidence gap.",
+      "verification": "Official or provider catalog checks dated 2026-07-28 identified Kimi K3 and Meta Muse Spark 1.1 comparison lanes; the zero-call budget and whole-stack cost stop remained intact.",
+      "claim_boundary": "No response-quality, latency, context-window, or compatibility result is claimed for either model. Their IDs, access, modalities, context limits, and prices must be reverified immediately before any future run.",
+      "reversible": true,
+      "reopen_conditions": [
+        "A future study has a frozen prompt slice, exact provider IDs, credentials, finite attempt-token-cash caps, and a named evidence question."
+      ],
+      "evidence": [
+        "docs/PROVIDER_BUDGETING.md",
+        "scripts/provider_budget.py",
+        "scripts/rich_harness_lift.py",
+        "scripts/stop_ollama_stack.ps1"
+      ]
+    },
+    {
+      "id": "per-dimension-judging",
+      "title": "Exhaustive per-dimension judging",
+      "outcome": "declined",
+      "decision": "Stop the exhaustive isolated lane and preserve its partial outputs as experimental evidence only.",
+      "rationale": "The lane has all 236157 response cells but only 47813 of 708471 panel cells and 239065 of 3542355 dimension outputs. Completing the remaining calls has low value of information relative to cost and does not block the maintained public surface.",
+      "verification": "Coverage remains explicitly partial and isolated from the default comparable board; no missing outputs were imputed or blended into headline metrics.",
+      "claim_boundary": "Do not describe the exhaustive lane as complete or use its partial metrics as a default-board result. A future study must version and budget any narrower restart.",
+      "reversible": true,
+      "reopen_conditions": [
+        "A preregistered analysis identifies a smaller uncertainty-reducing slice whose expected information value justifies the finite cost."
+      ],
+      "evidence": [
+        "docs/research/frontier_panel_perdim.md",
+        "docs/research/perdim_granular_lift.md",
+        "scripts/rich_harness_lift.py"
+      ]
+    },
+    {
+      "id": "optional-kaggle-reruns",
+      "title": "Optional Kaggle evidence reruns",
+      "outcome": "declined",
+      "decision": "Do not rerun or publish a Kaggle notebook during closeout.",
+      "rationale": "No named evidence gap requires quota use. The primary app was complete, the live demo and A-00 runs were canceled, the optional Community Benchmark was complete, and the Universal Benchmark slug was not accessible during the dated status check.",
+      "verification": "The local Kaggle client was repaired in the ignored virtual environment and used only for read-only status; source kernel and generated-page validators remain the publication-independent acceptance path.",
+      "claim_boundary": "Canceled is not successful, an inaccessible slug is not verified, and no current notebook execution result is inferred from source validation.",
+      "reversible": true,
+      "reopen_conditions": [
+        "A future maintainer names a missing evidence artifact, confirms quota and credentials, and passes the notebook publication checklist before execution."
+      ],
+      "evidence": [
+        "docs/NOTEBOOKS.md",
+        "docs/current_kaggle_notebook_state.md",
+        "kaggle/_INDEX.md",
+        "scripts/validate_main_kaggle_kernels.py",
+        "scripts/validate_kaggle_page_sources.py"
+      ]
+    },
+    {
+      "id": "human-gold-calibration",
+      "title": "Human gold-set calibration",
+      "outcome": "excluded",
+      "decision": "Close the protocol and sampling work as ready but leave the human study unperformed and excluded from claims.",
+      "rationale": "The privacy-safe packet contains 364 balanced items across 182 strata, but no qualified independent human ratings or agreement statistics exist. Automated maintenance cannot substitute for those reviewers.",
+      "verification": "The deterministic sample validation passes, preserves hidden-key separation, and reports no obvious contact or path leakage; zero human ratings were created.",
+      "claim_boundary": "Do not claim human agreement, practitioner validation, field effectiveness, or calibrated severity. The packet is a future study protocol only.",
+      "reversible": true,
+      "reopen_conditions": [
+        "Qualified independent reviewers complete the frozen packet under the published protocol and a privacy-safe agreement receipt is retained."
+      ],
+      "evidence": [
+        "scripts/build_human_validation_sample.py",
+        "docs/research/judge_calibration.md",
+        "docs/research/evaluation_methodology.md",
+        "docs/research/convergent_validity.md"
+      ]
+    },
+    {
+      "id": "source-freshness-maintenance",
+      "title": "Current source-freshness cycle",
+      "outcome": "completed_current_cycle",
+      "decision": "Complete the 2026-07-28 model-free freshness cycle and schedule the next review for 2026-10-28.",
+      "rationale": "The deterministic knowledge inventory is internally coherent, the 12 curation candidates have a dated reachability classification, and transient access was kept separate from confirmed breakage.",
+      "verification": "Knowledge verification passed with GREP 451, RAG 865, multidomain 610, fee-cap rows 38, fee-dictionary entries 57, NGO-intake entries 36, ILO conventions 19, ILO indicators 11, templates 36, and personas 37. The targeted source check was seven direct, two redirect, three transient, zero confirmed broken.",
+      "claim_boundary": "This receipt is a point-in-time maintenance result, not a guarantee that volatile laws, contacts, prices, or endpoints remain current after 2026-07-28.",
+      "reversible": true,
+      "reopen_conditions": [
+        "The scheduled 2026-10-28 review arrives, a source is reported changed, or a publication depends on a volatile fact checked earlier."
+      ],
+      "evidence": [
+        "docs/KNOWLEDGE_SURFACE_VERIFICATION.md",
+        "configs/duecare/training/corridor_curation_sources.json",
+        "scripts/verify_knowledge_surfaces.py",
+        "scripts/check_external_links.py"
+      ]
+    }
+  ]
+}

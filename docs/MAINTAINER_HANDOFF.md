@@ -7,26 +7,32 @@ coding-agent pickup is in the
 [Claude Code handoff](CLAUDE_CODE_HANDOFF.md), the closeout schedule is in the
 [30-day transition plan](PROJECT_TRANSITION_PLAN.md),
 while the release boundary and evidence backlog remain in
-[Publication readiness](PUBLICATION_READINESS.md). The generated
-[Deferred work register](DEFERRED_WORK.md) is the canonical queue for every
-unfinished item and its authorization boundary.
+[Publication readiness](PUBLICATION_READINESS.md). The dated
+[closeout resolution receipt](CLOSEOUT_RESOLUTIONS_2026_07_28.md) records every
+inherited disposition, while the [Deferred work register](DEFERRED_WORK.md) is
+reserved for genuinely reopened work and currently contains zero items.
 
-**Handoff posture:** active closeout
+**Handoff posture:** maintenance mode enacted; current owner retained
 **Prepared:** 2026-07-28
 **Target transfer:** 2026-08-25
 **Default model posture:** whole model/flywheel stack cost-stopped; zero planned model calls
 
 ## 2026-07-28 Final Repository And Continuity Receipt
 
-The current pre-handoff anchor is
-[pull request 15](https://github.com/TaylorAmarelTech/gemma4_comp/pull/15),
-merged to `master` as `56e7283df1e191793355b340559733b4ef77f9fa`.
-All 16 pull-request checks passed. The exact local broad regression at that
-revision passed **4,646 tests with 9 skips** for
-`python -m pytest packages tests -q`; the 11 core publication gates, package
-collection, source-checkout smoke, privacy checks, active Kaggle contracts,
-clean-room install, package builds, and container build also passed. No Ollama,
-hosted-model, or Kaggle-quota call was made.
+The 11 inherited closeout decisions are now resolved in the dated
+[`CLOSEOUT_RESOLUTIONS_2026_07_28.md`](CLOSEOUT_RESOLUTIONS_2026_07_28.md)
+receipt. The zero-item outstanding register means there is no current action
+waiting; it does not relabel declined model/package/notebook work, excluded
+training/human claims, unknown historical provider usage, or an unperformed
+private transfer as completed.
+
+The immediate fully merged predecessor to this maintenance closeout is
+[pull request 16](https://github.com/TaylorAmarelTech/gemma4_comp/pull/16),
+merged to `master` as `1c8f6b25729da869b2775a29321ab3b74bd4715f`.
+All 16 checks passed. Pull request 15's **4,646 passed, 9 skipped** local run is
+an older historical receipt. Treat both predecessor receipts as context, not
+as proof of the checkout you inherit. No Ollama, hosted-model, or Kaggle-quota
+call was made.
 
 The final model-free sequence was deliberately reviewable:
 
@@ -57,10 +63,11 @@ GitHub Pages deployment remains the MkDocs documentation site. The tracked
 [`CLAUDE_CODE_HANDOFF.md`](CLAUDE_CODE_HANDOFF.md) gives Claude Code and other
 coding agents the exact pickup prompt and live-state boundary.
 
-The subsequent tracked-handoff candidate passed **4,648 tests with 9 skips** in
-7 minutes 22 seconds for the same broad command under the zero-call lock. This
-is the current local receipt; the 4,646-pass result above remains the exact
-historical receipt for merge anchor PR #15.
+The 2026-07-28 maintenance candidate passed **4,653 tests with 9 skips** in 8
+minutes 4 seconds for the same broad command under the zero-call lock and
+offline provider/model flags. This is the current local receipt. The prior
+4,648-pass tracked-handoff result and the 4,646-pass PR #15 result remain exact
+historical receipts.
 
 ## Integrated Closeout Receipt
 
@@ -167,9 +174,10 @@ release tooling, guarded release workflows, archive restore rehearsal, and a
 single-command successor pickup. Those wrap-up commands made no Ollama,
 hosted-model, or Kaggle-quota call and published no package, image, chart,
 notebook, model, or dataset.
-The intentionally unfinished work remains human rights/snapshot review, 75-row
-independent curation and adjudication, private access transfer, and an owner
-decision on the first release tag.
+At that historical point, human rights/snapshot review, 75-row independent
+curation and adjudication, private access transfer, and the first release tag
+were unfinished. Their final 2026-07-28 dispositions are in the closeout
+receipt; none was silently treated as performed.
 
 ## 2026-07-27 Whole-stack Cost-stop Correction
 
@@ -208,7 +216,7 @@ reviewed pricing policy pass preflight.
 The 2026-07-27 closeout candidate was then exercised under
 `DUECARE_MAX_PLANNED_MODEL_CALLS=0`. The complete package/test regression passed
 4,637 tests with 9 skips, the public-surface audit checked 1,144 local links
-with no findings, all 11 core and both handoff gates passed, all 3 active
+with no findings, all 11 then-current core and both handoff gates passed, all 3 active
 notebook scripts and 31 notebook-focused tests passed, the 5 active/optional
 Kaggle kernel checks passed, all 78 website tests passed, the Project Bible
 pickup passed 65 checks, the successor rehearsal reassembled all 52 archived
@@ -385,7 +393,8 @@ Run the smallest applicable scope first, then widen only as needed:
 | Scope | Command | Meaning |
 |---|---|---|
 | Handoff | `python scripts/validate_publication_readiness.py --scope handoff` | Succession docs, cross-links, privacy-safe content, pickup consistency, and paused-state evidence |
-| Core release | `python scripts/validate_publication_readiness.py --scope core` | Eleven model-free public, claim, provider-budget, Kaggle, deferred-work, source-smoke, package-release, and package-collection gates |
+| Core release | `python scripts/validate_publication_readiness.py --scope core` | Twelve model-free public, claim, provider-budget, Kaggle, deferred-work, closeout-receipt, source-smoke, package-release, and package-collection gates |
+| Closeout decisions | `python scripts/validate_closeout_resolutions.py` | Exact 11-item scope, dated outcomes, evidence paths, claim boundaries, reopen conditions, and absence from the outstanding register |
 | Deferred work | `python scripts/validate_deferred_work.py` | Canonical owners, dependencies, boundaries, evidence paths, generated Markdown, and unresolved-token rejection |
 | Focused tests | `python -m pytest path/to/affected/tests -q` | Behavioral evidence for the edited area |
 | Package collection | `python -m pytest packages --collect-only -q` | Published package-test inventory remains discoverable |
@@ -475,14 +484,16 @@ working tree as the sole copy of release evidence.
 ## Current Open Work
 
 The generated [`DEFERRED_WORK.md`](DEFERRED_WORK.md) register is authoritative
-and currently contains 11 explicit items: zero ready for local model-free work,
-one recurring maintenance item, and ten blocked or deferred behind private
-access, human review, owner decision, or a finite approved budget. Each entry
-includes its exact prerequisites, ordered actions, evidence paths, and done
-conditions.
+and currently contains 0 explicit items. The separate dated
+[`closeout resolution receipt`](CLOSEOUT_RESOLUTIONS_2026_07_28.md) names all
+11 inherited items and their exact decision, rationale, verification, claim
+boundary, evidence, and reopen condition. The next scheduled source-freshness
+review is 2026-10-28.
 
-Do not copy the queue into another hand-maintained table. Update
+Do not copy resolved history into another hand-maintained queue. When a receipt
+reopen condition is truly met, update
 `configs/duecare/deferred_work.json`, regenerate the document, and run
+both `python scripts/validate_closeout_resolutions.py` and
 `python scripts/validate_deferred_work.py`. Strategic themes remain in
 [the roadmap](ROADMAP.md); release limitations remain in
 [Publication readiness](PUBLICATION_READINESS.md).
@@ -555,13 +566,13 @@ check every item:
       entity-intelligence boundaries.
 - [ ] GitHub, Kaggle, hosting/domain, registry, model-provider, outreach, and
       backup access have private transfer receipts and tested recovery paths.
-- [ ] The release claim is frozen, or the project is explicitly placed into the
-      maintenance mode defined by the transition plan.
+- [x] The project is explicitly in the maintenance mode defined by the
+      transition plan; this decision does not itself accept a future successor.
 - [ ] A restore rehearsal and a documentation-only change rehearsal succeeded.
 - [ ] The first 30-day successor backlog has an owner, evidence target, and
       model-credit budget of zero unless separately approved.
-- [ ] The deferred-work register validates and every item being transferred has
-      a named owner role and acceptance evidence.
+- [x] The zero-item deferred-work register and dated 11-item closeout receipt
+      validate; reopened work must acquire a named owner and acceptance evidence.
 
 Until acceptance is complete, the safe default is preservation mode: keep the
 whole model/flywheel stack cost-stopped, make deterministic maintenance changes

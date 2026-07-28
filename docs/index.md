@@ -149,7 +149,7 @@ the full per-source map and connector reference live in the
 | **Try the workbench** | Open [DueCare App on Kaggle](https://www.kaggle.com/code/taylorsamarel/duecare-app), run it, and open the Cloudflare URL. |
 | **Take over maintenance** | Start with the tracked [Claude Code handoff](CLAUDE_CODE_HANDOFF.md), run the [successor pickup rehearsal](SUCCESSOR_REHEARSAL.md), use the [Maintainer handoff](MAINTAINER_HANDOFF.md), then follow the dated [30-day transition plan](PROJECT_TRANSITION_PLAN.md). |
 | **Check public project status** | Open the website [Project status & handoff](https://duecare-ai.com/project-status), then verify its receipts against [Publication readiness](PUBLICATION_READINESS.md). |
-| **Pick up unfinished work** | Use the generated [Deferred work register](DEFERRED_WORK.md) for exact owners, prerequisites, authorization boundaries, next actions, evidence, and acceptance gates. |
+| **Review closeout decisions** | Read the dated [11-item closeout receipt](CLOSEOUT_RESOLUTIONS_2026_07_28.md), then use the zero-item [Deferred work register](DEFERRED_WORK.md) only if a stated reopen condition is met. |
 | **Review the proof path** | Start with the model-free [Publication readiness](PUBLICATION_READINESS.md) gate, then use [For Judges and Reviewers](FOR_PEER_REVIEW.md) and the active A-00 proof path. |
 | **Plan a provider-backed run** | Keep calls at zero until the [provider-budget contract](PROVIDER_BUDGETING.md) has a frozen run ID, token/cash caps, and reviewed pricing. |
 | **Install locally** | Use [Install](install.md) and [Local deployment](deployment_local.md). |

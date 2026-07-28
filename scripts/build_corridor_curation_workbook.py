@@ -100,6 +100,7 @@ def validate_source_catalog(catalog: dict[str, Any]) -> list[str]:
         "best_use",
         "limitations",
         "url_checked_at",
+        "reachability_status",
         "admission_status",
         "rights_status",
         "training_use",
@@ -118,6 +119,12 @@ def validate_source_catalog(catalog: dict[str, Any]) -> list[str]:
             ids.append(source_id)
         if not isinstance(source.get("corridors"), list) or not source.get("corridors"):
             issues.append("catalog_source_corridors")
+        if source.get("reachability_status") not in {
+            "direct_response",
+            "redirect_observed",
+            "transient_unverified",
+        }:
+            issues.append("catalog_reachability_status")
         if source.get("admission_status") not in {"candidate_only", "approved"}:
             issues.append("catalog_admission_status")
         if source.get("rights_status") not in {"review_required", "approved"}:

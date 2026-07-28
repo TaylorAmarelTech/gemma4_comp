@@ -109,8 +109,8 @@ def validate_registry(data: dict[str, Any], root: Path = ROOT) -> list[str]:
         findings.append("policy contains an empty rule")
 
     items = data.get("items")
-    if not isinstance(items, list) or not items:
-        findings.append("items must be a non-empty list")
+    if not isinstance(items, list):
+        findings.append("items must be a list")
         return findings
 
     identifiers: list[str] = []
