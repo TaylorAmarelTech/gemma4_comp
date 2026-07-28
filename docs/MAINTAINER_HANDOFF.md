@@ -3,16 +3,64 @@
 This is the operational handoff for a person taking responsibility for DueCare.
 It explains how to establish current truth, preserve the project's safety
 boundaries, run routine checks, and decide what is safe to publish. The dated
-closeout schedule is in the [30-day transition plan](PROJECT_TRANSITION_PLAN.md),
+coding-agent pickup is in the
+[Claude Code handoff](CLAUDE_CODE_HANDOFF.md), the closeout schedule is in the
+[30-day transition plan](PROJECT_TRANSITION_PLAN.md),
 while the release boundary and evidence backlog remain in
 [Publication readiness](PUBLICATION_READINESS.md). The generated
 [Deferred work register](DEFERRED_WORK.md) is the canonical queue for every
 unfinished item and its authorization boundary.
 
 **Handoff posture:** active closeout
-**Prepared:** 2026-07-27
+**Prepared:** 2026-07-28
 **Target transfer:** 2026-08-25
 **Default model posture:** whole model/flywheel stack cost-stopped; zero planned model calls
+
+## 2026-07-28 Final Repository And Continuity Receipt
+
+The current pre-handoff anchor is
+[pull request 15](https://github.com/TaylorAmarelTech/gemma4_comp/pull/15),
+merged to `master` as `56e7283df1e191793355b340559733b4ef77f9fa`.
+All 16 pull-request checks passed. The exact local broad regression at that
+revision passed **4,646 tests with 9 skips** for
+`python -m pytest packages tests -q`; the 11 core publication gates, package
+collection, source-checkout smoke, privacy checks, active Kaggle contracts,
+clean-room install, package builds, and container build also passed. No Ollama,
+hosted-model, or Kaggle-quota call was made.
+
+The final model-free sequence was deliberately reviewable:
+
+- [PR #11](https://github.com/TaylorAmarelTech/gemma4_comp/pull/11), merge
+  `3daa8988`, added a validated 51-route backend-free export and established
+  the independent
+  [`duecare-ai-site`](https://tayloramareltech.github.io/duecare-ai-site/)
+  continuity repository without changing Render or production DNS;
+- [PR #12](https://github.com/TaylorAmarelTech/gemma4_comp/pull/12), merge
+  `c728c06c`, repaired and polished mobile website navigation;
+- [PR #13](https://github.com/TaylorAmarelTech/gemma4_comp/pull/13), merge
+  `47277c6212cdf953391aa3f67dcc918bb7d42d0d`, brought the optional
+  adverse-media verifier inside the atomic provider-budget contract, for five
+  covered transports in total;
+- [PR #14](https://github.com/TaylorAmarelTech/gemma4_comp/pull/14), merge
+  `a56f9d1b84b5513f91b21a0d3368de30a4b33e4a`, fixed the homepage worker-story
+  grid: `.step-copy` now keeps each heading and paragraph in the flexible
+  `minmax(0, 1fr)` column instead of squeezing body text into the 28-pixel
+  number column; and
+- PR #15 completed the registered three-file Ruff cleanup without a file-wide
+  suppression and reduced the canonical deferred register to 11 items with no
+  `ready_local` work.
+
+Render remains the production website/API host. The independent continuity
+Pages site is read-only, omits a `CNAME`, disables state-changing controls, and
+publishes a `source_revision` receipt in its snapshot manifest. This monorepo's
+GitHub Pages deployment remains the MkDocs documentation site. The tracked
+[`CLAUDE_CODE_HANDOFF.md`](CLAUDE_CODE_HANDOFF.md) gives Claude Code and other
+coding agents the exact pickup prompt and live-state boundary.
+
+The subsequent tracked-handoff candidate passed **4,648 tests with 9 skips** in
+7 minutes 22 seconds for the same broad command under the zero-call lock. This
+is the current local receipt; the 4,646-pass result above remains the exact
+historical receipt for merge anchor PR #15.
 
 ## Integrated Closeout Receipt
 
@@ -157,7 +205,7 @@ The watchdog wrappers preserve stop sentinels; all three scheduled model
 callers additionally refuse launch until a positive finite provider budget and
 reviewed pricing policy pass preflight.
 
-The resulting closeout candidate was then exercised under
+The 2026-07-27 closeout candidate was then exercised under
 `DUECARE_MAX_PLANNED_MODEL_CALLS=0`. The complete package/test regression passed
 4,637 tests with 9 skips, the public-surface audit checked 1,144 local links
 with no findings, all 11 core and both handoff gates passed, all 3 active
@@ -220,16 +268,18 @@ Use this precedence order when artifacts disagree:
 1. Live Git, filesystem, process, and validator output from the current
    workspace.
 2. Root `AGENTS.md` for safety rules, active surfaces, and required validation.
-3. [Deferred work register](DEFERRED_WORK.md) for the canonical status, owner,
+3. [Claude Code handoff](CLAUDE_CODE_HANDOFF.md) for the tracked closeout
+   pickup, live-service ownership, and recent receipts.
+4. [Deferred work register](DEFERRED_WORK.md) for the canonical status, owner,
    authorization boundary, next action, and acceptance evidence for unfinished
    work.
-4. [Publication readiness](PUBLICATION_READINESS.md) for the release boundary
+5. [Publication readiness](PUBLICATION_READINESS.md) for the release boundary
    and known limitations.
-5. [`project_status.md`](project_status.md) and root `kaggle/_INDEX.md` for
+6. [`project_status.md`](project_status.md) and root `kaggle/_INDEX.md` for
    current public inventory.
-6. [`codex/PROJECT_BIBLE.md`](codex/PROJECT_BIBLE.md) for deep historical and
+7. [`codex/PROJECT_BIBLE.md`](codex/PROJECT_BIBLE.md) for deep historical and
    autonomous-engine context.
-7. Saved `.claude/state/` files and ignored reports as historical evidence only.
+8. Saved `.claude/state/` files and ignored reports as historical evidence only.
 
 Do not infer live completion from a handoff summary, an old manifest, or a
 healthy container alone. Re-run the smallest relevant read-only validator.
@@ -298,13 +348,15 @@ Each public surface has one deployment owner. Keep this split explicit:
 | Surface | Authoritative source | Deployment path | Rule |
 |---|---|---|---|
 | `duecare-ai.com` website and hub APIs | `apps/duecare-ai.com/` on `master` | Render blueprint in root `render.yaml` | Render owns the live website and API health; the hub does not load Gemma |
+| Read-only website continuity | Same reviewed FastAPI templates and five allowlisted public snapshots | Separate `TaylorAmarelTech/duecare-ai-site` repository deploys GitHub Pages daily, on dispatch, or from an explicitly pinned public ref | It has no production `CNAME`, exposes no mutable API, and must retain its `source_revision` receipt |
 | GitHub Pages documentation | `docs/`, `mkdocs.yml`, and `requirements-docs.txt` on `master` | `.github/workflows/docs-deploy.yml` | This is the repository's only Pages deployer |
-| Portable marketing-site bundle | Same FastAPI templates through `apps/duecare-ai.com/scripts/export_static.py` | `.github/workflows/duecare-site-build.yml` artifact | Build/download only; it must not call `actions/deploy-pages` in this repository |
+| Website continuity artifacts | Same templates through `apps/duecare-ai.com/scripts/export_static.py` | `.github/workflows/duecare-site-build.yml` uploads both live-backend and backend-free artifacts | Source-repository build only; it must not call `actions/deploy-pages` in this repository |
 
 The former manual `.github/workflows/pages.yml` marketing-site deploy was
-removed because it could overwrite the MkDocs Pages site. If a static marketing
-mirror is needed later, publish its bundle from a separate root-domain repository
-or explicitly replace the docs site through a reviewed architecture decision.
+removed because it could overwrite the MkDocs Pages site. The separate
+`duecare-ai-site` repository now owns the read-only continuity deployment and
+does not claim production DNS. A future root-domain cutover remains an explicit
+owner decision with the gates in `apps/duecare-ai.com/DEPLOY_STATIC.md`.
 The public website exposes `/project-status`, which links this handoff, the
 transition plan, and publication boundary without exposing private access data.
 
@@ -389,6 +441,12 @@ re-enables the five recurring tasks but launches no process directly. Hermes
 and the server-automation vetter still refuse to launch unless the positive
 finite budget preflight passes.
 
+Any future comparison plan must treat **Kimi K3** and **Meta Muse Spark 1.1**
+as required lanes. Reverify provider identifiers, access, context limits,
+modalities, and pricing immediately before spending. If a lane is unavailable,
+retain dated evidence of that constraint instead of silently substituting a
+different model.
+
 ### Publish or release
 
 Use [Publication readiness](PUBLICATION_READINESS.md). Packages use the
@@ -417,7 +475,7 @@ working tree as the sole copy of release evidence.
 ## Current Open Work
 
 The generated [`DEFERRED_WORK.md`](DEFERRED_WORK.md) register is authoritative
-and currently contains 13 explicit items: two ready for local model-free work,
+and currently contains 11 explicit items: zero ready for local model-free work,
 one recurring maintenance item, and ten blocked or deferred behind private
 access, human review, owner decision, or a finite approved budget. Each entry
 includes its exact prerequisites, ordered actions, evidence paths, and done

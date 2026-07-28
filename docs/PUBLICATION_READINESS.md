@@ -2,14 +2,14 @@
 
 This is the model-free wrap-up path for DueCare. It separates what can be
 published from what still needs curation or a later, deliberately budgeted
-model run. Current as of 2026-07-27.
+model run. Current as of 2026-07-28.
 
 ## Current Posture
 
 | Track | Current state | Publication rule |
 |---|---|---|
-| Core code, docs, active Kaggle surfaces, provider-budget coverage, deferred-work integrity, package-release ownership, and published dataset claims | **11/11 core gates passed offline in the closeout candidate; the 2026-07-27 pull request 8 substantive baseline passed all PR checks, post-merge workflows, and public deployment checks** | Re-run on the exact release commit before tagging. |
-| Maintainer succession and live pickup | **2/2 handoff gates passed offline; public handoff and deployment receipts are live on the merged closeout** | Re-run from a fresh shell and complete the private/manual acceptance steps before ownership transfer. |
+| Core code, docs, active Kaggle surfaces, provider-budget coverage, deferred-work integrity, package-release ownership, and published dataset claims | **11/11 core gates passed offline; pull request 15 at `56e7283d` passed all 16 checks, and the final tracked-handoff candidate passed 4,648 tests with 9 skips locally** | Re-run on the exact release commit before tagging. |
+| Maintainer succession and live pickup | **2/2 handoff gates passed offline; the tracked Claude handoff, Render site, independent read-only continuity Pages site, and MkDocs docs are reconciled** | Re-run from a fresh shell and complete the private/manual acceptance steps before ownership transfer. |
 | Existing dated benchmark and learning-study results | Retained as bounded evidence with their original model, dataset, rubric, and date | Do not silently relabel an old result as a new model or field-effectiveness result. |
 | New fine-tuning dataset | **Not clean yet:** the strict audit reports five dense single/generic-corridor typologies; the deterministic workbook has 75 unfilled slots and no fabricated approvals | Complete source snapshots, rights review, two-person adjudication, and lineage-safe rows; rerun the audit, then refresh provenance before training or a new model claim. |
 | Exhaustive per-dimension judging | Experimental, isolated, and incomplete | Keep it out of the default comparable board until its own exact closure gate passes. |
@@ -74,12 +74,14 @@ package-release reconciliation, and package test collection. The runner sets
 Ollama's planned-call allowance to zero and forces common Hugging Face and
 Weights & Biases integrations offline for its child checks.
 
-Current audit receipt: all eleven core gates passed in the 2026-07-27 closeout
-candidate without a model or network call. The latest validated substantive
-baseline landed through
-[pull request 8](https://github.com/TaylorAmarelTech/gemma4_comp/pull/8) as
-`9385a837879209e18f8e013cf969a3e1ecbcfc91`; all 16 pull-request checks and
-all six merge-triggered workflows passed. These receipts are not a substitute
+Current audit receipt: all eleven core gates passed in the final model-free
+closeout without a model or network call. The current pre-handoff anchor landed
+through [pull request 15](https://github.com/TaylorAmarelTech/gemma4_comp/pull/15)
+as `56e7283df1e191793355b340559733b4ef77f9fa`; all 16 pull-request checks
+passed, and its exact local broad regression passed 4,646 tests with 9 skips.
+The subsequent tracked-handoff candidate passed 4,648 tests with 9 skips in 7
+minutes 22 seconds under the zero-call lock.
+These receipts are not a substitute
 for rerunning the command on an eventual release tag.
 
 Training readiness is intentionally separate:
@@ -104,7 +106,8 @@ publication gate.
 
 ## Transition And Succession
 
-This file remains the release and evidence boundary. For human ownership
+This file remains the release and evidence boundary. Coding agents start with
+the tracked [Claude Code handoff](CLAUDE_CODE_HANDOFF.md). For human ownership
 transfer, use the operational [Maintainer handoff](MAINTAINER_HANDOFF.md) and
 the dated [30-day transition plan](PROJECT_TRANSITION_PLAN.md). Their read-only
 gate is:
@@ -118,7 +121,7 @@ category/count-only privacy checks, public website/Pages ownership, the public
 continuity route, and live Project Bible pickup consistency.
 It does not make the strict training lane portable or green, and it does not
 authorize publication, credential transfer, provider spend, or engine resume.
-The current working-tree receipt is 2/2 handoff gates passed, including 17/17
+The current working-tree receipt is 2/2 handoff gates passed, including 23/23
 succession-document checks and the 65-check pickup validator with zero findings.
 
 ## Preserve Ollama Credits
@@ -184,6 +187,10 @@ When model work resumes, use this order:
    spend a full panel on every easy cell.
 7. Keep v2/h2/per-dimension experiments in versioned files, separate from the
    v1/h1 batched board.
+8. Include **Kimi K3** and **Meta Muse Spark 1.1** as required comparison lanes.
+   Reverify immutable provider IDs, access, modalities, context, and pricing at
+   run time; preserve an unavailable-lane receipt rather than substituting a
+   different model silently.
 
 The shared primary-router ledger and first direct-client migration are complete
 and tested without provider calls. The remaining transport work is to migrate
@@ -301,18 +308,20 @@ python scripts/validate_publication_readiness.py --scope core
 Then read:
 
 1. [`AGENTS.md`](../AGENTS.md) for safety, active surfaces, and required gates.
-2. [`MAINTAINER_HANDOFF.md`](MAINTAINER_HANDOFF.md) for operations, boundaries,
+2. [`CLAUDE_CODE_HANDOFF.md`](CLAUDE_CODE_HANDOFF.md) for the current tracked
+   pickup, public services, exact receipts, and safe next work.
+3. [`MAINTAINER_HANDOFF.md`](MAINTAINER_HANDOFF.md) for operations, boundaries,
    access transfer, recovery, and acceptance.
-3. [`PROJECT_TRANSITION_PLAN.md`](PROJECT_TRANSITION_PLAN.md) for the dated
+4. [`PROJECT_TRANSITION_PLAN.md`](PROJECT_TRANSITION_PLAN.md) for the dated
    closeout sequence and maintenance-mode fallback.
-4. [`DEFERRED_WORK.md`](DEFERRED_WORK.md) for the canonical unfinished-work
+5. [`DEFERRED_WORK.md`](DEFERRED_WORK.md) for the canonical unfinished-work
    queue, authorization boundaries, and acceptance gates.
-5. This file for the release boundary and limitations.
-6. [`project_status.md`](project_status.md) for the concise active-surface
+6. This file for the release boundary and limitations.
+7. [`project_status.md`](project_status.md) for the concise active-surface
    snapshot.
-7. [`kaggle/_INDEX.md`](../kaggle/_INDEX.md) for active, optional, and archived
+8. [`kaggle/_INDEX.md`](../kaggle/_INDEX.md) for active, optional, and archived
    notebook surfaces.
-8. [`codex/PROJECT_BIBLE.md`](codex/PROJECT_BIBLE.md) for the deep historical
+9. [`codex/PROJECT_BIBLE.md`](codex/PROJECT_BIBLE.md) for the deep historical
    and autonomous-engine handoff.
 
 The authoritative live/generated evidence is:
@@ -373,29 +382,29 @@ worker-facing answers, benchmark labels, or training rows automatically.
 - The training gate is red because of corridor coverage and the resulting
   stale fingerprints in an older planned registry record. This is a truthful
   provenance stop, not a reason to rewrite the ledger.
-- The integrated `packages tests` regression passed 4,637 tests with nine
+- The current integrated `packages tests` regression passed 4,648 tests with nine
   skips and no warning summary in the locked 18-package workspace. Mocked and
   loopback provider tests explicitly isolate their fake transports while the
   real zero-call denial tests remain enabled. The
   focused package follow-up also passes 43 tests with `RuntimeWarning`
   promoted to an error, proving the former
   constant-value pandas Styler warnings are removed rather than hidden.
-- The new publication gate and its tests pass their scoped Ruff check. A wider
-  Ruff check of the legacy `rich_harness_lift.py`, `verify.py`, and
-  `test_plan.py` surfaces still reports 281 style findings (261 are line
-  length). Do not call repo-wide lint green; handle that mechanical cleanup in
-  a separate, reviewable change rather than mixing it with model/data work.
+- The registered legacy Ruff slice is complete: `rich_harness_lift.py`,
+  `verify.py`, and `test_plan.py` pass the agreed lint scope without file-wide
+  suppression. The retired cleanup item must not be reintroduced unless a new,
+  evidenced regression appears.
 - MkDocs now passes `mkdocs build --clean --strict` with zero warnings. The
   tested repository-link hook rewrites only existing targets outside `docs/`
   to canonical GitHub source URLs; it leaves missing targets untouched so the
   strict lane remains a meaningful broken-link guard. Informational notices
   for intentionally unlisted/excluded provenance pages are not release
   blockers.
-- The deployment boundary is now unambiguous: Render owns `duecare-ai.com`,
-  `docs-deploy.yml` owns the repository's single MkDocs GitHub Pages site, and
-  `duecare-site-build.yml` emits a downloadable marketing-site artifact only.
-  A competing manual Pages deployer was removed. Post-merge Pages, artifact,
-  live Render project-status, and schema-route checks passed on 2026-07-27.
+- The deployment boundary is now unambiguous: Render owns production
+  `duecare-ai.com`; the separate `TaylorAmarelTech/duecare-ai-site` repository
+  owns a backend-free read-only Pages continuity copy with no production
+  `CNAME`; and `docs-deploy.yml` owns this repository's MkDocs Pages site.
+  `duecare-site-build.yml` uploads both source artifacts but never deploys over
+  MkDocs. The continuity manifest exposes its checked `source_revision`.
 - GitHub Action majors were verified against official releases on 2026-07-27
   and refreshed across CI, Pages, website artifacts, scheduled work, Docker,
   Helm, Gitleaks, and package publication. The triggered CI, Pages,
@@ -413,11 +422,11 @@ worker-facing answers, benchmark labels, or training rows automatically.
   returned 200; nine additional hosts were transient, DNS/SSL-blocked,
   redirect-looped, or bot-blocked and remain explicitly unverified rather than
   mislabeled as broken.
-- Root `AGENTS.md` names `master` as the active release branch. Pull request 8
-  is the latest validated substantive baseline at
-  `9385a837879209e18f8e013cf969a3e1ecbcfc91`; its PR checks, six
-  merge-triggered workflows, MkDocs Pages, artifact-only website build, Render
-  project status, and advertised schema routes passed. A release tag/version
+- Root `AGENTS.md` names `master` as the active release branch. Pull request 15
+  is the current pre-handoff anchor at
+  `56e7283df1e191793355b340559733b4ef77f9fa`; all 16 PR checks passed, the
+  broad local regression passed 4,646 tests with 9 skips, and Render, the
+  independent continuity site, and MkDocs retain distinct ownership. A release tag/version
   remains a separate owner decision.
 - Archived notebook-era surfaces are provenance. Do not restore them to the
   Kaggle root to satisfy old references; update the reference or archive map.
@@ -427,7 +436,7 @@ worker-facing answers, benchmark labels, or training rows automatically.
 ## Canonical Deferred Work
 
 [`DEFERRED_WORK.md`](DEFERRED_WORK.md) replaces the duplicated backlog table
-that previously lived here. Its 13 items distinguish two model-free local
+that previously lived here. Its 11 items distinguish zero model-free local
 tasks, one recurring maintenance task, and ten actions gated by private access,
 human review, owner decision, or a finite approved budget. The generated
 register is checked by the core release gate, the handoff validator, focused

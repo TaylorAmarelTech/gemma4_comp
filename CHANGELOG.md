@@ -10,17 +10,33 @@ the meta `duecare-llm` package tracking the workspace lockstep.
 
 ## Unreleased
 
+- Added a tracked `docs/CLAUDE_CODE_HANDOFF.md`, replaced stale Claude Code
+  pickup context, reconciled public status/transition/readiness pages, and made
+  the handoff validators enforce the current 11-item registry and three-surface
+  deployment boundary.
+- Added the independent backend-free `duecare-ai-site` Pages continuity copy
+  while keeping Render and production DNS active, and preserved an exact
+  `source_revision` in its snapshot manifest.
+- Fixed the homepage grounding-story ordered-list layout by grouping each title
+  and paragraph in `.step-copy` inside the flexible grid column, preventing
+  body text from collapsing into the 28-pixel number column.
+- Completed the registered `rich_harness_lift.py`, `verify.py`, and
+  `test_plan.py` Ruff slice without file-wide suppressions; the broad local
+  regression at the merge anchor passed 4,646 tests with 9 skips.
+- Brought the optional adverse-media verifier into the shared atomic provider
+  budget, bringing exact covered model transports to five.
 - Completed curator-owned inline grading guidance for all 75 universal rubric
   dimensions, pinned exact coverage in tests, and made the CI curator gate fail
   on future warnings; the strict validator now reports zero errors and warnings.
 - Updated the official Gitleaks Action from v2 to v3, its behavior-compatible
   Node 24 runtime release, removing the hosted-runner Node 20 deprecation path.
-- Recorded the exact closeout merge, post-merge CI, GitHub Pages, artifact-only
-  website build, and live Render project-status receipts in the maintainer
+- Recorded the exact closeout merges, CI, independent continuity Pages,
+  MkDocs Pages, website artifacts, and live Render project-status receipts in the maintainer
   handoff; release/tag and private ownership transfer remain explicit decisions.
 - Added the public `/project-status` continuity page and reconciled deployment
-  ownership: Render serves the website, MkDocs owns GitHub Pages, and the static
-  website workflow emits artifacts without competing for Pages.
+  ownership: Render serves production, the independent continuity repository
+  owns its read-only Pages site, MkDocs owns this repository's Pages site, and
+  the source workflow emits artifacts without competing for either deployment.
 - Declared Jinja2 as a required `duecare-llm-kit` runtime dependency so pandas
   Styler report tests pass in the minimal evals-as-CI installation.
 - Avoided undefined pandas Styler gradients and bars for constant-value columns,

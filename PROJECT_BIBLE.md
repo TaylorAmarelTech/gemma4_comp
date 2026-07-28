@@ -5,7 +5,11 @@ repo-root pickup tools can find the current long-loop handoff quickly.
 Older hidden Claude handoffs may mention `Plans.md`; that file is a
 compatibility bridge back to this pickup path, not a separate planning source.
 
-Canonical pickup file:
+Canonical closeout pickup file:
+
+- [`docs/CLAUDE_CODE_HANDOFF.md`](docs/CLAUDE_CODE_HANDOFF.md)
+
+Deep benchmark and autonomous-engine history:
 
 - [`docs/codex/PROJECT_BIBLE.md`](docs/codex/PROJECT_BIBLE.md)
 
@@ -23,15 +27,17 @@ Current human-maintainer pickup and dated closeout plan:
 Read order for continuation sessions:
 
 1. [`AGENTS.md`](AGENTS.md)
-2. [`CLAUDE.md`](CLAUDE.md)
-3. [`.claude/rules/05_project_bible_pickup.md`](.claude/rules/05_project_bible_pickup.md)
-4. [`docs/MAINTAINER_HANDOFF.md`](docs/MAINTAINER_HANDOFF.md)
-5. [`docs/PROJECT_TRANSITION_PLAN.md`](docs/PROJECT_TRANSITION_PLAN.md)
-6. [`docs/PUBLICATION_READINESS.md`](docs/PUBLICATION_READINESS.md)
-7. [`docs/DEFERRED_WORK.md`](docs/DEFERRED_WORK.md)
-8. [`docs/codex/PROJECT_BIBLE.md`](docs/codex/PROJECT_BIBLE.md)
+2. [`docs/CLAUDE_CODE_HANDOFF.md`](docs/CLAUDE_CODE_HANDOFF.md)
+3. [`CLAUDE.md`](CLAUDE.md)
+4. [`.claude/rules/05_project_bible_pickup.md`](.claude/rules/05_project_bible_pickup.md)
+5. [`docs/MAINTAINER_HANDOFF.md`](docs/MAINTAINER_HANDOFF.md)
+6. [`docs/PROJECT_TRANSITION_PLAN.md`](docs/PROJECT_TRANSITION_PLAN.md)
+7. [`docs/PUBLICATION_READINESS.md`](docs/PUBLICATION_READINESS.md)
+8. [`docs/DEFERRED_WORK.md`](docs/DEFERRED_WORK.md)
+9. [`docs/codex/PROJECT_BIBLE.md`](docs/codex/PROJECT_BIBLE.md)
 
-This pointer is not permission to start the autonomous judging engine, remove
+Saved `.claude/state/` files are historical evidence only. This pointer is not
+permission to start the autonomous judging engine, remove
 `reports/autonomous_engine.stop`, call Ollama, or promote candidate dimensions.
 Those actions still require Taylor's explicit current instruction plus the
 normal preflight and review gates.

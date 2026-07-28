@@ -1,151 +1,153 @@
 # CLAUDE.md - DueCare project context
 
-> Context for Claude / Claude Code sessions working on this project.
-> If you are a new AI assistant picking up this project, read this first.
->
-> **This file is a slim index.** Detailed operating rules live under
-> `.claude/rules/*.md` and are auto-loaded by Claude Code. The
-> 2026-05-22 split moved ~500 lines of inline rules into per-topic
-> rule files; this index keeps only the highest-frequency context
-> (current operating brief, three overarching goals, rules index,
-> project intro, author, project memory).
+> Claude Code project index. Root and package `AGENTS.md` files control local
+> work. The durable closeout truth is
+> [`docs/CLAUDE_CODE_HANDOFF.md`](docs/CLAUDE_CODE_HANDOFF.md).
 
-## Current operating brief (2026-05-24)
+## Current operating brief (2026-07-28)
 
-- Active submission work is the three-kernel path: `kaggle/01-duecare-exploration-workbench`, `kaggle/02-live-demo`, and `kaggle/A-00-omni-experiment-workbench`. Recording-critical contract: [`.claude/rules/80_active_surface.md`](.claude/rules/80_active_surface.md).
-- Optional benchmark work lives in `kaggle/03-universal-llm-benchmark` for arbitrary endpoint comparisons and `kaggle/04-kaggle-community-benchmark` for Kaggle-native Community Benchmark tasks. Neither replaces the three-kernel recording path.
-- The public story has six setup lanes in this order: Platform safety, NGO & regulator, Individual worker / mobile, Researcher, Anonymized knowledge sharing, Developer / integration partner.
-- The workspace has 17 `duecare-llm*` package directories. As of 2026-05-28 the full suite is **1,493 tests** (run via `pwsh scripts/recover_test_env.ps1 -Full`): **1,490 pass, 3 skip, 0 fail — fully green**. The 15 pre-existing drift failures cataloged in [`docs/handoff_2026_05_27.md`](docs/handoff_2026_05_27.md) (docs, kernel-inventory, ui-audit, community-benchmark, and publish-orchestrator reconciliation) were all resolved 2026-05-27→28, along with the earlier 2 forge e2e and A-00 source-audit fixes. The 3 skips are conditional config-not-populated guards. Do not claim a full pass unless you ran the full suite.
-- **Current validation discipline (2026-07-02):** treat older suite counts in this file as historical. Before making current test or package-collection claims, rerun the relevant AGENTS.md/project-bible commands and report the exact command output from this session, especially `python -m pytest packages --collect-only -q`.
-- **Safe-text layer (2026-05-24):** `packages/duecare-llm-chat/src/duecare/chat/harnesses/_safe_text.py` is the single chokepoint every fact / share / search / template output flows through. Three concentric layers — scrub (kernel paths / RUN_IDs / synthetic case folder names), standardize (canonical 47-field envelope shape + 16 ILO indicators + 9 stages + XX-YY corridors), and the iterative polish endpoint `POST /api/knowledge/polish-envelope` (two Gemma 4 passes: critique then rewrite). UI: "Polish further (Gemma 4)" button in knowledge.html and search.html draft cards; both polish panels use the shared `window.dcDiff` inline word-diff renderer; knowledge.html also has a persisted sequential auto-polish queue for new draft batches; process.html typed edges can draft/polish/promote knowledge facts via `POST /api/knowledge/from-edge`; templates.html has `/static/samples/template_bundle_sample.json` with Download/Use sample buttons, `POST /api/templates/dry-run-fill` for pre-Generate field-source preview, and `POST /api/templates/fill-batch` behind "Fill all relevant" for batch drafting relevant templates from one bundle excerpt. Full reference: [`docs/safe_text_layer.md`](docs/safe_text_layer.md). Follow-up improvements ready to dispatch: [`docs/codex_followup_goals.md`](docs/codex_followup_goals.md).
-- **Bulk File Review graph gap (2026-05-24):** the visible `gemma_case_brief` phase is bundle-level synthesis. Deterministic parsing already creates row/page/chunk/folder-grounded typed edges, and bounded Gemma edge/media passes can add model edges, but the next architectural target is explicit hierarchical Gemma node/edge passes across folder, document, page, chunk, media, person, case, and rollup levels. Track this as [`docs/codex/goal_11_hierarchical_gemma_graph/handoff.md`](docs/codex/goal_11_hierarchical_gemma_graph/handoff.md).
-- **Knowledge surface state (verified via `scripts/verify_knowledge_surfaces.py`):** 451 GREP rules (categories A-NNNN; MMMM 2026-06-08: sham-status / misclassification citing ILO C095/R198; NNNN 2026-06-10: 24 digital-recruitment / crypto+e-wallet fee-rail / Gulf free-visa / student-visa-labour / corridor-depth rules citing ILO C181 Art.7 + Fair Recruitment 2016 + ICRMW Art.21) · 859 RAG documents (trafficking corpus; +13 migrant-worker conventions ILO C097/C143/ICRMW + IRIS + BD/ID/LK/IN origin-state laws + Kuwait DW law + US TVPA + AU/CA supply-chain acts + CoE Warsaw) plus a SEPARATE 610-doc multidomain corpus (51 integrity verticals, opt-in BM25 at `GET /api/multidomain/rag`, never commingled) · 652 example/showcase prompts (`_examples.json`, 8 audience buckets) · 36 complaint / narrative templates · 37 review personas · 57 fee-camouflage labels · 38 corridor fee-cap entries · 36 NGO contact bundles · 16 ILO conventions · 74,640 trafficking seed prompts. See [`docs/KNOWLEDGE_SURFACE_VERIFICATION.md`](docs/KNOWLEDGE_SURFACE_VERIFICATION.md).
-- **Session 2026-06-09 (holistic review + hardening):** Standardized the KnowledgeObject v1.0 envelope (`packages/duecare-llm-chat/src/duecare/chat/knowledge_taxonomy.py` — validator with binding per-type required-content-keys, `content_sha256` integrity hash, `DUECARE_NODE_ID` provenance, generated `static/envelope_schema.json` served by kernel + hub). Federation peer registry (`federation.py`, `DUECARE_PEERS`, `GET /api/network/peers`) is now the single outbound allowlist — closed an unvalidated `target_url` SSRF hole in `/api/knowledge/sync`. Harness-lift report has real paired statistics (`scripts/lift_stats.py` + `scripts/build_lift_report.py --all` → committed `docs/research/harness_lift_report.md`, regeneratable HTML, and `static/lift_evidence.json` surfaced on the compare page + render `/evaluation`): gemma4:31b **+1.73/10** mean paired lift, 95% CI [+1.57,+1.89], 73.3% win rate, Cohen's d 0.69, judged by gpt-oss:120b over 911 prompts. Safety fix: the extraction training-log scrub was being DISABLED by the request anonymize flag (raw text → fine-tune JSONL) — now always-on and using the canonical detector patterns. Shared `_envelope_card.js` renderer + `.wb-next-steps` end-of-page block. Graph review: `docs/research/graph_stack_review_2026_06_09.md`. Full detail in this session's commits (`b3bda5c2`..HEAD).
-- **Entity-intelligence pipeline (2026-06-18→19):** a propose-only recruitment/entity-verification layer in `scripts/` + `configs/`, separate from the trafficking knowledge layer (GREP/RAG counts unchanged). 12 new offline-tested connectors — GLEIF LEI entities + Level-2 `parent_of` edges, OpenOwnership BODS `owns_or_controls` edges, splink LEI linkage + cross-registry clustering, DOJ press-releases, DOL WHD enforcement (H-2A/MSPA/child-labour), domain RDAP/DNS OSINT, OpenSanctions source harvest, tooling-scout, image-enhance — feed a **34-registry acquisition cascade** (23 config specs in `registry_specs.yaml` + 11 deterministic resolvers/presets, incl. GLEIF + OpenOwnership BODS; e.g. US CBP WRO 59, DHS UFLPA 144, UK Modern Slavery 11,718, TW strategic-trade 11,655, SI KPK 7,927) plus a **1,111-source** licensed-entity catalog + **532** migrant-support orgs, all staged to gitignored `reports/`. The all-registry cluster run pooled 37,566 entities → 27,810 clusters. Canonical map: [`docs/entity_intelligence_pipeline.md`](docs/entity_intelligence_pipeline.md). Public surface: render app `/source-verification`.
-- The system Python is corrupted by OneDrive sync **down to the stdlib** (`typing_extensions`, the compiled `pydantic_core.pyd`, `pydantic.main`, and `html.entities` have all been stripped; `pip` broken). **To run tests, use `pwsh scripts/recover_test_env.ps1 -Run` (or `-Full`)** — it builds a clean uv-managed CPython venv outside the OneDrive tree (see [`docs/local_test_env.md`](docs/local_test_env.md)). For quick checks without a venv, `scripts/verify_knowledge_surfaces.py` and `python -c "import runpy; runpy.run_path('<path>.py')"` still work. GPU/model runs still boot via Kaggle.
-- Documentation edits should follow `docs/DOCUMENTATION_GUIDE.md`; agent edits should also honor the root `AGENTS.md`.
-- Repo-organization edits should also keep `docs/FILE_PURPOSE_GUIDE.md` and the relevant directory index current.
-- Keep generated report files out of commits unless Taylor explicitly asks to publish them.
-- **Long-loop pickup brief (2026-07-02):** read the root [`PROJECT_BIBLE.md`](PROJECT_BIBLE.md), then [`docs/codex/PROJECT_BIBLE.md`](docs/codex/PROJECT_BIBLE.md), before continuing autonomous improvement sessions. Claude Code also auto-loads [`.claude/rules/05_project_bible_pickup.md`](.claude/rules/05_project_bible_pickup.md), which points Claude Code, Codex, and Fable 5-style agents to the same living handoff and preserves the paused-engine boundary. If an older hidden handoff says to read [`Plans.md`](Plans.md), treat it as a compatibility bridge back to the project bible, not a second planning source.
-- **Training/fine-tuning contract (2026-07-14):** use [`docs/training_and_finetuning.md`](docs/training_and_finetuning.md) for the public workflow and `duecare.chat.training_contract` for the executable row gate. Training is fail-closed on dirty quality audits, prompt or lineage overlap with held-out evaluation sets, missing provenance/licensing, hidden chain-of-thought, unsafe operational advice, mutable remote model revisions, or an incomplete requested SFT-to-DPO sequence. The active Kaggle path is `kaggle/A-00-omni-experiment-workbench`; `scripts/finetune_unsloth.py` and notebook 530 are legacy-disabled shims, not alternate production paths. No trained adapter or merged weights are currently published.
+Read these before broad edits:
 
-## Three overarching goals (every prompt, every action)
+1. [`AGENTS.md`](AGENTS.md)
+2. [`docs/CLAUDE_CODE_HANDOFF.md`](docs/CLAUDE_CODE_HANDOFF.md)
+3. [`PROJECT_BIBLE.md`](PROJECT_BIBLE.md)
+4. [`.claude/rules/05_project_bible_pickup.md`](.claude/rules/05_project_bible_pickup.md)
+5. [`docs/MAINTAINER_HANDOFF.md`](docs/MAINTAINER_HANDOFF.md)
+6. [`docs/PUBLICATION_READINESS.md`](docs/PUBLICATION_READINESS.md)
+7. [`docs/DEFERRED_WORK.md`](docs/DEFERRED_WORK.md)
+8. [`docs/codex/PROJECT_BIBLE.md`](docs/codex/PROJECT_BIBLE.md) only when deep
+   benchmark, dataset, or autonomous-engine history is needed.
 
-Full text: [`.claude/rules/00_overarching_goals.md`](.claude/rules/00_overarching_goals.md).
+Claude Code, Codex, Fable 5-style agents, and other pickup tools should use the
+same read order and authority boundary. Root [`Plans.md`](Plans.md) is a
+compatibility bridge for older Claude Code handoffs, not a planning source.
 
-1. **Impact & Vision (40 pts)** — from the video. Real-world problem,
-   inspiring vision, tangible potential for positive change.
-2. **Video Pitch & Storytelling (30 pts)** — exciting, engaging,
-   well-produced, tells a powerful story.
-3. **Technical Depth & Execution (30 pts)** — verified from the code
-   repository and writeup. Innovative use of Gemma 4's unique features
-   (native function calling, multimodal understanding). Real, not faked
-   for the demo.
+Saved `.claude/state/` files are historical evidence only. Establish current
+truth from live Git, filesystem, process, validator, and hosting state before
+making a completion claim.
 
-**70 of 100 points live in the video.** Every decision is evaluated
-against these three. If a proposed action doesn't advance at least one
-of them, it gets cut.
+## Current boundaries
+
+- Active branch: `master`.
+- Primary Kaggle source surfaces: `01-duecare-exploration-workbench`,
+  `02-live-demo`, and `A-00-omni-experiment-workbench`.
+- Optional benchmark surfaces: `03-universal-llm-benchmark` and
+  `04-kaggle-community-benchmark`.
+- Notebook-era material under `kaggle/_archive/` is provenance, not an active
+  release blocker.
+- Public setup lanes remain exactly: Platform safety; NGO & regulator;
+  Individual worker / mobile; Researcher; Anonymized knowledge sharing;
+  Developer / integration partner.
+- The entity-intelligence pipeline is propose-only and curator-gated. Its
+  34-registry acquisition cascade, 1,111-source licensed-entity catalog, and
+  532 migrant-support organizations remain research inventory, not worker
+  advice, the live GREP/RAG layer, or accepted training data.
+- The default comparable benchmark board remains v1/h1 batched evidence.
+  Per-dimension, v2, h2, and benign-control evidence is isolated.
+- The generated deferred-work register has 11 gated or recurring items and no
+  `ready_local` item after the registered Ruff cleanup.
+- No trained adapter, package release, or new model-improvement claim is
+  completed merely because the core repository gate is green.
+
+## Model and deployment posture
+
+The whole model/flywheel stack is expected to remain cost-stopped. During
+deterministic maintenance set:
+
+```powershell
+$env:DUECARE_MAX_PLANNED_MODEL_CALLS = '0'
+```
+
+Do not start Ollama, remove stop sentinels, resume recurring tasks, spend model
+or Kaggle quota, or publish a model-backed result without explicit current
+authorization, immutable model identifiers, reviewed pricing, finite
+attempt/token/cash caps, and a stop condition.
+
+The public services intentionally coexist:
+
+- [duecare-ai.com](https://duecare-ai.com/) is the Render-hosted website and
+  mutable hub API surface.
+- [duecare-ai-site](https://tayloramareltech.github.io/duecare-ai-site/) is the
+  independent backend-free read-only continuity copy; it does not own
+  production DNS.
+- [gemma4_comp Pages](https://tayloramareltech.github.io/gemma4_comp/) is the
+  MkDocs documentation site.
+
+Do not deploy the marketing/continuity build over the documentation Pages site.
+Do not retire Render or change DNS as an incidental cleanup action.
+
+## Current validation discipline
+
+Never reuse a saved suite count as current evidence. Run the smallest relevant
+scope, then widen in proportion to risk:
+
+```powershell
+python scripts/validate_public_surface.py
+python -m pytest packages --collect-only -q
+python scripts/validate_main_kaggle_kernels.py
+py -3.12 scripts/validate_kaggle_page_sources.py
+python scripts/validate_publication_readiness.py --scope handoff
+python scripts/validate_publication_readiness.py --scope core
+```
+
+For a current full-suite claim, run `python -m pytest packages tests -q` and
+report exact passes, skips, warnings, platform, and revision. Validators in the
+handoff and core scopes are model-free and do not authorize model execution.
+
+## Workbench and data rules
+
+- Shared workbench chrome owns model loading through `window.dcWbModelService`.
+  Do not add per-page loaders.
+- Bulk File Review runs deterministic extraction first. Bundle synthesis and
+  `hierarchical_gemma_graph` are distinct passes; preserve hierarchy-level
+  provenance in review and exports.
+- Keep raw worker cases, private contact details, secrets, tokens, and
+  unredacted logs out of Git and public artifacts.
+- Do not hardcode volatile hotlines, URLs, fee caps, wage rules, or office names
+  into model outputs or training rows unless they exist as versioned knowledge
+  objects.
+- Candidate and model-generated data remains labeled and quarantined until
+  source, rights, privacy, lineage, leakage, diversity, and admission gates
+  pass.
+- Update generated artifacts from their source descriptor or generator; do not
+  hand-edit around a failing source-of-truth check.
 
 ## Auto-loaded rules
 
-`.claude/rules/*.md` files are auto-loaded by Claude Code at the project
-memory level. Current set:
+| File | Topic |
+|---|---|
+| [00_overarching_goals.md](.claude/rules/00_overarching_goals.md) | Impact, story, and technical execution goals |
+| [05_project_bible_pickup.md](.claude/rules/05_project_bible_pickup.md) | Tracked handoff and pause-safe pickup |
+| [10_safety_gate.md](.claude/rules/10_safety_gate.md) | PII, secrets, and artifact safety |
+| [20_code_style.md](.claude/rules/20_code_style.md) | Python and package conventions |
+| [30_test_before_commit.md](.claude/rules/30_test_before_commit.md) | Validation before publication |
+| [40_forge_module_contract.md](.claude/rules/40_forge_module_contract.md) | Module structure |
+| [50_publish_strategy.md](.claude/rules/50_publish_strategy.md) | GitHub, package, and Kaggle publication boundaries |
+| [60_notebook_presentation.md](.claude/rules/60_notebook_presentation.md) | Kaggle-safe notebook presentation |
+| [70_workbench_ui_primitives.md](.claude/rules/70_workbench_ui_primitives.md) | Progress, logs, samples, and trust boundaries |
+| [80_active_surface.md](.claude/rules/80_active_surface.md) | Active and optional public surfaces |
+| [81_canonical_runtime.md](.claude/rules/81_canonical_runtime.md) | Runtime, harness, and model-loading contracts |
+| [82_project_structure.md](.claude/rules/82_project_structure.md) | Layout and archive hygiene |
+| [83_kaggle_workflow.md](.claude/rules/83_kaggle_workflow.md) | Manual-by-default Kaggle workflow |
 
-| # | File | Topic |
-|---|---|---|
-| 00 | [`00_overarching_goals.md`](.claude/rules/00_overarching_goals.md) | Three rubric goals (Impact / Video / Tech) |
-| 05 | [`05_project_bible_pickup.md`](.claude/rules/05_project_bible_pickup.md) | Long-loop pickup pointer to the current project bible |
-| 10 | [`10_safety_gate.md`](.claude/rules/10_safety_gate.md) | No PII in git / logs / artifacts |
-| 20 | [`20_code_style.md`](.claude/rules/20_code_style.md) | Python 3.11+, Pydantic v2, Protocol-based |
-| 30 | [`30_test_before_commit.md`](.claude/rules/30_test_before_commit.md) | `duecare test` before PR |
-| 40 | [`40_forge_module_contract.md`](.claude/rules/40_forge_module_contract.md) | Folder-per-module pattern |
-| 50 | [`50_publish_strategy.md`](.claude/rules/50_publish_strategy.md) | GitHub + multi-package PyPI + Kaggle |
-| 60 | [`60_notebook_presentation.md`](.claude/rules/60_notebook_presentation.md) | Kaggle-safe styling, no truncation, shared helpers |
-| 70 | [`70_workbench_ui_primitives.md`](.claude/rules/70_workbench_ui_primitives.md) | Activity log + status discoverability + sample artifact + trust boundary |
-| 80 | [`80_active_surface.md`](.claude/rules/80_active_surface.md) | Recording-critical kernels + 4-phase arc + independent components + deployment modes + hackathon checklist |
-| 81 | [`81_canonical_runtime.md`](.claude/rules/81_canonical_runtime.md) | `Gemma4Runtime.load()` source of truth + A-00 proof path + universal harness abstraction + workbench model-loading UI + multi-harness architecture + naming convention |
-| 82 | [`82_project_structure.md`](.claude/rules/82_project_structure.md) | Directory tree + archive hygiene + Python conventions + resolved decisions |
-| 83 | [`83_kaggle_workflow.md`](.claude/rules/83_kaggle_workflow.md) | Manual-by-default publishing + polish checkpoint + useful commands |
+## Durable references
 
-Additional root guidance:
+- [`docs/CLAUDE_CODE_HANDOFF.md`](docs/CLAUDE_CODE_HANDOFF.md) - current Claude
+  Code pickup, live surfaces, recent receipts, exact safe next work, and a
+  copy-ready successor prompt.
+- [`docs/MAINTAINER_HANDOFF.md`](docs/MAINTAINER_HANDOFF.md) - operations,
+  recovery, access transfer, incidents, and human acceptance.
+- [`docs/PROJECT_TRANSITION_PLAN.md`](docs/PROJECT_TRANSITION_PLAN.md) - dated
+  closeout and maintenance-mode plan.
+- [`docs/PROVIDER_BUDGETING.md`](docs/PROVIDER_BUDGETING.md) - exact covered
+  transports and non-universal model-budget boundary.
+- [`docs/training_and_finetuning.md`](docs/training_and_finetuning.md) - strict
+  dataset and training workflow.
+- [`docs/KNOWLEDGE_SURFACE_VERIFICATION.md`](docs/KNOWLEDGE_SURFACE_VERIFICATION.md)
+  - regenerated knowledge counts and verification commands.
+- [`docs/entity_intelligence_pipeline.md`](docs/entity_intelligence_pipeline.md)
+  - propose-only research and entity-verification boundary.
 
-- [`AGENTS.md`](AGENTS.md) - cross-agent repo orientation and validation commands.
-- [`docs/DOCUMENTATION_GUIDE.md`](docs/DOCUMENTATION_GUIDE.md) - canonical public facts and documentation claims policy.
-- [`PROJECT_BIBLE.md`](PROJECT_BIBLE.md) - repo-root bridge to the current long-loop pickup brief for Claude Code / Codex / Fable 5-style agents.
-- [`Plans.md`](Plans.md) - compatibility bridge for older Claude Code handoffs that still name `Plans.md`; redirect back to the project bible.
-- [`docs/codex/PROJECT_BIBLE.md`](docs/codex/PROJECT_BIBLE.md) - current long-loop pickup brief for Claude Code / Codex continuation work.
-
-Harness contract docs (load with `@docs/...` when relevant):
-
-- [`docs/harness_pattern.md`](docs/harness_pattern.md) - module contract + 10-step recipe.
-- [`docs/harness_ecosystem.md`](docs/harness_ecosystem.md) - vocabulary + registered inventory.
-- [`docs/harness_standard_contract.md`](docs/harness_standard_contract.md) - HarnessSpec fields.
-- [`docs/MIGRATION_HARNESS_PATTERN.md`](docs/MIGRATION_HARNESS_PATTERN.md) - migration from singular `duecare.chat.harness` to `duecare.chat.harnesses`.
-- [`docs/safe_text_layer.md`](docs/safe_text_layer.md) - shared scrub / standardize / iterative-polish chokepoint (2026-05-24). Canonical fact-envelope shape, ILO vocab, polish endpoint, provenance flags.
-- [`docs/codex_followup_goals.md`](docs/codex_followup_goals.md) - ten copy-paste improvement prompts sized for a single Codex session each.
-
-## What this project is
-
-A submission for the **Gemma 4 Good Hackathon** on Kaggle (2026-04-02 through
-2026-05-18, $200K prize pool across Main/Impact/Special Technology tracks).
-**Submission window closed 2026-05-18.** Post-deadline work continues on the
-same kernels for polish, NGO-partner-ready integration, and judge-facing UX.
-
-**Concept:** Fine-tune Gemma 4 E4B on the author's existing 21K-test
-migrant-worker trafficking benchmark (graded response examples, worst->best)
-to produce a local, on-device LLM safety judge deployable via llama.cpp /
-LiteRT. NGOs and regulators who cannot send sensitive case data to frontier
-APIs get a private evaluator they can run on a laptop.
-
-**Tracks targeted:**
-
-- Impact Track -> Safety & Trust ($10K)
-- Special Technology Track -> Unsloth ($10K, for the fine-tune itself)
-- Special Technology Track -> llama.cpp or LiteRT ($10K, for on-device)
-- Main Track if execution is strong ($10K-$50K)
-
-## The author (user) is Taylor Amarel
-
-Taylor Amarel is the author of the existing *LLM Safety Testing Ecosystem*
-for migrant-worker protection, which lives in `_reference/`. Specifically:
-
-- `_reference/README.md` - ecosystem overview
-- `_reference/CLAUDE.md` - the master framework's AI-assistant guide
-- `_reference/ARCHITECTURE_PLAN.md` - the underlying data model and schemas
-- `_reference/trafficking_llm_benchmark/` - 300K+ lines of benchmark code
-- `_reference/trafficking-llm-benchmark-gitlab/` - 21K-test public release
-- `_reference/llm-safety-framework-public/` was **excluded from the copy**
-  (5.1 GB); it remains outside this repository in the author's private source
-  workspace.
-
-Treat Taylor as a domain expert on trafficking, ILO frameworks, LLM safety
-testing, and Python/FastAPI. Do NOT re-explain their own codebase to them.
-
-## Project memory
-
-Claude Code session memory is project-scoped local state outside this
-repository; its machine-specific location must not be copied into public
-handoffs.
-
-Files of note:
-
-- `MEMORY.md` - index (current state snapshot at top)
-- `project_state_2026_05_22.md` - latest snapshot (knowledge-layer mega expansion)
-- `user_identity.md` - who Taylor is and how to work with them
-- `project_gemma4_hackathon.md` - hackathon scope, concept, timeline
-- `project_harness_architecture.md` - multi-harness architecture summary
-- `feedback_autonomy.md` - "execute, don't ask" - pick sensible defaults
-
-## How to use this index
-
-When you need detail on:
-
-- **What active surfaces matter for recording / the rubric:** see [`80_active_surface.md`](.claude/rules/80_active_surface.md).
-- **How Gemma 4 loads / harness contract / workbench UI:** see [`81_canonical_runtime.md`](.claude/rules/81_canonical_runtime.md).
-- **Repo layout / archive hygiene / Python conventions:** see [`82_project_structure.md`](.claude/rules/82_project_structure.md).
-- **How to publish to Kaggle / useful CLI commands:** see [`83_kaggle_workflow.md`](.claude/rules/83_kaggle_workflow.md).
-- **Fact-shape normalization / noise scrubbing / iterative Gemma polish:** see [`docs/safe_text_layer.md`](docs/safe_text_layer.md). Pickable next-up improvements: [`docs/codex_followup_goals.md`](docs/codex_followup_goals.md).
-- **Knowledge-layer current counts + smoke verification:** see [`docs/KNOWLEDGE_SURFACE_VERIFICATION.md`](docs/KNOWLEDGE_SURFACE_VERIFICATION.md).
-
-All rules files are auto-loaded so you do not need to manually open them
-during a session; this index is for human + reviewer navigation.
+Future model comparisons should treat Kimi K3 and Meta Muse Spark 1.1 as
+required lanes, subject to current identifier, access, capability, and pricing
+verification. Unavailable access must be reported, not silently substituted.

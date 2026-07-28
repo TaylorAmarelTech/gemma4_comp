@@ -1,6 +1,7 @@
 # DueCare: A Gemma 4 Safety Ecosystem for Migrant-Worker Protection
 
 > **Main server website / public hub:** [duecare-ai.com](https://duecare-ai.com) |
+> **Read-only continuity site:** [tayloramareltech.github.io/duecare-ai-site](https://tayloramareltech.github.io/duecare-ai-site/) |
 > **GitHub source repo:** [github.com/TaylorAmarelTech/gemma4_comp](https://github.com/TaylorAmarelTech/gemma4_comp) |
 > **GitHub Pages docs:** [tayloramareltech.github.io/gemma4_comp](https://tayloramareltech.github.io/gemma4_comp/) |
 > **DueCare App on Kaggle:** [kaggle.com/code/taylorsamarel/duecare-app](https://www.kaggle.com/code/taylorsamarel/duecare-app) |
@@ -209,6 +210,7 @@ python -c "from duecare.server import create_app; from duecare.server.state impo
 > **Offline publication wrap-up:** [`docs/PUBLICATION_READINESS.md`](./docs/PUBLICATION_READINESS.md) - one model-free core gate, the current training-data blocker, a credit-preserving Ollama plan, vetted public-resource candidates, and the exact next sequence.
 > **Canonical deferred work:** [`docs/DEFERRED_WORK.md`](./docs/DEFERRED_WORK.md) - generated owners, prerequisites, authorization boundaries, ordered actions, evidence, and acceptance gates for every unfinished item.
 > **Provider budget contract:** [`docs/PROVIDER_BUDGETING.md`](./docs/PROVIDER_BUDGETING.md) - atomic attempt/token/cash reservations, sanitized receipts, zero-transport proof, and the exact boundary around direct and notebook callers.
+> **Claude Code pickup:** [`docs/CLAUDE_CODE_HANDOFF.md`](./docs/CLAUDE_CODE_HANDOFF.md) - tracked closeout truth, live-service boundaries, recent merge receipts, exact safe next work, and a copy-ready successor prompt.
 > **Maintainer pickup:** [`docs/MAINTAINER_HANDOFF.md`](./docs/MAINTAINER_HANDOFF.md) - fresh-shell checks, architecture boundaries, routine operations, incident recovery, and transfer acceptance.
 > **Successor rehearsal:** [`docs/SUCCESSOR_REHEARSAL.md`](./docs/SUCCESSOR_REHEARSAL.md) - one model-free command for handoff, core, notebook, archive, and paused-engine evidence with a sanitized receipt.
 > **30-day closeout:** [`docs/PROJECT_TRANSITION_PLAN.md`](./docs/PROJECT_TRANSITION_PLAN.md) - the dated 2026-07-26 through 2026-08-25 succession, release, access, rehearsal, and maintenance-mode plan.

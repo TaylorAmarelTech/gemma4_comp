@@ -1,6 +1,6 @@
 # DueCare project bible for AI pickup
 
-> Last refreshed: 2026-07-27.
+> Last refreshed: 2026-07-28.
 > Audience: Claude Code, Codex, Fable 5-style agents, and other coding agents
 > picking up long-running DueCare improvement work after a dense session.
 
@@ -15,18 +15,20 @@ life-cycle risk.
 ## Read first
 
 1. `AGENTS.md` - active repo rules, validation commands, and safety claims.
-2. `docs/MAINTAINER_HANDOFF.md` - fresh-shell operations, boundaries, access,
+2. `docs/CLAUDE_CODE_HANDOFF.md` - current tracked coding-agent pickup, public
+   service ownership, latest closeout receipts, and exact safe next work.
+3. `docs/MAINTAINER_HANDOFF.md` - fresh-shell operations, boundaries, access,
    recovery, and acceptance for a human successor.
-3. `docs/PROJECT_TRANSITION_PLAN.md` - dated 2026-07-26 through 2026-08-25
+4. `docs/PROJECT_TRANSITION_PLAN.md` - dated 2026-07-26 through 2026-08-25
    closeout, rehearsal, release decision, and maintenance-mode fallback.
-4. `docs/PUBLICATION_READINESS.md` - canonical release/evidence boundary and
+5. `docs/PUBLICATION_READINESS.md` - canonical release/evidence boundary and
    limitations.
-5. `docs/DEFERRED_WORK.md` - generated owners, prerequisites, authorization
+6. `docs/DEFERRED_WORK.md` - generated owners, prerequisites, authorization
    boundaries, next actions, evidence, and acceptance gates for unfinished work.
-6. `CLAUDE.md` - Claude Code index and project memory map.
-7. `docs/codex/00_do_not_break.md` - recording-critical contract.
-8. `docs/codex/00_execution_order.md` - historical goal order and dependencies.
-9. `docs/FILE_PURPOSE_GUIDE.md` and `docs/REPO_LAYOUT.md` - update these when
+7. `CLAUDE.md` - concise Claude Code index and rules map.
+8. `docs/codex/00_do_not_break.md` - recording-critical contract.
+9. `docs/codex/00_execution_order.md` - historical goal order and dependencies.
+10. `docs/FILE_PURPOSE_GUIDE.md` and `docs/REPO_LAYOUT.md` - update these when
    adding public surfaces or long-lived docs outside an existing indexed area.
 
 Claude Code also auto-loads `.claude/rules/05_project_bible_pickup.md`, a
@@ -44,13 +46,13 @@ explicitly asks to restore them.
 
 ## Current operating state
 
-> **Re-verified 2026-07-27 -- read this box before trusting the 2026-07-14 snapshot below.**
+> **Re-verified 2026-07-28 -- read this box before trusting the 2026-07-14 snapshot below.**
 >
 > - **Repository reconciliation is complete; release disposition is an owner
 >   decision.** Root `AGENTS.md` names `master` as the active branch. Pull
->   request 8 is the latest validated substantive closeout baseline at
->   `9385a837879209e18f8e013cf969a3e1ecbcfc91`; all 16 PR checks and all six
->   merge-triggered workflows passed. Verify live Git state and rerun the
+>   request 15 is the current pre-handoff anchor at
+>   `56e7283df1e191793355b340559733b4ef77f9fa`; all 16 PR checks passed and the
+>   exact local broad regression passed 4,646 tests with 9 skips. Verify live Git state and rerun the
 >   release gates on any later candidate rather than inheriting that receipt.
 > - **Canonical stopping point:** start with
 >   `docs/PUBLICATION_READINESS.md`. Its model-free core lane passed 11/11 checks
@@ -64,12 +66,12 @@ explicitly asks to restore them.
 >   validated JSON registry. It distinguishes model-free local maintenance from
 >   private-access, human-review, owner-decision, recurring, and budget-gated
 >   work and supplies exact acceptance evidence for all 11 items.
-> - **Succession is now an explicit 30-day workstream.** Use
->   `docs/MAINTAINER_HANDOFF.md` for operational pickup and
+> - **Succession is now an explicit 30-day workstream.** Start coding agents at
+>   `docs/CLAUDE_CODE_HANDOFF.md`, use `docs/MAINTAINER_HANDOFF.md` for human operational pickup, and
 >   `docs/PROJECT_TRANSITION_PLAN.md` for the 2026-08-25 target. The read-only
 >   `validate_publication_readiness.py --scope handoff` composes document/link/
 >   privacy checks with live pickup consistency. It passed 2/2 gates on
->   2026-07-27 (17/17 succession checks and the 65-check pickup validator with
+>   2026-07-28 (23/23 succession checks and the 65-check pickup validator with
 >   zero findings); it never authorizes model calls or engine resume.
 > - **Five exact model transports now enforce a shared provider budget.**
 >   `scripts/provider_budget.py` reserves attempt, input-token, output-token,
@@ -79,13 +81,16 @@ explicitly asks to restore them.
 >   new reservations. This is not a universal interceptor for other standalone
 >   clients, package/application adapters, or self-contained Kaggle kernels;
 >   use `docs/PROVIDER_BUDGETING.md` for the exact boundary.
-> - **Public release surfaces were reconciled live on 2026-07-27.** Active
+> - **Public release surfaces are deliberately redundant.** Render remains the
+>   production website/API host, the separate `duecare-ai-site` repository
+>   publishes a backend-free read-only 51-route continuity copy without a
+>   production `CNAME`, and this repository's Pages deployment remains MkDocs.
+>   The fallback manifest records its `source_revision`. Active
 >   Kaggle 01 is `COMPLETE`; 02 and A-00 are `CANCEL_ACKNOWLEDGED`; optional 04
 >   is `COMPLETE`; optional 03 has no verified public URL. All 18 Python
 >   distributions remain unpublished on PyPI. The sole OIDC publisher now uses
 >   a reviewed independent-SemVer manifest and one-package production tags.
->   Render serves project status
->   plus all six advertised schema endpoints, and the post-deploy 592-link audit
+>   Render serves project status plus all six advertised schema endpoints, and the 2026-07-27 post-deploy 592-link audit
 >   found zero confirmed broken links and nine transient or unverified hosts.
 >   `ollama ps` showed no loaded model.
 > - **Generation is COMPLETE.** `reports/rich_lift/panel_perdim.coverage.json` reports
@@ -114,13 +119,15 @@ explicitly asks to restore them.
 >   tasks but launches nothing directly. Historical background usage had no local provider ledger
 >   and must be reconciled privately. `validate_project_bible_pickup.py` remains the portable
 >   state-only pickup check.
-> - **Full suite re-verified green on 2026-07-27:** the integrated combined
->   `packages tests` run passed **4,637 tests, 9 skipped** with no warning
+> - **Full suite re-verified green on 2026-07-28:** the integrated combined
+>   `packages tests` run passed **4,648 tests, 9 skipped** with no warning
 >   summary under the zero-call transport lock. Mocked/loopback provider tests
 >   now isolate their fake transports explicitly while the real zero-call
 >   denial tests stay enforced. The former pandas Styler constant-range warnings are fixed; a
->   focused 43-test package run also passed with `RuntimeWarning` promoted to
->   an error. This supersedes the 2026-07-26 4,589-test receipt, the earlier
+>   focused package regression also passed with `RuntimeWarning` promoted to
+>   an error. The registered three-file Ruff cleanup is complete without
+>   file-wide suppression. This supersedes the PR #15 4,646-test, 2026-07-27
+>   4,637-test, and 2026-07-26 4,589-test receipts, the earlier
 >   separate counts, and the
 >   `4147 passed, 12 skipped` line below. Two tests had been failing silently for days and were fixed
 >   (`test_next_notebooks_inherit_reusable_contracts_without_redeclaring_lists` broke when the
