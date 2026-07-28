@@ -1,6 +1,6 @@
 # DueCare Roadmap
 
-Current as of 2026-07-27.
+Current as of 2026-07-28.
 
 This is the strategic roadmap. The generated
 [`DEFERRED_WORK.md`](DEFERRED_WORK.md) register is the authoritative operational
@@ -14,9 +14,10 @@ promotion of candidate data.
 
 ## Current Stopping Point
 
-- The source, public website, GitHub Pages documentation, active notebook
-  sources, package build contract, and deterministic verification stack are
-  maintained from `master`.
+- The source, Render production website, independent read-only continuity
+  Pages copy, MkDocs Pages documentation, active notebook sources, package
+  build contract, and deterministic verification stack are maintained from
+  reviewed `master` revisions with distinct deployment ownership.
 - The active Kaggle submission sources are exactly `01`, `02`, and `A-00`.
   The `03` and `04` benchmark surfaces are optional and are not prerequisites
   for repository closure.

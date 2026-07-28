@@ -198,6 +198,7 @@ nav:
       - Knowledge module schema: knowledge_module_schema.md
   - Run And Verify:
       - Current project status: project_status.md
+      - Claude Code handoff: CLAUDE_CODE_HANDOFF.md
       - Maintainer handoff: MAINTAINER_HANDOFF.md
       - Successor pickup rehearsal: SUCCESSOR_REHEARSAL.md
       - 30-day project transition: PROJECT_TRANSITION_PLAN.md
