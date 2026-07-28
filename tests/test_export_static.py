@@ -67,6 +67,12 @@ def test_export_produces_static_bundle(tmp_path):
         text = demo.read_text(encoding="utf-8", errors="ignore")
         assert "/api/demo/priority-examples" not in text
 
+    css = (out / "static" / "styles.css").read_text(encoding="utf-8")
+    assert "@media (max-width: 760px)" in css
+    assert ".nav-mobile-panel" in css
+    assert ".nav-links { display: none; }" in css
+    assert 'class="nav-mobile"' in (out / "index.html").read_text(encoding="utf-8")
+
 
 @pytest.mark.skipif(not _deps_ok(), reason="site deps (fastapi/jinja2/httpx) not installed")
 def test_api_base_rewrites_relative_api_fetches(tmp_path):
