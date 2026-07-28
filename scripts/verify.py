@@ -19,6 +19,7 @@ Honest about what it does NOT verify:
   - Does NOT exercise GREP/RAG/Tools end-to-end against a prompt
     (use `scripts/rubric_comparison.py` for that).
 """
+
 from __future__ import annotations
 
 import importlib
@@ -54,37 +55,89 @@ class Check:
 
 
 CHECKS: tuple[Check, ...] = (
-    Check("GREP rules",        "duecare.chat.harness", "GREP_RULES",       108,
-          "regex rules across 16 categories (debt bondage / fee "
-          "camouflage / corridors / ILO indicators / multi-party / "
-          "kafala extended / sectors / fin flows / employer abuse / "
-          "doc fraud / sales tactics / recovery suppression / digital)"),
-    Check("RAG corpus",        "duecare.chat.harness", "RAG_CORPUS",        33,
-          "trafficking grounding docs (ILO conventions, statutes, NGO briefs); the "
-          "multi-domain verticals are kept SEPARATE in MULTIDOMAIN_CORPUS"),
-    Check("Multi-domain corpus", "duecare.chat.harness._multidomain_corpus", "MULTIDOMAIN_CORPUS", 500,
-          "separate integrity-vertical grounding docs (financial crime, corruption, "
-          "environmental crime ... 51 verticals) kept out of the trafficking corpus "
-          "so the human-exploitation prompts/retrieval stay focused"),
-    Check("Tools",             "duecare.chat.harness", "_TOOL_DISPATCH",    13,
-          "deterministic tools: corridor / fee / indicator / NGO / ILO Convention "
-          "lookups + GREP-check / grounding-search / convention-list + euphemism-decode "
-          "/ emergency-triage / scam-detect / evidence-preserve / ILO-recruitment-cost-classify"),
-    Check("Example prompts",   "duecare.chat.harness", "EXAMPLE_PROMPTS",  407,
-          "prompts in the bundled examples library"),
-    Check("5-tier rubrics",    "duecare.chat.harness", "RUBRICS_5TIER",    200,
-          "prompts with graded worst..best response examples"),
-    Check("Required rubrics",  "duecare.chat.harness", "RUBRICS_REQUIRED",   6,
-          "categories of required-element rubrics"),
-    Check("Classifier examples","duecare.chat.harness","CLASSIFIER_EXAMPLES",54,
-          "pre-built classifier examples (30 persona × corridor + 16 originals + 8 multimodal SVG)"),
-    Check("Universal rubric dims", "duecare.chat.harness", "RUBRIC_UNIVERSAL", 21,
-          "v3 universal rubric dimensions (v3.6 added operational_information_provided + harm_enablement_check)",
-          sub_key="dimensions"),
-    Check("LLM eval questions",  "duecare.chat.harness", "EVALUATION_QUESTIONS", 21,
-          "per-dim yes/no questions sent to the LLM evaluator (also "
-          "called 'LLM-as-judge' in academic literature). Unrelated "
-          "to contest judging."),
+    Check(
+        "GREP rules",
+        "duecare.chat.harness",
+        "GREP_RULES",
+        108,
+        "regex rules across 16 categories (debt bondage / fee "
+        "camouflage / corridors / ILO indicators / multi-party / "
+        "kafala extended / sectors / fin flows / employer abuse / "
+        "doc fraud / sales tactics / recovery suppression / digital)",
+    ),
+    Check(
+        "RAG corpus",
+        "duecare.chat.harness",
+        "RAG_CORPUS",
+        33,
+        "trafficking grounding docs (ILO conventions, statutes, NGO briefs); the "
+        "multi-domain verticals are kept SEPARATE in MULTIDOMAIN_CORPUS",
+    ),
+    Check(
+        "Multi-domain corpus",
+        "duecare.chat.harness._multidomain_corpus",
+        "MULTIDOMAIN_CORPUS",
+        500,
+        "separate integrity-vertical grounding docs (financial crime, corruption, "
+        "environmental crime ... 51 verticals) kept out of the trafficking corpus "
+        "so the human-exploitation prompts/retrieval stay focused",
+    ),
+    Check(
+        "Tools",
+        "duecare.chat.harness",
+        "_TOOL_DISPATCH",
+        13,
+        "deterministic tools: corridor / fee / indicator / NGO / ILO Convention "
+        "lookups + GREP-check / grounding-search / convention-list + euphemism-decode "
+        "/ emergency-triage / scam-detect / evidence-preserve / ILO-recruitment-cost-classify",
+    ),
+    Check(
+        "Example prompts",
+        "duecare.chat.harness",
+        "EXAMPLE_PROMPTS",
+        407,
+        "prompts in the bundled examples library",
+    ),
+    Check(
+        "5-tier rubrics",
+        "duecare.chat.harness",
+        "RUBRICS_5TIER",
+        200,
+        "prompts with graded worst..best response examples",
+    ),
+    Check(
+        "Required rubrics",
+        "duecare.chat.harness",
+        "RUBRICS_REQUIRED",
+        6,
+        "categories of required-element rubrics",
+    ),
+    Check(
+        "Classifier examples",
+        "duecare.chat.harness",
+        "CLASSIFIER_EXAMPLES",
+        54,
+        "pre-built classifier examples (30 persona-corridor pairs + 16 originals + "
+        "8 multimodal SVG)",
+    ),
+    Check(
+        "Universal rubric dims",
+        "duecare.chat.harness",
+        "RUBRIC_UNIVERSAL",
+        21,
+        "v3 universal rubric dimensions (v3.6 added operational_information_provided +"
+        " harm_enablement_check)",
+        sub_key="dimensions",
+    ),
+    Check(
+        "LLM eval questions",
+        "duecare.chat.harness",
+        "EVALUATION_QUESTIONS",
+        21,
+        "per-dim yes/no questions sent to the LLM evaluator (also "
+        "called 'LLM-as-judge' in academic literature). Unrelated "
+        "to contest judging.",
+    ),
 )
 
 
@@ -92,7 +145,7 @@ def _measure(c: Check) -> tuple[bool, int, str | None]:
     """Returns (ok, measured, error)."""
     try:
         mod = importlib.import_module(c.module)
-    except Exception as e:  # noqa: BLE001 — we want the full reason
+    except Exception as e:
         return False, 0, f"import {c.module} failed: {e}"
     obj = getattr(mod, c.attr, None)
     if obj is None:
@@ -149,6 +202,6 @@ def main() -> int:
 if __name__ == "__main__":
     try:
         sys.exit(main())
-    except Exception:  # noqa: BLE001
+    except Exception:
         traceback.print_exc()
         sys.exit(2)

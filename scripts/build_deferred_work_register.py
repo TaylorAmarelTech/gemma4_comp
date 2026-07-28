@@ -5,6 +5,7 @@ The generated document is intentionally detailed: every unfinished item has a
 real owner role, reason, prerequisites, ordered actions, acceptance gates, and
 evidence paths. Rendering is deterministic and never calls a model or network.
 """
+
 from __future__ import annotations
 
 import argparse
@@ -114,15 +115,15 @@ def render_registry(data: dict[str, Any]) -> str:
             "   are present; then retain every acceptance artifact.",
             "",
             "**Ready for model-free repository work:** "
-            + ", ".join(f"`{item['id']}`" for item in ready)
+            + (", ".join(f"`{item['id']}`" for item in ready) or "None")
             + ".",
             "",
             "**Recurring maintenance:** "
-            + ", ".join(f"`{item['id']}`" for item in recurring)
+            + (", ".join(f"`{item['id']}`" for item in recurring) or "None")
             + ".",
             "",
             "**Externally or human gated:** "
-            + ", ".join(f"`{item['id']}`" for item in gated)
+            + (", ".join(f"`{item['id']}`" for item in gated) or "None")
             + ".",
         ]
     )
@@ -133,7 +134,7 @@ def render_registry(data: dict[str, Any]) -> str:
             [
                 "",
                 f"## {item['title']}",
-                f"<a id=\"{item['id']}\"></a>",
+                f'<a id="{item["id"]}"></a>',
                 "",
                 f"- **ID:** `{item['id']}`",
                 f"- **Priority:** {item['priority']}",

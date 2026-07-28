@@ -33,16 +33,14 @@ def test_deferred_work_register_is_a_succession_gate():
     assert check == {
         "name": "deferred work register",
         "ok": True,
-        "detail": "12 explicit item(s); generated document current",
+        "detail": "11 explicit item(s); generated document current",
     }
 
 
 def test_missing_markers_are_reported_by_name():
     markers = ("## First 30 Minutes", "## Sources Of Truth")
 
-    assert vmh.missing_markers("## First 30 Minutes\n", markers) == [
-        "## Sources Of Truth"
-    ]
+    assert vmh.missing_markers("## First 30 Minutes\n", markers) == ["## Sources Of Truth"]
 
 
 def test_sensitive_scan_and_summary_never_echo_payloads():

@@ -39,7 +39,6 @@ and undated completion claims are rejected by
 | P3 | [Complete the isolated exhaustive per-dimension judge lane](#per-dimension-judging) | Deferred: budget or quota | Research lead and model-spend approver | nonzero_requires_owner_approval |
 | P2 | [Run only justified Kaggle evidence jobs](#optional-kaggle-reruns) | Deferred: budget or quota | Kaggle account owner and evidence reviewer | nonzero_requires_owner_approval |
 | P2 | [Create a human gold set and agreement monitor](#human-gold-calibration) | Blocked: human review | Qualified domain reviewers and evaluation lead | zero_only |
-| P3 | [Clear legacy lint debt in behavior-preserving slices](#legacy-ruff-cleanup) | Ready: local and model-free | Maintainer | zero_only |
 | P1 | [Review volatile legal and operational sources on a cadence](#source-freshness-maintenance) | Recurring maintenance | Knowledge curator | zero_only |
 
 ## Pickup Order
@@ -54,7 +53,7 @@ The safe sequence is:
 4. Start a gated item only when its owner, prerequisites, and authorization
    are present; then retain every acceptance artifact.
 
-**Ready for model-free repository work:** `legacy-ruff-cleanup`.
+**Ready for model-free repository work:** None.
 
 **Recurring maintenance:** `source-freshness-maintenance`.
 
@@ -443,44 +442,6 @@ The safe sequence is:
 - [`docs/research/judge_calibration.md`](research/judge_calibration.md)
 - [`docs/research/evaluation_methodology.md`](research/evaluation_methodology.md)
 - [`docs/research/convergent_validity.md`](research/convergent_validity.md)
-
-## Clear legacy lint debt in behavior-preserving slices
-<a id="legacy-ruff-cleanup"></a>
-
-- **ID:** `legacy-ruff-cleanup`
-- **Priority:** P3
-- **Status:** Ready: local and model-free
-- **Owner role:** Maintainer
-- **Target:** Separate pull requests after closeout-critical work
-- **Model-credit policy:** `zero_only`
-- **Network/write policy:** `offline_only`
-- **Depends on:** No other register item
-
-**Why it remains open:** Long benchmark and verification files retain broad style debt; a mass rewrite would obscure behavioral review and is not a release blocker.
-
-### Prerequisites
-
-- A frozen regression baseline for each selected file
-- A change limited to one mechanical category or one small semantic finding
-
-### Ordered next actions
-
-1. Run ruff check on scripts/rich_harness_lift.py, scripts/verify.py, and tests/test_plan.py and record the current categories.
-2. Fix one bounded category without broad suppression, then run focused and full deterministic tests.
-3. Repeat in separate reviewable changes until the repository lint command can be expanded safely.
-
-### Done only when
-
-- The selected Ruff scope passes without a file-wide ignore for useful rules.
-- No benchmark plan, score, output schema, or fixture changes unexpectedly.
-- The full zero-call regression and public gates remain green.
-
-### Evidence and controls
-
-- [`scripts/rich_harness_lift.py`](../scripts/rich_harness_lift.py)
-- [`scripts/verify.py`](../scripts/verify.py)
-- [`tests/test_plan.py`](../tests/test_plan.py)
-- [`pyproject.toml`](../pyproject.toml)
 
 ## Review volatile legal and operational sources on a cadence
 <a id="source-freshness-maintenance"></a>
