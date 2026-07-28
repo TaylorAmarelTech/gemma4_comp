@@ -96,14 +96,16 @@ without becoming one raw case-data warehouse.
 | **Curation** | Curator and civil-society review | Vetted pack update, contact metadata update, benchmark row, or rejected proposal. | Human review is required before shared knowledge becomes reusable. |
 | **Reuse** | Local nodes pulling updated packs | Better rules, citations, examples, and evaluation artifacts in future local deployments. | Shared intelligence returns as versioned packs, not as exposed case narratives. |
 
-**Active outreach.** The hub does not only wait for submissions — it runs a
-[civil-society outreach loop](https://duecare-ai.com/outreach): it detects which
-knowledge needs field verification (a corridor fee cap, an emerging payment
-rail, a statute change), emails a specific question to the opted-in experts best
-placed to answer, vets each reply through the same PII gate, and folds the
-observations back into *prioritized context* and *candidate grading dimensions*.
-Civil society contributes by replying to one email — never by learning a new
-login. Raw addresses are never stored; only a sha256 hash plus topics persist.
+**Outreach planning and intake.** The
+[civil-society outreach page](https://duecare-ai.com/outreach) detects knowledge
+that needs field verification (a corridor fee cap, an emerging payment rail, or
+a statute change), matches opted-in topic profiles, and drafts a specific
+question. The public hub stores only an address hash, so it cannot send the
+draft: a curator must resolve the hashes against a separately owned, consented
+address book before using an organization-owned mailer. Human-sent replies can
+be vetted through the PII gate and folded into *prioritized context*
+and *candidate grading dimensions*. No contact, reply, or human rating is
+claimed merely because the planning API is available.
 
 Read the focused [Information Sharing Architecture](information_sharing_architecture.md)
 page for the object types, trust boundary, and hub/local responsibilities.

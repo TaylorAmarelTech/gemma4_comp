@@ -40,10 +40,11 @@
     <h1>The hub asks the people who already know.</h1>
     <p class="hp-lede">
       Civil society won't learn another login. So the hub inverts the model: it
-      detects where its knowledge needs verifying, emails a specific question to
-      the experts best placed to answer (caseworkers, lawyers, hotline
-      volunteers), and folds their replies back into prioritized context and new
-      grading dimensions. This page shows that loop running live.
+      detects where its knowledge needs verifying, drafts a specific question
+      for the experts best placed to answer (caseworkers, lawyers, hotline
+      volunteers), and gives a curator a reviewable dispatch plan. Human-sent,
+      vetted observations can then feed prioritized context and candidate grading
+      dimensions. This page shows the live planning and intake boundary.
     </p>
   </header>
 
@@ -51,7 +52,7 @@
     <div class="hp-ix">01</div>
     <h2>The loop</h2>
     <div class="or-flow">
-      <div class="or-node"><span class="n">1</span><span class="t">Collect</span><span class="d">Experts opt in by email; only sha256 + topics persist.</span></div>
+      <div class="or-node"><span class="n">1</span><span class="t">Register topics</span><span class="d">Only an address hash + topics persist; the hub cannot recover the address.</span></div>
       <span class="or-arrow">&rarr;</span>
       <div class="or-node"><span class="n">2</span><span class="t">Detect gaps</span><span class="d">Knowledge that needs field verification, prioritized.</span></div>
       <span class="or-arrow">&rarr;</span>
@@ -67,7 +68,7 @@
   <section class="hp-section">
     <div class="hp-ix">02</div>
     <h2>Context gaps the hub wants verified</h2>
-    <p class="hp-note">Each is a concrete, field-answerable question. Priority rises as observations corroborate it. <b>Draft campaign</b> previews the solicitation email and the matching opted-in contacts (it only sends when SMTP is configured on the deployment).</p>
+    <p class="hp-note">Each is a concrete, field-answerable question. Priority rises as observations corroborate it. <b>Draft campaign</b> previews the solicitation and the number of matching opted-in profiles. The hub never stores raw recipient addresses and cannot send; a curator needs a separate consented address book to resolve hashes before dispatching through an organization-owned mailer.</p>
     <div id="or-gaps"><p class="hp-note">Loading gaps&hellip;</p></div>
   </section>
 
@@ -80,8 +81,8 @@
 
   <section class="hp-section">
     <div class="hp-ix">04</div>
-    <h2>Join the expert list</h2>
-    <p class="hp-note">Opt in to receive occasional, specific knowledge questions. Your raw email is never stored on the hub &mdash; only a sha256 hash + your topics, for curator outreach planning. Unsubscribe any time.</p>
+    <h2>Register an outreach topic profile</h2>
+    <p class="hp-note">Submitting records only a sha256 address hash + your topics. It does not create a contactable mailing-list entry: the hub cannot recover your address or email you. Contact is possible only if an authorized curator already holds the same address in a separate consented address book. Unsubscribe by submitting the same address through the unsubscribe route.</p>
     <div class="or-form" style="display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-top:6px;">
       <input type="email" id="or-email" placeholder="[email protected]" style="flex:1 1 240px;" />
       <input type="text" id="or-topics" placeholder="topics, e.g. PH-HK, fee_cap, fishing" style="flex:1 1 240px;" />
@@ -106,7 +107,7 @@
     try { r=await fetch('/api/outreach/gaps',{cache:'no-store'}); data=await r.json(); }
     catch(e){ host.textContent='Outreach API unavailable.'; return; }
     status.textContent = data.count+' context gaps · '+data.n_subscribers+' opted-in contact'+(data.n_subscribers===1?'':'s')+
-      ' · campaigns are draft-only (a curator dispatches via their own mailer; the hub stores no raw addresses)';
+      ' · campaigns are draft-only (delivery requires a separate consented address book; the hub stores no raw addresses)';
     host.textContent='';
     (data.gaps||[]).forEach(function(g){
       var card=el('div','or-gap');
@@ -167,7 +168,7 @@
     try{
       var r=await fetch('/api/newsletter/subscribe',{method:'POST',headers:{'Content-Type':'application/json'},
         body:JSON.stringify({email:email,topics:topics,role:role,consent_to_outreach:true})});
-      if(r.ok){ st.textContent='Opted in. The hub will email occasional, specific questions on your topics.'; loadGaps(); }
+      if(r.ok){ st.textContent='Opted in for curator-managed outreach on your topics. The hub stores only an address hash and cannot email you directly.'; loadGaps(); }
       else { st.textContent='Subscribe failed (HTTP '+r.status+').'; }
     }catch(e){ st.textContent='Subscribe failed: '+e; }
   });

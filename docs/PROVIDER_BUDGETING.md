@@ -1,10 +1,11 @@
 # Provider Budgeting
 
 DueCare has a shared, fail-closed budget ledger for every model-network attempt
-that enters the primary generation router in `scripts/llm_generate.py` and the
-optional OpenAI-compatible classifier in `scripts/adverse_media.py`. The ledger
-and this first direct-client migration were tested offline through 2026-07-28;
-they did not make an Ollama, Kaggle, or hosted-provider call.
+that enters the primary generation router in `scripts/llm_generate.py`, the
+optional OpenAI-compatible classifier in `scripts/adverse_media.py`, and the
+baseline study in `scripts/model_failure_study.py`. The ledger and direct-client
+migrations are tested offline. The later Kimi access check is recorded
+separately below.
 
 ## What The Ledger Enforces
 
@@ -139,6 +140,42 @@ The 2026-07-28 closeout decision performed catalog verification only and made
 no model call. Kimi K3 and Meta Muse Spark 1.1 remain required lanes if a future
 frozen comparison is reopened; preserving credits is preferable to running an
 unmotivated smoke merely to empty a checklist.
+
+### Later Kimi K3 access check
+
+After closeout, the owner separately authorized a bounded access check. Five
+requests using Ollama's live `kimi-k3` ID were reserved under a five-attempt,
+20,000-input-token, 3,840-output-token, US$0.25 policy. Ollama returned HTTP 402
+for all five because Kimi K3 uses extra usage and the account's extra-usage
+balance was empty. The privacy-minimized local ledger recorded zero successful
+calls, zero provider tokens, and zero actual cost. Therefore:
+
+- the endpoint and credential path were reachable;
+- no Kimi completion or quality score was produced;
+- the five failures are not benchmark rows; and
+- the proposed 500-prompt run stays stopped until the billing owner funds and
+  explicitly authorizes a new capped run.
+
+The exact model-free directional plan is now reproducible with:
+
+```powershell
+python scripts/model_failure_study.py `
+  --models kimi-k3 --include-seeds --limit 500 `
+  --selection-mode category-balanced --selection-seed 20260728 `
+  --max-tokens 768 `
+  --out reports/model_failure_study/kimi_k3_directional_500.jsonl `
+  --base-url https://ollama.com/v1/chat/completions `
+  --key-env OLLAMA_API_KEY --plan
+```
+
+At the checked revision it selects 500 public synthetic prompts across 117
+categories with selection SHA-256
+`9d4aedf042f5f9d73e8372a8f1bf5538190d9791dbc692c38ca720aed1bc48eb`.
+It plans exactly 500 Kimi calls, reserves 158,922 estimated input tokens and
+384,000 maximum output tokens, and has a US$6.2368 worst-case reservation at
+the verified $3/M input and $15/M output rates. Every returned response would
+receive a local deterministic DueCare grade; this lane includes no hosted
+judge call and is not human validation.
 
 Availability, access rules, context, and prices are volatile. Recheck the
 official catalog immediately before approving a run; never use a paid prompt

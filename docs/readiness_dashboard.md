@@ -62,6 +62,11 @@ required lanes after exact provider IDs, access, capability, context, and
 pricing are reverified. Unavailable access is a reportable result, not a reason
 to substitute a different model silently.
 
+The 2026-07-28 owner-authorized Kimi K3 access check reached the verified
+Ollama model but all five capped requests returned HTTP 402 for empty extra
+usage. It yielded zero completions, provider tokens, or actual ledger cost; the
+500-prompt study was not run and no Kimi quality claim exists.
+
 The resolved owner ledger lives in [`USER_TODO.md`](USER_TODO.md).
 
 ## Active A-00 Evidence Run Targets

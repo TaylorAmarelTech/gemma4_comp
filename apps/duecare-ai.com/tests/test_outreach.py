@@ -105,7 +105,10 @@ def test_endpoint_loop(client):
     assert g.status_code == 200
     body = g.json()
     assert body["count"] >= 8 and body["n_subscribers"] == 1
-    assert body["smtp_configured"] is False  # no creds in test
+    assert body["smtp_configured"] is False
+    assert body["delivery_mode"] == "draft_only"
+    assert body["can_send"] is False
+    assert body["stores_recipient_addresses"] is False
 
     # campaign draft targets the matching subscriber, not sent (no SMTP)
     camp = client.post("/api/outreach/campaign", json={"gap_id": "fee_cap_ph_hk"})
@@ -131,6 +134,15 @@ def test_endpoint_loop(client):
     pr = p.json()["priorities"]
     assert pr and pr[0]["gap_id"] == "fee_cap_ph_hk"
     assert pr[0]["candidate_dimension"] == "fee_cap_ph_hk_currency"
+
+
+def test_public_page_discloses_non_contactable_hash_boundary(client):
+    response = client.get("/outreach")
+
+    assert response.status_code == 200
+    assert "It does not create a contactable mailing-list entry" in response.text
+    assert "the hub cannot recover your address or email you" in response.text
+    assert "separate consented address book" in response.text
 
 
 # ------------------- vocabulary + honesty regression guards ------------------

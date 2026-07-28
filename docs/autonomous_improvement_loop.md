@@ -55,7 +55,7 @@ people best placed to answer. The oracle lives in
 | Stage | Function | What happens |
 |---|---|---|
 | **Detect** | `detect_context_gaps()` | Surfaces field-answerable verification asks (a corridor fee cap, an emerging payment rail, a statute change), re-ranked as observations corroborate. |
-| **Solicit** | `draft_campaign()` | Targets **opted-in** subscribers by topic/role and drafts a specific email. It **sends only if `DUECARE_SMTP_*` is configured, otherwise it honestly reports "drafted"** — never a fake "sent". |
+| **Solicit** | `draft_campaign()` | Targets **opted-in** subscriber profiles by topic/role and drafts a specific email. It always reports `drafted`: the hub stores no raw addresses and cannot send. A curator dispatches through an organization-owned mailer. |
 | **Observe** | `ingest_observation()` | Vets each reply through the same **PII + intent gate** the rest of DueCare uses, then records a *weighted* context signal. |
 | **Prioritise** | `prioritized_context()` | Ranks the gaps by corroboration and proposes a candidate **grading dimension**, so outreach feeds the rubric, not just retrieval. |
 
@@ -63,8 +63,10 @@ Routes: `GET/POST /api/outreach/{gaps,campaign,observe,priorities}`.
 
 **Privacy boundary (load-bearing).** Subscribers opt in; their email address is
 stored as **`sha256` only** (never plaintext). Replies pass the PII/intent gate
-before anything is recorded. Civil society contributes by **replying to one
-email** — never by learning a new login or UI. Detail:
+before anything is recorded. When a curator has dispatched a draft, civil
+society can contribute by **replying to that email** — never by learning a new
+login or UI. The repository does not claim that dispatch or a reply occurred.
+Detail:
 [`deployment/oracle_email_solicitation.md`](deployment/oracle_email_solicitation.md)
 and the [Information Sharing Architecture](information_sharing_architecture.md).
 

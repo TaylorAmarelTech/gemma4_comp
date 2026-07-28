@@ -1,4 +1,14 @@
-# Email oracle — server-side knowledge solicitation for civil society
+# Email oracle reference design — server-side knowledge solicitation
+
+> **Implementation status, verified 2026-07-28:** this page is a future
+> reference design, not a description of a deployed mail agent. The current
+> public hub can detect gaps, match address-hash/topic profiles, draft a
+> campaign, and vet a manually forwarded observation. It stores no raw
+> recipient addresses and therefore cannot send. `scripts/hermes.py` is a
+> separate propose-only model discovery daemon; it is not an SMTP/IMAP adapter
+> and does not contact civil-society members. No `duecare-llm-oracle` package,
+> mail container, automated delivery receipt, or collected human-rating result
+> exists in the maintained repository.
 
 ## Why email and nothing else
 
@@ -267,11 +277,11 @@ respects whatever data-handling policies apply to government staff
 communications (e.g., government email only, no third-party SMTP
 providers).
 
-## openclaw and hermes integration
+## Proposed openclaw and hermes integration
 
 Taylor's broader project ecosystem includes "openclaw" and "hermes"
-naming for server-side automation infrastructure. These are
-configurable integrations rather than hard dependencies:
+naming for server-side automation infrastructure. The following adapters were
+proposed, not implemented:
 
 - **openclaw** — if this is the message-passing / queue
   infrastructure, the oracle uses it for the gap-detector → outbound
@@ -281,14 +291,12 @@ configurable integrations rather than hard dependencies:
   uses it for outbound + inbound mail. Configuration via env vars
   pointing at hermes endpoints.
 
-If neither is available, the oracle has a vanilla fallback using
-Python's `smtplib` + `imaplib` + a SQLite subscriber + audit store.
-A self-hosted deployment can run this on a single small VPS without
-either openclaw or hermes.
+The proposed fallback would use Python's `smtplib` + `imaplib` + a SQLite
+subscriber + audit store. That fallback is not present today.
 
-## Implementation surface area
+## Proposed implementation surface area
 
-The oracle is a separate package, sibling to the existing 17:
+The design calls for a separate package, sibling to the existing packages:
 `packages/duecare-llm-oracle/`. Modules:
 
 - `duecare.oracle.subscribers` — opt-in/opt-out + subscriber store

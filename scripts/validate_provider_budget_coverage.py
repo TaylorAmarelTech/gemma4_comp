@@ -11,6 +11,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 ROUTER = ROOT / "scripts" / "llm_generate.py"
 DIRECT_CLIENT = ROOT / "scripts" / "adverse_media.py"
+MODEL_FAILURE_CLIENT = ROOT / "scripts" / "model_failure_study.py"
 PRIMARY_FUNCTIONS = {
     "ollama_chat",
     "nvidia_chat",
@@ -18,6 +19,7 @@ PRIMARY_FUNCTIONS = {
     "anthropic_chat",
 }
 DIRECT_FUNCTIONS = {"_adverse_media_model_completion"}
+MODEL_FAILURE_FUNCTIONS = {"call_chat"}
 
 
 @dataclass(frozen=True)
@@ -122,6 +124,7 @@ def _validate_surface(
 def validate(
     path: Path = ROUTER,
     direct_client: Path = DIRECT_CLIENT,
+    model_failure_client: Path = MODEL_FAILURE_CLIENT,
 ) -> list[str]:
     findings = _validate_surface(
         path,
@@ -140,6 +143,16 @@ def validate(
             included_functions=DIRECT_FUNCTIONS,
         )
     )
+    findings.extend(
+        _validate_surface(
+            model_failure_client,
+            label="model-failure direct client",
+            transport_name="urlopen",
+            guard_name="attempt",
+            expected_functions=MODEL_FAILURE_FUNCTIONS,
+            included_functions=MODEL_FAILURE_FUNCTIONS,
+        )
+    )
     return findings
 
 
@@ -147,15 +160,16 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--router", type=Path, default=ROUTER)
     parser.add_argument("--direct-client", type=Path, default=DIRECT_CLIENT)
+    parser.add_argument("--model-failure-client", type=Path, default=MODEL_FAILURE_CLIENT)
     args = parser.parse_args(argv)
-    findings = validate(args.router, args.direct_client)
+    findings = validate(args.router, args.direct_client, args.model_failure_client)
     if findings:
         for finding in findings:
             print(f"[provider-budget-coverage] FAIL: {finding}")
         return 1
     print(
         "[provider-budget-coverage] PASS: four primary-router transports and "
-        "one adverse-media model transport are reservation-wrapped"
+        "the adverse-media and model-failure direct transports are reservation-wrapped"
     )
     return 0
 

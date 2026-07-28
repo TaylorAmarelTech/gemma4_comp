@@ -30,8 +30,10 @@ private transfer, training-data admission, or human study was performed.
 - [x] Training provenance refresh declined for unchanged candidate data; the
   strict quality/provenance lane intentionally remains red.
   (`training-provenance-refresh`)
-- [x] Kimi K3 and Meta Muse Spark 1.1 availability/pricing recorded without a
-  model call; the paid smoke was declined to preserve credits.
+- [x] Kimi K3 and Meta Muse Spark 1.1 availability/pricing recorded. The
+  closeout smoke was declined; a later separately authorized five-attempt Kimi
+  K3 access check returned HTTP 402 with zero completions/tokens/actual ledger
+  cost, so the 500-prompt lane remains stopped.
   (`bounded-model-smoke`)
 - [x] Exhaustive per-dimension judging stopped as low-value partial experimental
   work and remains isolated from the default board. (`per-dimension-judging`)

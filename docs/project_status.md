@@ -92,14 +92,44 @@ snapshots, and older checklist/status docs are archived under
 - The website's advertised schema URLs now have local route tests instead of
   pointing at 404s. Kaggle pages show point-in-time run status and distinguish
   public notebooks from private owner-side drafts.
-- New local/hosted Ollama work is deferred. The rich harness supports a
+- Containerization, automation, outreach, and human validation have distinct
+  boundaries. The runtime and public hub are containerizable, but Hermes,
+  the server-automation vetter, the orchestrator, and the autonomous engine are
+  host-scheduled processes and are currently disabled. `scripts/hermes.py` stages
+  propose-only synthetic research prompts; it neither contacts civil-society
+  members nor collects ratings.
+- The public outreach API detects gaps, suggests public support organizations,
+  matches consented address-hash/topic profiles, drafts campaigns, and vets
+  manually forwarded observations. It cannot send mail because it stores no
+  raw recipient addresses. A curator needs a separately owned, consented
+  address book to resolve profile hashes. The SMTP/IMAP and Hermes-mail architecture in
+  [`deployment/oracle_email_solicitation.md`](deployment/oracle_email_solicitation.md)
+  is explicitly a future reference design.
+- The human-validation packet contains 364 items across 182 strata and has
+  zero qualified independent human ratings. Automated rubric scores and
+  LLM-judge outputs are not human input and do not establish agreement or field
+  effectiveness.
+- Broad local/hosted Ollama work is deferred. The rich harness supports a
   non-mutating `--plan` and a startup ceiling through
   `--max-planned-model-calls` / `DUECARE_MAX_PLANNED_MODEL_CALLS`.
+- A later owner-authorized Kimi K3 access check on 2026-07-28 used the verified
+  Ollama catalog ID `kimi-k3` and a five-attempt, 20,000-input-token,
+  3,840-output-token, US$0.25 ledger cap. All five requests reached Ollama but
+  returned HTTP 402 because the account had no extra-usage balance. The local
+  receipt records zero successes, provider tokens, and actual cost. These are
+  access failures, not Kimi results; the proposed 500-prompt lane was not run.
+  Its frozen no-call plan selects 500 public synthetic prompts across 117
+  categories (seed `20260728`, selection SHA-256
+  `9d4aedf042f5f9d73e8372a8f1bf5538190d9791dbc692c38ca720aed1bc48eb`),
+  reserves 158,922 estimated input and 384,000 maximum output tokens, and has a
+  US$6.2368 worst-case reservation at the checked rates. It would create local
+  deterministic grades, not hosted-judge or human ratings.
 - Calls entering the primary `llm_generate.py` router now also pass through a
   shared SQLite attempt/token/cash ledger. Offline tests prove zero-call mode
   blocks before HTTP transport and that retries consume separate reservations.
-  This does not yet intercept direct package/application/standalone clients or
-  self-contained Kaggle kernels; the exact contract is
+  The baseline model-failure study caller is also covered after the Kimi access
+  check. This does not yet intercept every other direct package/application/
+  standalone client or self-contained Kaggle kernel; the exact contract is
   [`PROVIDER_BUDGETING.md`](PROVIDER_BUDGETING.md).
 - All three scheduled model-call wrappers now fail closed unless the shared router has
   a positive attempt cap, finite input/output/cash caps, a stable run ID, and

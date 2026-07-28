@@ -189,6 +189,12 @@ finite attempt/token/cash ceilings, content-addressed caches, exact prompt and
 rubric hashes, and a stop-on-error policy. Stage multimodal comparisons
 separately.
 
+The later 2026-07-28 Kimi K3 access check reached Ollama with the verified
+`kimi-k3` ID, but all five budgeted attempts returned HTTP 402 for empty extra
+usage. It produced zero completions, provider tokens, or actual ledger cost.
+Treat the model lane as access-blocked, not tested, and do not retry or expand
+to 500 prompts without a newly funded, owner-authorized finite run.
+
 ## Dataset And Evaluation Boundary
 
 The strongest next dataset work is curation, not raw row-count growth:

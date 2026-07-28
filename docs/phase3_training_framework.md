@@ -74,8 +74,10 @@ grows the benchmark. Both are resumable, propose-only into gitignored stores, an
 merge/promote step.
 
 ### 4. Community engagement
-- The outreach **email oracle** (`apps/duecare-ai.com/app/outreach.py`) already solicits
-  *knowledge* from civil society. Extend it to solicit + vet **training materials**: real corrected
+- The outreach planning and intake loop (`apps/duecare-ai.com/app/outreach.py`)
+  already drafts questions and vets manually forwarded observations; it does
+  not send email. A future, separately owned delivery service could solicit
+  *knowledge* and, only with explicit consent, **training materials**: real corrected
   responses, case patterns, and legal citations from NGOs, labour lawyers, and regulators.
 - Loop: **contribution → anonymise → vet (subsystem 2) → credit → incorporate.** Contributors see
   their material's measured effect (benchmark lift) — a feedback loop that rewards participation.
@@ -93,7 +95,7 @@ merge/promote step.
 **Exists:** Unsloth fine-tuning (`duecare-llm-training`, A-00) + the seed-corpus SFT prep
 (`scripts/prepare_training_data.py` — the 204 manually graded worst→best responses), the 0–100
 benchmark + `panel.jsonl`,
-the discovery flywheel, the outreach oracle, the anonymiser, `citation_accuracy`,
+the discovery flywheel, the draft-only outreach/intake loop, the anonymiser, `citation_accuracy`,
 the KnowledgeObject taxonomy + envelopes.
 
 **New in Phase 3:** the **gap-driven training-data builder** (`panel.jsonl` → vetted SFT/DPO), the

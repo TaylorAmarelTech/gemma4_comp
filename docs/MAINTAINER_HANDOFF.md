@@ -336,6 +336,20 @@ Important boundaries:
 - Archived notebook-era surfaces are provenance. Active primary Kaggle surfaces
   are `01-duecare-exploration-workbench`, `02-live-demo`, and
   `A-00-omni-experiment-workbench`; `03` and `04` are optional benchmark lanes.
+- Container images package the runtime, public hub, and deployment examples;
+  they do not imply that Hermes or another agent autonomously contacts people.
+  Hermes, the server-automation vetter, the orchestrator, and the autonomous
+  engine are separate host-scheduled processes. All are cost-stopped, and Hermes is only a
+  propose-only synthetic research-discovery daemon.
+- The public outreach loop is planning plus intake: it detects gaps, suggests
+  public support organizations, matches consented hash/topic profiles, drafts
+  a campaign, and vets a manually forwarded observation. The hub stores no raw
+  addresses and cannot send. A curator must resolve hashes against a separately
+  owned, consented address book and use an organization-owned mailer;
+  the documented SMTP/IMAP and Hermes-mail adapter is a future reference design.
+- The validated 364-item, 182-stratum human-review packet has zero independent
+  ratings. Do not describe deterministic grades, LLM-judge results, opt-ins,
+  campaign drafts, or API observations as qualified human validation.
 
 ## Repository Map
 
@@ -399,7 +413,7 @@ Run the smallest applicable scope first, then widen only as needed:
 | Focused tests | `python -m pytest path/to/affected/tests -q` | Behavioral evidence for the edited area |
 | Package collection | `python -m pytest packages --collect-only -q` | Published package-test inventory remains discoverable |
 | Kaggle | `python scripts/validate_main_kaggle_kernels.py` and `py -3.12 scripts/validate_kaggle_page_sources.py` | Active kernel and generated-page contracts |
-| Provider budget | `python scripts/validate_provider_budget_coverage.py` | All four primary-router transports plus the adverse-media model transport remain inside atomic reservations; this makes no provider call |
+| Provider budget | `python scripts/validate_provider_budget_coverage.py` | All four primary-router transports plus the adverse-media and model-failure study transports remain inside atomic reservations; this makes no provider call |
 | External links | `python scripts/check_external_links.py --check --workers 24` | Network audit that separates confirmed 4xx breakage from transient, DNS, SSL, redirect, and bot-blocked hosts |
 | Full regression | `python -m pytest packages tests -q` | Broad local regression; report skips and warnings exactly |
 | Training | `python scripts/validate_publication_readiness.py --scope training` | Strict dataset/provenance release lane; nonzero is expected until its documented queue closes |
@@ -455,6 +469,23 @@ as required lanes. Reverify provider identifiers, access, context limits,
 modalities, and pricing immediately before spending. If a lane is unavailable,
 retain dated evidence of that constraint instead of silently substituting a
 different model.
+
+A later, separately authorized Kimi K3 access check on 2026-07-28 used the live
+Ollama catalog ID `kimi-k3`. Five transport attempts were protected by a
+five-attempt, 20,000-input-token, 3,840-output-token, US$0.25 budget. Ollama
+returned HTTP 402 for every attempt because the account's extra-usage balance
+was empty. The sanitized local receipt records zero successes, provider tokens,
+and actual ledger cost. This produced no model result and did not justify the
+proposed 500-prompt lane. Do not retry until the billing owner deliberately
+funds extra usage and authorizes a new run ID and limits.
+
+The no-call 500-prompt plan is already frozen: category-balanced seed
+`20260728`, 117 categories, selection SHA-256
+`9d4aedf042f5f9d73e8372a8f1bf5538190d9791dbc692c38ca720aed1bc48eb`,
+158,922 estimated input tokens, 384,000 maximum output tokens, and a US$6.2368
+worst-case reservation at the rates checked that day. It produces 500 Kimi
+answers plus local deterministic grades only—no hosted judge and no human
+rating. Recompute `--plan` and investigate any hash drift before funding it.
 
 ### Publish or release
 

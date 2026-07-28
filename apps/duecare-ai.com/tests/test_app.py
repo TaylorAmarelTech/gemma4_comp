@@ -381,6 +381,13 @@ def test_project_status_page_keeps_release_and_training_claims_separate(tmp_path
     assert "validated deferred-work register" in response.text
     assert "Kimi K3" in response.text
     assert "Meta Muse Spark 1.1" in response.text
+    assert "Containers serve software, not autonomous outreach" in response.text
+    assert "The hub plans; a curator contacts" in response.text
+    assert "364 review items, zero human ratings" in response.text
+    assert "it cannot send" in response.text
+    assert "HTTP 402" in response.text
+    assert "500 public synthetic prompts and 117 categories" in response.text
+    assert "deterministic grades, not human ratings" in response.text
 
 
 def test_stats_page_discloses_beta_data_and_uses_live_counters(tmp_path) -> None:

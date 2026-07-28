@@ -40,3 +40,17 @@ def test_unguarded_direct_model_transport_is_rejected(tmp_path: Path) -> None:
         "adverse-media direct client" in finding and "outside _provider_budget_attempt" in finding
         for finding in findings
     )
+
+
+def test_unguarded_model_failure_transport_is_rejected(tmp_path: Path) -> None:
+    client = tmp_path / "model_failure_study.py"
+    client.write_text(
+        "def call_chat():\n"
+        "    return urllib.request.urlopen('https://model.example')\n",
+        encoding="utf-8",
+    )
+    findings = coverage.validate(model_failure_client=client)
+    assert any(
+        "model-failure direct client" in finding and "outside attempt" in finding
+        for finding in findings
+    )

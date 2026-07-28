@@ -1644,6 +1644,9 @@ def create_app(*, data_dir: Path | None = None) -> FastAPI:
             "count": len(gaps),
             "n_subscribers": len(subs),
             "smtp_configured": outreach._smtp_configured(),
+            "delivery_mode": "draft_only",
+            "can_send": False,
+            "stores_recipient_addresses": False,
             "gaps": [_asdict(g) for g in gaps],
         }
 
@@ -1652,8 +1655,8 @@ def create_app(*, data_dir: Path | None = None) -> FastAPI:
         """Draft a targeted solicitation campaign for one gap: pick opted-in
         subscribers whose topics match, draft the email via the automation
         engine, and record an audit row. Campaigns are draft-only — the hub
-        stores no raw addresses; a curator exports the draft to their own
-        mailer."""
+        stores no raw addresses; a curator needs a separately owned, consented
+        address book to resolve hashes before using their own mailer."""
         from dataclasses import asdict as _asdict
         from datetime import UTC as _UTC
         from datetime import datetime as _dt

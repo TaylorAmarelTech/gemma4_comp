@@ -95,6 +95,22 @@ def test_load_prompts_skips_malformed_and_incomplete_jsonl_rows(tmp_path, monkey
     assert prompts[2]["ambiguous_term"] == ""
 
 
+def test_category_balanced_selection_is_deterministic_and_covers_categories():
+    prompts = [
+        {"id": f"major-{i}", "text": f"major {i}", "category": "major"}
+        for i in range(20)
+    ] + [
+        {"id": "minor-a", "text": "minor a", "category": "minor-a"},
+        {"id": "minor-b", "text": "minor b", "category": "minor-b"},
+    ]
+
+    first = mfs._select_prompts(prompts, limit=3, mode="category-balanced", seed=17)
+    second = mfs._select_prompts(prompts, limit=3, mode="category-balanced", seed=17)
+
+    assert [row["id"] for row in first] == [row["id"] for row in second]
+    assert {row["category"] for row in first} == {"major", "minor-a", "minor-b"}
+
+
 def test_done_pairs_skips_non_string_resume_keys(tmp_path):
     out = tmp_path / "results.jsonl"
     out.write_text(
@@ -199,3 +215,77 @@ def test_main_missing_key_redacts_untrusted_key_env(capsys):
     printed = capsys.readouterr().err
     assert "ERROR: redacted not set" in printed
     assert "worker@example.com" not in printed
+
+
+def test_call_chat_zero_budget_blocks_before_transport(tmp_path, monkeypatch):
+    called = False
+
+    def forbidden_transport(*_args, **_kwargs):
+        nonlocal called
+        called = True
+        raise AssertionError("transport must stay blocked")
+
+    monkeypatch.setenv("DUECARE_MAX_PLANNED_MODEL_CALLS", "0")
+    monkeypatch.setenv("DUECARE_PROVIDER_BUDGET_FILE", str(tmp_path / "budget.sqlite3"))
+    monkeypatch.setenv("DUECARE_PROVIDER_BUDGET_RECEIPT", str(tmp_path / "receipt.json"))
+    monkeypatch.setattr(mfs.urllib.request, "urlopen", forbidden_transport)
+    mfs.provider_budget.reset_environment_ledger_for_tests()
+    try:
+        result = mfs.call_chat(
+            "kimi-k3",
+            "public synthetic prompt",
+            api_key="not-a-real-key",
+            max_tokens=32,
+            url="https://ollama.com/v1/chat/completions",
+        )
+    finally:
+        mfs.provider_budget.reset_environment_ledger_for_tests()
+
+    assert result["ok"] is False
+    assert called is False
+    assert "BudgetExceededError" in result["error"]
+
+
+def test_plan_needs_no_key_and_makes_no_write(tmp_path, monkeypatch, capsys):
+    out = tmp_path / "results.jsonl"
+    monkeypatch.delenv("MISSING_PLAN_KEY", raising=False)
+    monkeypatch.setattr(mfs, "load_prompts", lambda **_kwargs: [{
+        "id": "public-1",
+        "text": "Public synthetic prompt",
+        "category": "synthetic",
+        "ambiguous_term": "",
+    }])
+
+    assert mfs.main([
+        "--models", "kimi-k3",
+        "--out", str(out),
+        "--key-env", "MISSING_PLAN_KEY",
+        "--plan",
+    ]) == 0
+
+    plan = json.loads(capsys.readouterr().out)
+    assert plan["planned_calls"] == 1
+    assert plan["selected_prompt_count"] == 1
+    assert len(plan["selection_sha256"]) == 64
+    assert not out.exists()
+
+
+def test_planned_call_ceiling_fails_before_key_or_write(tmp_path, monkeypatch, capsys):
+    out = tmp_path / "results.jsonl"
+    monkeypatch.delenv("MISSING_CEILING_KEY", raising=False)
+    monkeypatch.setattr(mfs, "load_prompts", lambda **_kwargs: [{
+        "id": "public-1",
+        "text": "Public synthetic prompt",
+        "category": "synthetic",
+        "ambiguous_term": "",
+    }])
+
+    assert mfs.main([
+        "--models", "kimi-k3",
+        "--out", str(out),
+        "--key-env", "MISSING_CEILING_KEY",
+        "--max-planned-model-calls", "0",
+    ]) == 2
+
+    assert "no writes or calls made" in capsys.readouterr().err
+    assert not out.exists()

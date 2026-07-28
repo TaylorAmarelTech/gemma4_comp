@@ -64,6 +64,9 @@ rather than inflate surface count:
    immutable model IDs, prompts, rubric, harness, decoding, and cash/token caps.
    Kimi K3 and Meta Muse Spark 1.1 are required comparison lanes; record an
    inaccessible provider lane rather than silently substituting another model.
+   A five-attempt Kimi K3 access check on 2026-07-28 returned HTTP 402 with zero
+   completions or provider-token usage, so Kimi remains unavailable until the
+   billing owner deliberately funds extra usage; the 500-prompt run did not start.
 4. Continue the isolated per-dimension lane only from its resumable coverage
    receipt; never merge its incomplete metrics into the default board.
 5. Version datasets append-only. Preserve source rights, checksums, lineage

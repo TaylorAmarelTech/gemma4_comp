@@ -1,11 +1,12 @@
-"""Civil-society outreach orchestration (the "email oracle", wired up).
+"""Civil-society outreach planning and observation intake.
 
 The building blocks already existed (``automation.compose_outbound_request``
 to draft a solicitation, ``automation.vet_inbound_email`` to vet a reply,
 ``/api/newsletter/subscribe`` to collect opted-in contacts). This module is
-the missing orchestration that makes the hub *actually run outreach*:
+the orchestration that makes an outreach cycle reviewable without pretending
+that the public hub owns a mail-delivery system:
 
-    detect context gaps  ->  draft a targeted campaign  ->  (send / queue)
+    detect context gaps  ->  draft a targeted campaign  ->  curator dispatch
         ->  ingest observations from replies  ->  prioritize context
         ->  surface candidate ranking/rubric dimensions
 
@@ -15,9 +16,10 @@ Design goals:
     rest of the hub).
   * Honest about sending: campaigns are DRAFT-ONLY. The hub never holds raw
     recipient addresses (subscribe persists sha256 + topics + org only), so
-    there is nothing to send to from here by construction — a curator exports
-    the draft to their own mailer. Collection (subscribe) and intake (inbound
-    webhook) work regardless.
+    there is nothing to send to from here by construction. A curator can use
+    the draft only with a separately owned, consented address book that can
+    resolve the hashes. Collection (subscribe) and intake (inbound webhook)
+    work regardless.
   * Privacy: subscriber emails are stored as sha256 only. Observation replies
     pass the same PII gate as the website form before becoming context
     signals, and rejected replies never surface facts publicly.
@@ -26,7 +28,6 @@ from __future__ import annotations
 
 import hashlib
 import json
-import os
 import re
 from dataclasses import dataclass, asdict
 from pathlib import Path
@@ -263,7 +264,7 @@ def gap_by_id(data_dir: Path, gap_id: str) -> Optional[ContextGap]:
 
 
 # --------------------------------------------------------------------------
-# Campaign drafting (targets opted-in subscribers; sends only if configured).
+# Campaign drafting (targets opted-in subscriber profiles; never sends).
 # --------------------------------------------------------------------------
 
 @dataclass(slots=True)
@@ -276,14 +277,20 @@ class Campaign:
     n_recipients: int
     recipient_topics: list[str]
     send_status: str         # always "drafted" — the hub stores no raw
-                             # addresses; a curator exports the draft to
-                             # their own mailer
+                             # addresses; delivery needs a separately owned,
+                             # consented address book and mailer
     model: str
     ts: str = ""
 
 
 def _smtp_configured() -> bool:
-    return bool(os.environ.get("DUECARE_SMTP_HOST") and os.environ.get("DUECARE_SMTP_FROM"))
+    """Compatibility field for older API clients; delivery is not implemented.
+
+    The hub deliberately stores only address hashes, so SMTP environment
+    variables cannot make this process capable of sending.  Keep the legacy
+    field false and expose the explicit delivery capability in the API.
+    """
+    return False
 
 
 def _norm(text: str) -> str:
@@ -351,7 +358,8 @@ def draft_campaign(data_dir: Path, gap: ContextGap, subscribers: list[dict[str, 
         recipient_topics=sorted({t for s in recipients for t in (s.get("topics") or [])})[:12],
         # Always "drafted": the hub stores subscriber emails as sha256 only,
         # so there is no address to send to from here by construction. A
-        # curator exports the draft to their own mailer. (The old behaviour
+        # curator must resolve hashes against their separately owned consented
+        # address book and use their own mailer. (The old behaviour
         # claimed "queued" when DUECARE_SMTP was set, but no send
         # implementation existed — a real-not-faked violation.)
         send_status="drafted",
