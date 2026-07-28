@@ -43,17 +43,17 @@ python scripts/validate_publication_readiness.py --scope core
 
 ## Near-Term Maintenance
 
-Two local tasks are safe to pick up without model credits or external writes:
+One registered local task is safe to pick up without model credits or external
+writes:
 
-1. Extend shared attempt/token/cash enforcement to direct provider clients,
-   one caller at a time, with fail-closed tests.
-2. Remove legacy Ruff debt in behavior-preserving slices, never by weakening
+1. Remove legacy Ruff debt in behavior-preserving slices, never by weakening
    the configured rule set.
 
-The exact work IDs are `direct-client-budget-migration` and
-`legacy-ruff-cleanup` in [`DEFERRED_WORK.md`](DEFERRED_WORK.md). A maintainer
-should finish each as its own reviewable change and retain the acceptance
-evidence named there.
+The exact work ID is `legacy-ruff-cleanup` in
+[`DEFERRED_WORK.md`](DEFERRED_WORK.md). The first direct-client budget migration
+is complete for the adverse-media verifier; other callers remain future bounded
+migrations under the exact coverage statement in
+[`PROVIDER_BUDGETING.md`](PROVIDER_BUDGETING.md).
 
 ## Evidence And Dataset Priorities
 

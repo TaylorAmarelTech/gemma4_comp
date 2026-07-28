@@ -338,7 +338,7 @@ Run the smallest applicable scope first, then widen only as needed:
 | Focused tests | `python -m pytest path/to/affected/tests -q` | Behavioral evidence for the edited area |
 | Package collection | `python -m pytest packages --collect-only -q` | Published package-test inventory remains discoverable |
 | Kaggle | `python scripts/validate_main_kaggle_kernels.py` and `py -3.12 scripts/validate_kaggle_page_sources.py` | Active kernel and generated-page contracts |
-| Provider budget | `python scripts/validate_provider_budget_coverage.py` | All four primary-router HTTP transports remain inside atomic reservations; this makes no provider call |
+| Provider budget | `python scripts/validate_provider_budget_coverage.py` | All four primary-router transports plus the adverse-media model transport remain inside atomic reservations; this makes no provider call |
 | External links | `python scripts/check_external_links.py --check --workers 24` | Network audit that separates confirmed 4xx breakage from transient, DNS, SSL, redirect, and bot-blocked hosts |
 | Full regression | `python -m pytest packages tests -q` | Broad local regression; report skips and warnings exactly |
 | Training | `python scripts/validate_publication_readiness.py --scope training` | Strict dataset/provenance release lane; nonzero is expected until its documented queue closes |
