@@ -23,6 +23,16 @@ def _sha(text: str) -> str:
     return hashlib.sha256(text.encode("utf-8")).hexdigest()
 
 
+def _canonical_json_sha(document: object) -> str:
+    canonical = json.dumps(
+        document,
+        ensure_ascii=False,
+        sort_keys=True,
+        separators=(",", ":"),
+    )
+    return _sha(canonical)
+
+
 def test_smoke_manifest_is_bound_to_real_prompt_and_full_harness() -> None:
     manifest = json.loads(MANIFEST.read_text(encoding="utf-8"))
     prompt_path = ROOT / manifest["selection"]["prompt_set"]
@@ -44,8 +54,8 @@ def test_smoke_manifest_is_bound_to_real_prompt_and_full_harness() -> None:
     )
     harnessed_input = ground["preamble"] + "\n\n---\n\n" + prompt["text"]
 
-    assert hashlib.sha256(prompt_path.read_bytes()).hexdigest() == (
-        manifest["selection"]["prompt_set_sha256"]
+    assert _canonical_json_sha(prompt_doc) == (
+        manifest["selection"]["prompt_set_canonical_sha256"]
     )
     assert _sha(prompt["text"]) == manifest["selection"]["prompt_text_sha256"]
     assert _sha(ground["preamble"]) == manifest["full_harness_context"]["preamble_sha256"]

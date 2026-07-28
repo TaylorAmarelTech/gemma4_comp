@@ -18,7 +18,7 @@
   },
   "selection": {
     "prompt_set": "configs/duecare/benchmarks/harness_lift_prompts_100.json",
-    "prompt_set_sha256": "39afdbfa913a6030e9b4b826c44bb7f42b02c51d35bfba282981089050bf5888",
+    "prompt_set_canonical_sha256": "89ab574ff6507bdba5c1099e564ad3d94e67a0ef3b151dc5a7c76b04f6913bef",
     "prompt_id": "TC-69A537DA6B47",
     "prompt_category": "adversarial",
     "prompt_difficulty": "hard",
