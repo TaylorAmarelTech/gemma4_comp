@@ -154,7 +154,7 @@ summary below is directional only; the register controls status and acceptance.
    corridor workbook before making a new fine-tuning or adapter-improvement
    claim.
 4. When model quota is intentionally reopened, freeze and plan a small run,
-   configure the primary-router ledger with finite attempt/input/output/cash
+   configure the covered-call ledger with finite attempt/input/output/cash
    caps and reviewed pricing, then deliberately resume the whole stack or only
    the required caller and preserve checkpoint/resume state.
 5. Attach exact report, activity, prompt/response, training-metadata, chart,

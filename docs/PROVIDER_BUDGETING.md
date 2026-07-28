@@ -1,9 +1,10 @@
 # Provider Budgeting
 
-DueCare has a shared, fail-closed budget ledger for every network attempt that
-enters the primary generation router in `scripts/llm_generate.py`. The ledger
-was added and tested offline on 2026-07-27; it did not make an Ollama, Kaggle,
-or hosted-provider call.
+DueCare has a shared, fail-closed budget ledger for every model-network attempt
+that enters the primary generation router in `scripts/llm_generate.py` and the
+optional OpenAI-compatible classifier in `scripts/adverse_media.py`. The ledger
+and this first direct-client migration were tested offline through 2026-07-28;
+they did not make an Ollama, Kaggle, or hosted-provider call.
 
 ## What The Ledger Enforces
 
@@ -27,7 +28,7 @@ keys, URLs, model IDs, or raw error messages. The SQLite file is authoritative;
 the JSON receipt is a sanitized convenience export. Both default below ignored
 `reports/provider_budget/`.
 
-## Keep All Primary-Router Calls At Zero
+## Keep All Covered Calls At Zero
 
 For deterministic maintenance:
 
@@ -38,8 +39,9 @@ python scripts/validate_provider_budget_coverage.py
 ```
 
 The zero-call value activates transport enforcement, not merely planning. The
-offline integration test asserts that `ollama_chat()` raises before
-`_http_post_json()` is invoked.
+offline integration tests assert that `ollama_chat()` raises before
+`_http_post_json()` and that the adverse-media classifier raises before
+`urlopen()`.
 
 For the stronger Windows host-level stopping posture, also stop and inspect the
 whole model/flywheel stack:
@@ -105,6 +107,12 @@ required finite limit, and other compatible endpoints reserve
 `DUECARE_DEFAULT_RESERVED_OUTPUT_TOKENS` (default 4096). A funded study should
 still set a model-appropriate positive `max_tokens` explicitly.
 
+The adverse-media classifier always sends and reserves a finite output cap from
+`DUECARE_ADVERSE_MEDIA_MAX_OUTPUT_TOKENS` (default 512). Its short JSON verdicts
+normally need much less; lower the cap only in a reviewed run manifest. Pricing
+entries use the stable provider label `adverse-media-openai-compatible` plus
+the exact configured model ID.
+
 ## Frontier Comparison Watchlist
 
 The first approved frozen smoke matrix should treat these as required candidate
@@ -139,36 +147,42 @@ finite run-ledger requirements above remain in force.
 | Surface | State | Operator rule |
 |---|---|---|
 | `llm_generate.py` Ollama Cloud, NVIDIA, Anthropic, and registered OpenAI-compatible transports | Enforced | One shared run budget covers every attempt, retry, key rotation, and re-question that reaches this router. |
+| `adverse_media.py` optional OpenAI-compatible verification classifier | Enforced | One reservation precedes its direct `urlopen()` transport; every manual retry consumes another reservation, and the request has a finite output cap. Keyless GDELT, Google News, and OpenSanctions retrieval are data-source calls, not model calls, and remain outside model-token accounting. |
 | Autonomous-engine, discovery, and server-automation PowerShell model-call entry points | Enforced at startup and transport | Refuse launch without the finite shared budget; keep all watchdogs and sentinels cost-stopped during maintenance. |
 | Rich-harness and judge paths that call `provider_chat()` or `resilient_chat()` | Enforced through the router | Keep the existing logical `--plan` ceiling too; planning and transport receipts answer different questions. |
 | Self-contained Kaggle kernels, including active 01/A-00 and optional 03 | Not connected to the local SQLite ledger | Offline validation needs no secrets. For a live notebook run, use that notebook's explicit sample/call limits and inspect its export before claiming completion. |
 | Package/application model adapters and standalone scripts that issue their own HTTP requests | Not yet universal | Remove or withhold credentials during maintenance; migrate the caller to this ledger contract before a funded broad run. This includes the optional website automation provider path. |
 | Local deterministic inference without a metered provider | Outside cash accounting | Preserve its own timeout, context, and resource limits. |
 
-The static coverage validator deliberately makes the first row exact: it parses
-the router and fails if any of its four HTTP transports moves outside a budget
-context. It does not claim to scan or intercept every independent HTTP client in
-the repository.
+The static coverage validator deliberately makes the first two model-call rows
+exact: it parses the router and fails if any of its four HTTP transports moves
+outside `_budget_attempt`, then checks the one direct adverse-media model
+transport against `_provider_budget_attempt`. It does not claim to scan or
+intercept every independent HTTP client in the repository.
 
 ## Verification
 
 ```powershell
 python scripts/validate_provider_budget_coverage.py
 python -m pytest tests/test_provider_budget.py `
+  tests/test_adverse_media_budget.py `
+  tests/test_adverse_media.py `
   tests/test_validate_provider_budget_coverage.py `
   tests/test_llm_generate_retry.py `
   tests/test_stop_ollama_stack.py -q
 ```
 
-The contract tests cover zero-transport denial, concurrent atomic reservation,
-frozen policies, pricing lookup, token/cash caps, sanitized receipts, exact and
-estimated usage, failed-attempt retention, and retry accounting.
+The contract tests cover zero-transport denial for both covered call paths,
+concurrent atomic reservation, frozen policies, pricing lookup, token/cash
+caps, sanitized receipts, exact and estimated usage, failed-attempt retention,
+and retry accounting.
 
 ## Next Transport Work
 
-The next maintainer should migrate the remaining direct standalone research
-clients first, then decide how package and application adapters should accept
-an injectable ledger. Notebook runtimes need a portable equivalent because
-Kaggle cannot share the local SQLite file. Keep those migrations separate from
-benchmark result lanes, and do not describe the current primary-router guard as
-a repository-wide network interceptor.
+The adverse-media verifier is the first direct standalone research client to
+complete this migration. The next maintainer should inventory and migrate one
+remaining direct caller per reviewable change, then decide how package and
+application adapters should accept an injectable ledger. Notebook runtimes need
+a portable equivalent because Kaggle cannot share the local SQLite file. Keep
+those migrations separate from benchmark result lanes, and do not describe the
+current two-surface guard as a repository-wide network interceptor.

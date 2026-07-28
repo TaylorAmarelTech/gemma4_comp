@@ -63,7 +63,7 @@ explicitly asks to restore them.
 > - **Canonical unfinished work:** `docs/DEFERRED_WORK.md` is generated from a
 >   validated JSON registry. It distinguishes model-free local maintenance from
 >   private-access, human-review, owner-decision, recurring, and budget-gated
->   work and supplies exact acceptance evidence for all 13 items.
+>   work and supplies exact acceptance evidence for all 12 items.
 > - **Succession is now an explicit 30-day workstream.** Use
 >   `docs/MAINTAINER_HANDOFF.md` for operational pickup and
 >   `docs/PROJECT_TRANSITION_PLAN.md` for the 2026-08-25 target. The read-only
@@ -71,14 +71,14 @@ explicitly asks to restore them.
 >   privacy checks with live pickup consistency. It passed 2/2 gates on
 >   2026-07-27 (17/17 succession checks and the 65-check pickup validator with
 >   zero findings); it never authorizes model calls or engine resume.
-> - **The primary generation router now enforces a shared provider budget.**
+> - **Five exact model transports now enforce a shared provider budget.**
 >   `scripts/provider_budget.py` reserves attempt, input-token, output-token,
 >   and reviewed cash allowance atomically before each of the four
->   `llm_generate.py` transports. Offline tests prove zero-call denial occurs
->   before HTTP and retries consume new reservations. This is not a universal
->   interceptor for package/application adapters, standalone direct clients, or
->   self-contained Kaggle kernels; use `docs/PROVIDER_BUDGETING.md` for the
->   exact boundary.
+>   `llm_generate.py` transports and the optional adverse-media model verifier.
+>   Offline tests prove zero-call denial occurs before HTTP and retries consume
+>   new reservations. This is not a universal interceptor for other standalone
+>   clients, package/application adapters, or self-contained Kaggle kernels;
+>   use `docs/PROVIDER_BUDGETING.md` for the exact boundary.
 > - **Public release surfaces were reconciled live on 2026-07-27.** Active
 >   Kaggle 01 is `COMPLETE`; 02 and A-00 are `CANCEL_ACKNOWLEDGED`; optional 04
 >   is `COMPLETE`; optional 03 has no verified public URL. All 18 Python

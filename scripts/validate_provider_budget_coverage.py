@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Verify that every primary-router HTTP attempt has an enclosing reservation."""
+"""Verify the exact provider transports covered by the shared budget ledger."""
 
 from __future__ import annotations
 
@@ -10,12 +10,14 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 ROUTER = ROOT / "scripts" / "llm_generate.py"
-EXPECTED_FUNCTIONS = {
+DIRECT_CLIENT = ROOT / "scripts" / "adverse_media.py"
+PRIMARY_FUNCTIONS = {
     "ollama_chat",
     "nvidia_chat",
     "openai_compatible_chat",
     "anthropic_chat",
 }
+DIRECT_FUNCTIONS = {"_adverse_media_model_completion"}
 
 
 @dataclass(frozen=True)
@@ -36,7 +38,16 @@ def _call_name(node: ast.AST) -> str | None:
 
 
 class CoverageVisitor(ast.NodeVisitor):
-    def __init__(self) -> None:
+    def __init__(
+        self,
+        *,
+        transport_name: str,
+        guard_name: str,
+        included_functions: set[str] | None = None,
+    ) -> None:
+        self.transport_name = transport_name
+        self.guard_name = guard_name
+        self.included_functions = included_functions
         self.function_stack: list[str] = []
         self.reservation_depth = 0
         self.calls: list[TransportCall] = []
@@ -50,7 +61,7 @@ class CoverageVisitor(ast.NodeVisitor):
         self.visit_FunctionDef(node)  # type: ignore[arg-type]
 
     def visit_With(self, node: ast.With) -> None:
-        guarded = any(_call_name(item.context_expr) == "_budget_attempt" for item in node.items)
+        guarded = any(_call_name(item.context_expr) == self.guard_name for item in node.items)
         if guarded:
             self.reservation_depth += 1
         for item in node.items:
@@ -63,52 +74,88 @@ class CoverageVisitor(ast.NodeVisitor):
             self.reservation_depth -= 1
 
     def visit_Call(self, node: ast.Call) -> None:
-        if _call_name(node) == "_http_post_json":
-            function = self.function_stack[-1] if self.function_stack else "<module>"
-            self.calls.append(
-                TransportCall(function, node.lineno, self.reservation_depth > 0)
-            )
+        function = self.function_stack[-1] if self.function_stack else "<module>"
+        included = self.included_functions is None or function in self.included_functions
+        if _call_name(node) == self.transport_name and included:
+            self.calls.append(TransportCall(function, node.lineno, self.reservation_depth > 0))
         self.generic_visit(node)
 
 
-def validate(path: Path = ROUTER) -> list[str]:
+def _validate_surface(
+    path: Path,
+    *,
+    label: str,
+    transport_name: str,
+    guard_name: str,
+    expected_functions: set[str],
+    included_functions: set[str] | None = None,
+) -> list[str]:
     try:
         tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
     except (OSError, SyntaxError) as exc:
-        return [f"router cannot be parsed: {type(exc).__name__}"]
-    visitor = CoverageVisitor()
+        return [f"{label} cannot be parsed: {type(exc).__name__}"]
+    visitor = CoverageVisitor(
+        transport_name=transport_name,
+        guard_name=guard_name,
+        included_functions=included_functions,
+    )
     visitor.visit(tree)
     findings = [
-        f"line {call.line}: {call.function} transport is outside _budget_attempt"
+        f"{label} line {call.line}: {call.function} transport is outside {guard_name}"
         for call in visitor.calls
         if not call.reserved
     ]
     observed_functions = {call.function for call in visitor.calls}
-    missing = sorted(EXPECTED_FUNCTIONS - observed_functions)
-    extra = sorted(observed_functions - EXPECTED_FUNCTIONS)
+    missing = sorted(expected_functions - observed_functions)
+    extra = sorted(observed_functions - expected_functions)
     if missing:
-        findings.append("missing primary transport functions: " + ", ".join(missing))
+        findings.append(f"{label} missing transport functions: " + ", ".join(missing))
     if extra:
-        findings.append("unexpected primary transport functions: " + ", ".join(extra))
-    if len(visitor.calls) != len(EXPECTED_FUNCTIONS):
+        findings.append(f"{label} unexpected transport functions: " + ", ".join(extra))
+    if len(visitor.calls) != len(expected_functions):
         findings.append(
-            f"expected {len(EXPECTED_FUNCTIONS)} transports, observed {len(visitor.calls)}"
+            f"{label} expected {len(expected_functions)} transports, observed {len(visitor.calls)}"
         )
+    return findings
+
+
+def validate(
+    path: Path = ROUTER,
+    direct_client: Path = DIRECT_CLIENT,
+) -> list[str]:
+    findings = _validate_surface(
+        path,
+        label="primary router",
+        transport_name="_http_post_json",
+        guard_name="_budget_attempt",
+        expected_functions=PRIMARY_FUNCTIONS,
+    )
+    findings.extend(
+        _validate_surface(
+            direct_client,
+            label="adverse-media direct client",
+            transport_name="urlopen",
+            guard_name="_provider_budget_attempt",
+            expected_functions=DIRECT_FUNCTIONS,
+            included_functions=DIRECT_FUNCTIONS,
+        )
+    )
     return findings
 
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--router", type=Path, default=ROUTER)
+    parser.add_argument("--direct-client", type=Path, default=DIRECT_CLIENT)
     args = parser.parse_args(argv)
-    findings = validate(args.router)
+    findings = validate(args.router, args.direct_client)
     if findings:
         for finding in findings:
             print(f"[provider-budget-coverage] FAIL: {finding}")
         return 1
     print(
-        "[provider-budget-coverage] PASS: four primary transports are "
-        "reservation-wrapped"
+        "[provider-budget-coverage] PASS: four primary-router transports and "
+        "one adverse-media model transport are reservation-wrapped"
     )
     return 0
 

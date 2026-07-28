@@ -1,6 +1,6 @@
 {
   "schema_version": "duecare.deferred-work.v1",
-  "as_of": "2026-07-27",
+  "as_of": "2026-07-28",
   "maintenance_posture": "Core source, documentation, public deployments, and deterministic gates are maintained; model spending, new training claims, and registry publication remain separately authorized activities.",
   "policy": {
     "completion_rule": "An item may move to completed only after every acceptance gate has dated evidence.",
@@ -309,38 +309,6 @@
         "kaggle/_INDEX.md",
         "scripts/validate_main_kaggle_kernels.py",
         "scripts/validate_kaggle_page_sources.py"
-      ]
-    },
-    {
-      "id": "direct-client-budget-migration",
-      "title": "Extend budget enforcement beyond the primary router",
-      "priority": "P2",
-      "status": "ready_local",
-      "owner_role": "Maintainer",
-      "target": "One direct client per reviewable change before broad funded evaluation",
-      "reason": "The primary llm_generate.py router is enforced, while package adapters, application integrations, standalone scripts, and self-contained notebooks are not universally intercepted.",
-      "model_credit_policy": "zero_only",
-      "network_policy": "offline_only",
-      "depends_on": [],
-      "prerequisites": [
-        "An exact direct-call inventory with one selected caller and its public behavior contract",
-        "A fake or loopback transport test that proves denial before network access"
-      ],
-      "next_actions": [
-        "Select one direct client and route its attempt through the shared budget interface without changing unrelated providers.",
-        "Add tests for zero-call denial, retry reservation, unknown pricing, and sanitized receipts.",
-        "Run python scripts/validate_provider_budget_coverage.py and document the expanded but still exact coverage boundary."
-      ],
-      "acceptance_gates": [
-        "The selected caller cannot reach transport without an approved reservation.",
-        "Its tests pass with DUECARE_MAX_PLANNED_MODEL_CALLS set to zero and never require a live credential.",
-        "Public documentation names covered and uncovered clients without claiming universal interception."
-      ],
-      "evidence": [
-        "scripts/llm_generate.py",
-        "scripts/provider_budget.py",
-        "scripts/validate_provider_budget_coverage.py",
-        "docs/PROVIDER_BUDGETING.md"
       ]
     },
     {
