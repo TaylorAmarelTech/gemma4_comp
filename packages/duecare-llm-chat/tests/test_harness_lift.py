@@ -97,6 +97,34 @@ def test_preamble_folds_in_tool_results_when_tool_call_given():
     assert len(rich["preamble"]) > len(plain["preamble"])  # more context
 
 
+def test_preamble_supports_builtin_messages_list_tool_signature():
+    seen: list[list[dict]] = []
+
+    def messages_tool(messages):
+        # Mirror the real default_harness()["tools_call"] contract. A raw string
+        # is not a valid messages collection and should trigger the adapter's
+        # structured-message fallback.
+        if not isinstance(messages, list):
+            raise AttributeError("messages must be a list")
+        seen.append(messages)
+        return {"tool_calls": [{
+            "name": "lookup_ilo_indicator",
+            "args": {"scenario": "(message)"},
+            "result": {"matched_indicators": ["Document retention"]},
+        }]}
+
+    out = build_harness_preamble(
+        "The agency will keep my passport.",
+        grep_call=lambda _text, **_kw: {"hits": []},
+        tool_call=messages_tool,
+    )
+
+    assert seen[0][0]["role"] == "user"
+    assert seen[0][0]["content"][0]["text"] == "The agency will keep my passport."
+    assert out["tools_fired"] == ["lookup_ilo_indicator"]
+    assert "Document retention" in out["preamble"]
+
+
 def test_preamble_knobs_widen_grep_and_rag():
     def many_grep(text, **_kw):
         return {"hits": [{"rule": f"rule_{i}", "severity": "high", "citation": f"C{i}"} for i in range(20)]}

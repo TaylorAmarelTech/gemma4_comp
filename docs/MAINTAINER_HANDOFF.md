@@ -516,6 +516,16 @@ and actual ledger cost. This produced no model result and did not justify the
 proposed 500-prompt lane. Do not retry until the billing owner deliberately
 funds extra usage and authorizes a new run ID and limits.
 
+The follow-up paired smoke did not bypass that stop. It sent one exact public
+prompt through `kimi-k3:cloud` at baseline and with the full DueCare harness,
+under a separate two-attempt, 10,000-input-token, 3,000-output-token, US$0.10
+policy. Both attempts returned HTTP 402; zero provider tokens, actual cost,
+answers, grades, or lift were recorded. The exercise fixed the full-harness
+tool-call adapter so the intervention now verifiably includes GREP, eight RAG
+documents, four deterministic tools, and the reasoning contract. This is a
+funded-later next step, not a closeout blocker. The immutable handoff receipt is
+[`kimi_k3_harness_lift_smoke_20260728.json`](../configs/duecare/benchmarks/kimi_k3_harness_lift_smoke_20260728.json).
+
 The candidate portion of the no-call 500-prompt plan is already frozen:
 category-balanced seed
 `20260728`, 117 categories, selection SHA-256

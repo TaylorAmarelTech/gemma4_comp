@@ -78,3 +78,23 @@ def test_run_harness_lift_live_judge_builder_clean(monkeypatch):
     monkeypatch.setattr(live, "call_model", fake_call_model)
     live.judge(_PROMPT, _RESPONSE)
     _assert_clean(seen["text"])
+
+
+def test_run_harness_lift_live_ollama_uses_budgeted_router(monkeypatch):
+    os.environ.setdefault("OLLAMA_API_KEY", "x")
+    live = _load("run_harness_lift_live_budget", _ROOT / "scripts" / "run_harness_lift_live.py")
+    seen: dict[str, object] = {}
+
+    def fake_ollama_chat(prompt, **kwargs):
+        seen["prompt"] = prompt
+        seen.update(kwargs)
+        return "answer"
+
+    monkeypatch.setattr(live.llm_generate, "ollama_chat", fake_ollama_chat)
+    monkeypatch.setenv("LIFT_OLLAMA_RETRIES", "0")
+
+    assert live.call_ollama("kimi-k3:cloud", "public synthetic prompt") == "answer"
+    assert seen["model"] == "kimi-k3:cloud"
+    assert seen["temperature"] == 0.0
+    assert seen["max_retries"] == 0
+    assert int(seen["max_tokens"]) >= live._REASONING_FLOOR

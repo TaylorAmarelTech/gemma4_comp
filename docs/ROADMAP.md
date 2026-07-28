@@ -74,6 +74,10 @@ rather than inflate surface count:
    A five-attempt Kimi K3 access check on 2026-07-28 returned HTTP 402 with zero
    completions or provider-token usage, so Kimi remains unavailable until the
    billing owner deliberately funds extra usage; the 500-prompt run did not start.
+   A separate two-attempt baseline/full-harness smoke reached the same access
+   stop and produced no score, while fixing and testing the full-harness tool
+   adapter. Resume the exact hash-bound pair in
+   `kimi_k3_harness_lift_smoke_20260728.json` before any larger Kimi run.
 4. Continue the isolated per-dimension lane only from its resumable coverage
    receipt; never merge its incomplete metrics into the default board.
 5. Version datasets append-only. Preserve source rights, checksums, lineage

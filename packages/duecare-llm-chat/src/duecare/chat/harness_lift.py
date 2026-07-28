@@ -133,13 +133,11 @@ def _tool_calls(tool_call: Optional[Callable[..., Any]], text: str) -> list[dict
         return []
     try:
         out = tool_call(text)
-    except TypeError:
-        try:  # harness _tools_call takes a messages list, not raw text
+    except Exception:  # noqa: BLE001 -- raw-text and messages-list callables are both supported
+        try:  # the built-in harness _tools_call takes a messages list, not raw text
             out = tool_call([{"role": "user", "content": [{"type": "text", "text": text}]}])
         except Exception:  # noqa: BLE001
             return []
-    except Exception:  # noqa: BLE001
-        return []
     if isinstance(out, dict):
         out = out.get("tool_calls") or []
     return [c for c in (out or []) if isinstance(c, dict)]

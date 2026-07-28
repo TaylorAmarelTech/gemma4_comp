@@ -68,6 +68,14 @@ Ollama model but all five capped requests returned HTTP 402 for empty extra
 usage. It yielded zero completions, provider tokens, or actual ledger cost; the
 500-prompt study was not run and no Kimi quality claim exists.
 
+A later two-attempt baseline/full-harness smoke produced the same HTTP 402
+access outcome and no answers. It did close the local implementation gap: the
+full-harness adapter now sends structured messages to the deterministic tool
+layer, and the frozen intervention verifiably contains GREP, eight RAG
+documents, four tools, and the reasoning contract. Kimi testing remains a
+funded-later next step, not an open closeout action; see the
+[`paired receipt`](../configs/duecare/benchmarks/kimi_k3_harness_lift_smoke_20260728.json).
+
 The resolved owner ledger lives in [`USER_TODO.md`](USER_TODO.md).
 
 ## Active A-00 Evidence Run Targets

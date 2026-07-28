@@ -33,7 +33,10 @@ private transfer, training-data admission, or human study was performed.
 - [x] Kimi K3 and Meta Muse Spark 1.1 availability/pricing recorded. The
   closeout smoke was declined; a later separately authorized five-attempt Kimi
   K3 access check returned HTTP 402 with zero completions/tokens/actual ledger
-  cost, so the 500-prompt lane remains stopped.
+  cost. A later two-attempt baseline/full-harness Kimi smoke returned the same
+  access outcome, produced no quality score, and left an exact tested resume
+  receipt. Kimi execution is conditional funded work, not a current closeout
+  action, and the 500-prompt lane remains stopped.
   (`bounded-model-smoke`)
 - [x] Exhaustive per-dimension judging stopped as low-value partial experimental
   work and remains isolated from the default board. (`per-dimension-judging`)

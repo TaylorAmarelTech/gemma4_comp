@@ -139,6 +139,17 @@ snapshots, and older checklist/status docs are archived under
   `9d4aedf042f5f9d73e8372a8f1bf5538190d9791dbc692c38ca720aed1bc48eb`),
   reserves 158,922 estimated input and 384,000 maximum output tokens, and has a
   US$6.2368 worst-case reservation at the checked rates.
+- A subsequent paired Kimi K3 smoke used official tag `kimi-k3:cloud` on one
+  hash-bound public prompt, once baseline and once with the full DueCare
+  harness. The harness preflight now correctly includes deterministic tools;
+  this prompted a real adapter fix and regression test. One GREP rule, eight
+  RAG documents, and four tool calls were assembled, but both hosted calls
+  returned HTTP 402. The two-attempt receipt reserved 3,491 input tokens, 3,000
+  output tokens, and US$0.055473, with zero completions, provider tokens, or
+  actual cost. Therefore Kimi quality and Kimi-specific harness lift remain
+  unknown. This is a funded-later next step, not a closeout blocker. The exact
+  public receipt is
+  [`kimi_k3_harness_lift_smoke_20260728.json`](../configs/duecare/benchmarks/kimi_k3_harness_lift_smoke_20260728.json).
 - A subsequent frozen campaign now extends that candidate lane with a local
   deterministic grade on every successful answer, 500 cross-family
   `gemini-3.1-pro-preview` contextual judgments, and 500 separately labeled

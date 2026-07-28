@@ -9,11 +9,12 @@
     "self_judgments": 0,
     "human_ratings": 0,
     "blockers": [
-      "Ollama returned HTTP 402 on five bounded Kimi K3 access attempts because the account extra-usage balance was empty.",
+      "Ollama returned HTTP 402 on seven bounded Kimi K3 attempts across two receipts: five baseline-access probes and a two-arm full-harness paired smoke. The account extra-usage balance was empty.",
       "No GEMINI_API_KEY or equivalent Google Gemini credential is present in the local project environment.",
       "The configured OpenRouter credential previously returned HTTP 401 and is not an authorized fallback."
     ]
   },
+  "paired_smoke_manifest": "configs/duecare/benchmarks/kimi_k3_harness_lift_smoke_20260728.json",
   "selection": {
     "include_seeds": true,
     "mode": "category-balanced",

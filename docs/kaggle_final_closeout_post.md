@@ -87,14 +87,21 @@ That is a maximum of 1,500 hosted calls. The frozen worst-case reservation is
 7,296,582 estimated input tokens, 1,152,000 maximum output tokens, and
 US$34.448916 at the rates checked on 2026-07-28.
 
-This campaign has **not run**. Five earlier bounded Kimi access requests reached
-Ollama but returned HTTP 402 because the account had no extra-usage balance,
-and no Gemini API credential is present. Therefore there are zero Kimi
-candidate completions, zero Gemini judgments, zero Kimi self-judgments, and
-zero new human ratings. Access failures are not benchmark results. The exact
-manifest and no-call run instructions are public here:
+This campaign has **not run**. Five earlier bounded Kimi baseline-access
+requests and a later two-arm baseline/full-harness smoke reached Ollama but
+returned HTTP 402 because the account had no extra-usage balance, and no Gemini
+API credential is present. Therefore there are zero Kimi candidate
+completions, zero Gemini judgments, zero Kimi self-judgments, and zero new human
+ratings. Access failures are not benchmark results. The paired smoke did fix a
+real full-harness tool-call adapter bug and left an exact tested resume receipt;
+Kimi execution is now a funded-later next step rather than a vague or blocking
+closeout item. The run instructions are public here:
 
 https://tayloramareltech.github.io/gemma4_comp/research/model_failure_run_readiness/
+
+Paired smoke receipt:
+
+https://github.com/TaylorAmarelTech/gemma4_comp/blob/master/configs/duecare/benchmarks/kimi_k3_harness_lift_smoke_20260728.json
 
 The provider references used to freeze that plan are the official Kimi K3
 cloud catalog, Gemini 3.1 Pro Preview model documentation, and Gemini API

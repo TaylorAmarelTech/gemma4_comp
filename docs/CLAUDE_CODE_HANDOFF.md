@@ -214,6 +214,17 @@ usage. It produced zero completions, provider tokens, or actual ledger cost.
 Treat the model lane as access-blocked, not tested, and do not retry or expand
 to 500 prompts without a newly funded, owner-authorized finite run.
 
+A later two-attempt causal smoke also reached Ollama with official tag
+`kimi-k3:cloud`: the same exact prompt was sent at baseline and with the full
+DueCare GREP/RAG/tools/reasoning harness. Both returned HTTP 402, so no pair or
+score exists. The setup work did fix a genuine tool-call signature bug in the
+harness-lift adapter; the frozen intervention now contains one GREP rule, eight
+RAG documents, and four deterministic tools. Read
+[`kimi_k3_harness_lift_smoke_20260728.json`](../configs/duecare/benchmarks/kimi_k3_harness_lift_smoke_20260728.json)
+before resuming. Treat it as conditional funded work: use a new ledger/run ID,
+rerun only the exact pair first, and expand only after two non-empty
+completions.
+
 The exact 500-item extension is now frozen rather than left as a vague next
 step. It plans 500 Kimi baseline answers, local deterministic grades, 500
 Gemini 3.1 Pro cross-family contextual judgments, and 500 separately reported

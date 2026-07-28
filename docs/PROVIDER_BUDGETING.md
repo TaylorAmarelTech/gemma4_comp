@@ -185,6 +185,18 @@ It plans exactly 500 Kimi calls, reserves 158,922 estimated input tokens and
 the verified $3/M input and $15/M output rates. Every returned response would
 receive a local deterministic DueCare grade.
 
+A separate two-attempt paired smoke then exercised the actual baseline versus
+full-harness path with official model tag `kimi-k3:cloud`. Before transport,
+the full intervention deterministically assembled one GREP signal, eight RAG
+documents, four tool results, and the DueCare reasoning contract. Both arms
+returned HTTP 402 under a 10,000-input-token, 3,000-output-token, US$0.10
+policy. The receipt reserved 3,491 input tokens, 3,000 output tokens, and
+US$0.055473, but recorded zero provider tokens, zero actual cost, and zero
+completions. This validates the local pairing, harness construction, catalog,
+credential, and budget wiring—not Kimi response quality or harness lift. It is
+a funded-later next step, not a closeout blocker. See the frozen
+[`paired smoke manifest`](../configs/duecare/benchmarks/kimi_k3_harness_lift_smoke_20260728.json).
+
 ### Frozen contextual-judge extension
 
 The authoritative

@@ -73,3 +73,22 @@ def test_no_applicable_dims_is_not_marked_done(tmp_path):
     n = local.run(prompts, ["fake-a"], ckpt, pace=0.0, io=io_no_dims())
     assert n == 0
     assert not ckpt.exists() or ckpt.read_text(encoding="utf-8").strip() == ""
+
+
+def test_select_prompts_uses_exact_ids_and_rejects_drift():
+    prompts = [
+        {"id": "p1", "text": "one"},
+        {"id": "p2", "text": "two"},
+        {"id": "p3", "text": "three"},
+    ]
+
+    assert [row["id"] for row in local.select_prompts(
+        prompts, prompt_ids="p3,p1", limit=2
+    )] == ["p3", "p1"]
+
+    try:
+        local.select_prompts(prompts, prompt_ids="p3,missing")
+    except ValueError as exc:
+        assert "unknown LIFT_PROMPT_IDS: missing" in str(exc)
+    else:  # pragma: no cover - failure branch is the assertion
+        raise AssertionError("missing prompt ID did not fail closed")

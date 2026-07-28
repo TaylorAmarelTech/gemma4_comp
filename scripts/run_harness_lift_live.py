@@ -34,6 +34,11 @@ for _src in glob.glob(str(_ROOT / "packages" / "*" / "src")):
 from duecare.chat.harness import default_harness  # noqa: E402
 from duecare.chat.harness_lift import build_harness_preamble  # noqa: E402
 
+try:  # plain-script execution puts scripts/ on sys.path; tests import from repository root
+    import llm_generate  # noqa: E402
+except ModuleNotFoundError:  # pragma: no cover - exercised by import style, not behavior
+    from scripts import llm_generate  # type: ignore  # noqa: E402
+
 OLLAMA_KEY = os.environ["OLLAMA_API_KEY"]
 # Optional: only required when a gemini-* model is actually called. Reading it eagerly with []
 # crashed Ollama-only runs (e.g. gemma4:31b) that never touch Gemini -- so read it defensively
@@ -114,19 +119,19 @@ def _tokens_for(model: str) -> int:
 
 
 def call_ollama(model: str, prompt: str) -> str:
-    # Ollama Cloud is a SaaS (ollama.com), OpenAI-compatible endpoint. Reasoning
-    # models (e.g. gpt-oss) may put the answer in `content`, or leave `content`
-    # empty and emit `reasoning`/`reasoning_content`; fall back so we never score
-    # an empty string as a 0, and give them enough tokens (`_tokens_for`) to answer.
-    out = _post(
-        "https://ollama.com/v1/chat/completions",
-        {"model": model, "messages": [{"role": "user", "content": prompt}],
-         "stream": False, "temperature": 0.0, "max_tokens": _tokens_for(model)},
-        {"Authorization": f"Bearer {OLLAMA_KEY}"},
-    )
-    msg = out["choices"][0]["message"]
-    return (msg.get("content") or msg.get("reasoning")
-            or msg.get("reasoning_content") or "(empty)")
+    # Reuse the canonical Ollama-cloud transport so every attempt is reserved in
+    # the shared provider ledger before HTTP. A scientific A/B defaults to no
+    # implicit retry: a retry is another paid attempt and must be budgeted as
+    # such. LIFT_OLLAMA_RETRIES can opt into a finite reviewed retry count.
+    return llm_generate.ollama_chat(
+        prompt,
+        model=model,
+        max_tokens=_tokens_for(model),
+        temperature=0.0,
+        key=OLLAMA_KEY,
+        timeout=TIMEOUT,
+        max_retries=max(0, int(os.environ.get("LIFT_OLLAMA_RETRIES", "0"))),
+    ) or "(empty)"
 
 
 def call_gemini(model: str, prompt: str) -> str:

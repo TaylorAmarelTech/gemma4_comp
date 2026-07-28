@@ -11,8 +11,11 @@ cross-family, same-family, and eventually human review. It accompanies:
 - the frozen
   [`Kimi K3 500-item campaign`](../../configs/duecare/benchmarks/kimi_k3_500_context_judge_campaign.json).
 
-No current Kimi K3 or Gemini 3.1 result exists. The 2026-07-28 campaign is
-access-blocked and has zero completed hosted calls.
+No current Kimi K3 or Gemini 3.1 quality result exists. The 2026-07-28 campaign
+is access-blocked and has zero successful hosted completions. Seven bounded
+Kimi attempts across a baseline-access check and a separate paired
+baseline/full-harness smoke all returned HTTP 402; the paired receipt is
+[`kimi_k3_harness_lift_smoke_20260728.json`](../../configs/duecare/benchmarks/kimi_k3_harness_lift_smoke_20260728.json).
 
 ## Research questions
 
@@ -45,6 +48,12 @@ Kimi K3 receives each prompt with the neutral baseline system message,
 temperature zero, and no DueCare GREP, retrieval, tool, or persona context.
 This isolates baseline capability. Each successful response is stored with its
 prompt/model identity and receives the local deterministic grade immediately.
+
+The separate paired smoke is not part of this baseline campaign. It holds the
+model, original prompt, temperature, and output cap constant, then changes only
+the full DueCare GREP/RAG/tools/reasoning context. That instrument is the one
+that can estimate causal harness lift after provider access is funded. Its two
+HTTP 402 responses are access evidence, not zero-scored answers.
 
 The campaign reserves 500 Kimi calls, 158,922 estimated input tokens, and
 384,000 maximum output tokens. The answer cap is 768 tokens. The result runner

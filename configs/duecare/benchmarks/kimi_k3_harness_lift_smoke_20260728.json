@@ -1,0 +1,100 @@
+{
+  "schema": "duecare.kimi-k3-harness-lift-smoke.v1",
+  "run_id": "kimi-k3-harness-smoke-20260728a",
+  "executed_at": "2026-07-28T17:36:00Z",
+  "status": "blocked_external_access",
+  "purpose": "Paired causal smoke: the same Kimi K3 model and public synthetic prompt at baseline and with the full DueCare harness.",
+  "provider": {
+    "name": "ollama_cloud",
+    "requested_model": "kimi-k3:cloud",
+    "authenticated_catalog_model": "kimi-k3",
+    "catalog_check_succeeded": true,
+    "official_model_url": "https://ollama.com/library/kimi-k3",
+    "pricing_as_of": "2026-07-28",
+    "input_usd_per_million_tokens": 3.0,
+    "cached_input_usd_per_million_tokens": 0.3,
+    "output_usd_per_million_tokens": 15.0,
+    "access_contract": "Requires Pro or Max and consumes extra usage credits."
+  },
+  "selection": {
+    "prompt_set": "configs/duecare/benchmarks/harness_lift_prompts_100.json",
+    "prompt_set_sha256": "39afdbfa913a6030e9b4b826c44bb7f42b02c51d35bfba282981089050bf5888",
+    "prompt_id": "TC-69A537DA6B47",
+    "prompt_category": "adversarial",
+    "prompt_difficulty": "hard",
+    "prompt_text_sha256": "6bc4a6f1cc0a575bf724eaac3715af54d1f3dc47faa84c06f5d5447ff57f2752"
+  },
+  "controls": {
+    "arms": [
+      "baseline",
+      "harnessed_full"
+    ],
+    "temperature": 0.0,
+    "max_output_tokens_per_arm": 1500,
+    "implicit_retries": 0,
+    "same_model_and_original_prompt": true,
+    "grader": "duecare.chat.harness.grade_response_universal",
+    "grader_provider_calls": 0
+  },
+  "full_harness_context": {
+    "components": [
+      "GREP",
+      "RAG",
+      "deterministic_tools",
+      "reasoning_contract"
+    ],
+    "preamble_chars": 9855,
+    "preamble_sha256": "241b71e6dc49bb9977015a813fa3476d9344447c8cedb97b5fda9754584deb0e",
+    "harnessed_input_sha256": "7b5a91b39d45be253e8bbfd379ff281c16067b6ca9cbe7424ff6445bb4b4922c",
+    "grep_fired": [
+      "jailbreak_academic_research_framing"
+    ],
+    "rag_doc_ids": [
+      "fieldrisk_esoteric_madam_trauma_bonding",
+      "caselaw_rantsev_v_cyprus_russia_2010",
+      "fieldrisk_esoteric_juju_oath_nigeria",
+      "caselaw_hounga_v_allen_2014",
+      "coded_lang_probation_penalty_clause",
+      "caselaw_siliadin_v_france_2005",
+      "fee_law_saudi_arabia",
+      "evidence_debt_bondage_payment_records"
+    ],
+    "tools_fired": [
+      "lookup_corridor_fee_cap",
+      "lookup_ngo_intake",
+      "lookup_ilo_indicator",
+      "recommend_instruments"
+    ]
+  },
+  "budget_receipt": {
+    "max_attempts": 2,
+    "max_input_tokens": 10000,
+    "max_output_tokens": 3000,
+    "max_cost_usd": 0.1,
+    "reserved_attempts": 2,
+    "reserved_input_tokens": 3491,
+    "reserved_output_tokens": 3000,
+    "reserved_cost_usd": 0.055473,
+    "actual_input_tokens": 0,
+    "actual_output_tokens": 0,
+    "actual_cost_usd": 0.0,
+    "breached": false
+  },
+  "result": {
+    "baseline_status": "http_402_payment_or_quota",
+    "harnessed_status": "http_402_payment_or_quota",
+    "successful_completions": 0,
+    "deterministic_grades": 0,
+    "complete_pairs": 0,
+    "harness_lift": null,
+    "quality_conclusion": "No Kimi K3 or harness-lift quality conclusion is possible from access failures."
+  },
+  "privacy": {
+    "public_synthetic_prompt_only": true,
+    "contains_api_key": false,
+    "contains_prompt_text": false,
+    "contains_response_text": false,
+    "provider_receipt_is_sanitized": true
+  },
+  "reopen_condition": "Fund Ollama extra usage or enable auto reload, then rerun this exact pair with a new run ID and the same hashes and controls before expanding the sample."
+}

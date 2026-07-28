@@ -30,8 +30,12 @@ Usage (keys via env):
 Env knobs:
     LIFT_MODELS     comma list (default: gpt-oss:20b,gemma4:31b,gemini-3.5-flash)
     LIFT_N_PROMPTS  cap prompt count (default: all 100)
+    LIFT_PROMPT_IDS optional comma-separated exact prompt IDs; preserves the
+                    listed order and fails if any ID is absent
     LIFT_CKPT       checkpoint path (default: reports/harness_lift_local.jsonl)
     LIFT_PACE       seconds between generation calls (default: 1.0)
+    LIFT_HARNESS_MODE core (GREP+RAG, historical default) or full
+                      (GREP+RAG+deterministic tools and wider context)
 """
 from __future__ import annotations
 
@@ -62,10 +66,20 @@ def build_io() -> tuple[Callable[[str], str], Callable[[str, str], str],
 
     h = default_harness()
     grep_call, rag_call = h["grep_call"], h.get("rag_call")
+    harness_mode = os.environ.get("LIFT_HARNESS_MODE", "core").strip().lower()
+    if harness_mode not in {"core", "full"}:
+        raise ValueError("LIFT_HARNESS_MODE must be 'core' or 'full'")
 
     def build_preamble(text: str) -> str:
-        return build_harness_preamble(
-            text, grep_call=grep_call, rag_call=rag_call)["preamble"]
+        kwargs = {"grep_call": grep_call, "rag_call": rag_call}
+        if harness_mode == "full":
+            kwargs.update({
+                "tool_call": h.get("tools_call"),
+                "rag_top_k": 8,
+                "grep_top": 15,
+                "max_chars": 16000,
+            })
+        return build_harness_preamble(text, **kwargs)["preamble"]
 
     def generate(model: str, prompt: str) -> str:
         return (live.call_gemini(model, prompt) if model.startswith("gemini")
@@ -97,6 +111,31 @@ def load_responses(path: pathlib.Path | None) -> dict[str, str]:
         except Exception:
             continue
     return cache
+
+
+def select_prompts(
+    prompts: list[dict], *, prompt_ids: str = "", limit: int | None = None
+) -> list[dict]:
+    """Select a stable prompt slice for a paid run.
+
+    Explicit IDs are preferable for a publication or resume command because a
+    future reordering of the source file cannot silently change the paid input.
+    Prefix selection remains the historical default for existing workflows.
+    """
+    if limit is not None and limit < 0:
+        raise ValueError("LIFT_N_PROMPTS must be non-negative")
+    requested = [value.strip() for value in prompt_ids.split(",") if value.strip()]
+    if requested:
+        if len(requested) != len(set(requested)):
+            raise ValueError("LIFT_PROMPT_IDS must not contain duplicates")
+        by_id = {str(prompt.get("id")): prompt for prompt in prompts}
+        missing = [prompt_id for prompt_id in requested if prompt_id not in by_id]
+        if missing:
+            raise ValueError("unknown LIFT_PROMPT_IDS: " + ", ".join(missing))
+        selected = [by_id[prompt_id] for prompt_id in requested]
+    else:
+        selected = list(prompts)
+    return selected if limit is None else selected[:limit]
 
 
 def run(
@@ -217,7 +256,11 @@ def main() -> None:
     prompts_file = os.environ.get("LIFT_PROMPTS_FILE", "harness_lift_prompts_100.json")
     prompts = json.loads(
         (bench / prompts_file).read_text(encoding="utf-8"))["prompts"]
-    prompts = prompts[: int(os.environ.get("LIFT_N_PROMPTS", str(len(prompts))))]
+    prompts = select_prompts(
+        prompts,
+        prompt_ids=os.environ.get("LIFT_PROMPT_IDS", ""),
+        limit=int(os.environ.get("LIFT_N_PROMPTS", str(len(prompts)))),
+    )
     models = [m.strip() for m in os.environ.get(
         "LIFT_MODELS", "gpt-oss:20b,gemma4:31b,gemini-3.5-flash").split(",") if m.strip()]
     ckpt = _ROOT / os.environ.get("LIFT_CKPT", "reports/harness_lift_local.jsonl")
@@ -237,7 +280,9 @@ def main() -> None:
         judge = live.judge
         judge_ckpt = ckpt.with_name(ckpt.stem + "_judge.jsonl")
 
-    print(f"[harness-lift-local] prompts={len(prompts)} models={models} arms=2 | "
+    harness_mode = os.environ.get("LIFT_HARNESS_MODE", "core").strip().lower()
+    print(f"[harness-lift-local] prompts={len(prompts)} models={models} arms=2 "
+          f"harness={harness_mode} | "
           f"local per-dim grader (free)" + (f" + LLM judge={judge_model}" if judge else "")
           + f" | ckpt={ckpt} pace={pace}s", flush=True)
     n = run(prompts, models, ckpt, pace=pace, judge=judge, judge_checkpoint=judge_ckpt,
