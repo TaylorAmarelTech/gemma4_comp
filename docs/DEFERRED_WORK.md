@@ -6,7 +6,7 @@ It is the canonical boundary between work that can be completed in a
 model-free repository change and work that requires private access, human
 review, owner authorization, provider spend, or Kaggle quota.
 
-**Current as of:** 2026-07-27
+**Current as of:** 2026-07-28
 
 **Maintenance posture:** Core source, documentation, public deployments, and deterministic gates are maintained; model spending, new training claims, and registry publication remain separately authorized activities.
 
@@ -38,7 +38,6 @@ and undated completion claims are rejected by
 | P1 | [Run a small frozen frontier model smoke matrix](#bounded-model-smoke) | Deferred: budget or quota | Model-spend approver and benchmark maintainer | nonzero_requires_owner_approval |
 | P3 | [Complete the isolated exhaustive per-dimension judge lane](#per-dimension-judging) | Deferred: budget or quota | Research lead and model-spend approver | nonzero_requires_owner_approval |
 | P2 | [Run only justified Kaggle evidence jobs](#optional-kaggle-reruns) | Deferred: budget or quota | Kaggle account owner and evidence reviewer | nonzero_requires_owner_approval |
-| P2 | [Extend budget enforcement beyond the primary router](#direct-client-budget-migration) | Ready: local and model-free | Maintainer | zero_only |
 | P2 | [Create a human gold set and agreement monitor](#human-gold-calibration) | Blocked: human review | Qualified domain reviewers and evaluation lead | zero_only |
 | P3 | [Clear legacy lint debt in behavior-preserving slices](#legacy-ruff-cleanup) | Ready: local and model-free | Maintainer | zero_only |
 | P1 | [Review volatile legal and operational sources on a cadence](#source-freshness-maintenance) | Recurring maintenance | Knowledge curator | zero_only |
@@ -55,7 +54,7 @@ The safe sequence is:
 4. Start a gated item only when its owner, prerequisites, and authorization
    are present; then retain every acceptance artifact.
 
-**Ready for model-free repository work:** `direct-client-budget-migration`, `legacy-ruff-cleanup`.
+**Ready for model-free repository work:** `legacy-ruff-cleanup`.
 
 **Recurring maintenance:** `source-freshness-maintenance`.
 
@@ -407,44 +406,6 @@ The safe sequence is:
 - [`kaggle/_INDEX.md`](../kaggle/_INDEX.md)
 - [`scripts/validate_main_kaggle_kernels.py`](../scripts/validate_main_kaggle_kernels.py)
 - [`scripts/validate_kaggle_page_sources.py`](../scripts/validate_kaggle_page_sources.py)
-
-## Extend budget enforcement beyond the primary router
-<a id="direct-client-budget-migration"></a>
-
-- **ID:** `direct-client-budget-migration`
-- **Priority:** P2
-- **Status:** Ready: local and model-free
-- **Owner role:** Maintainer
-- **Target:** One direct client per reviewable change before broad funded evaluation
-- **Model-credit policy:** `zero_only`
-- **Network/write policy:** `offline_only`
-- **Depends on:** No other register item
-
-**Why it remains open:** The primary llm_generate.py router is enforced, while package adapters, application integrations, standalone scripts, and self-contained notebooks are not universally intercepted.
-
-### Prerequisites
-
-- An exact direct-call inventory with one selected caller and its public behavior contract
-- A fake or loopback transport test that proves denial before network access
-
-### Ordered next actions
-
-1. Select one direct client and route its attempt through the shared budget interface without changing unrelated providers.
-2. Add tests for zero-call denial, retry reservation, unknown pricing, and sanitized receipts.
-3. Run python scripts/validate_provider_budget_coverage.py and document the expanded but still exact coverage boundary.
-
-### Done only when
-
-- The selected caller cannot reach transport without an approved reservation.
-- Its tests pass with DUECARE_MAX_PLANNED_MODEL_CALLS set to zero and never require a live credential.
-- Public documentation names covered and uncovered clients without claiming universal interception.
-
-### Evidence and controls
-
-- [`scripts/llm_generate.py`](../scripts/llm_generate.py)
-- [`scripts/provider_budget.py`](../scripts/provider_budget.py)
-- [`scripts/validate_provider_budget_coverage.py`](../scripts/validate_provider_budget_coverage.py)
-- [`docs/PROVIDER_BUDGETING.md`](PROVIDER_BUDGETING.md)
 
 ## Create a human gold set and agreement monitor
 <a id="human-gold-calibration"></a>

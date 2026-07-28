@@ -317,8 +317,8 @@ below do not override it.
 
 ### Ollama and provider calls
 
-1. Keep the completed primary-router ledger mandatory for every
-   `llm_generate.py` attempt; migrate direct standalone/application/package
+1. Keep the completed ledger mandatory for every `llm_generate.py` attempt and
+   the adverse-media verifier; migrate other standalone/application/package
    clients and design a portable notebook equivalent one caller at a time.
 2. Make retry classification explicit: retry transient transport/service errors
    only; fail closed on authentication, permission, quota, and invalid requests.

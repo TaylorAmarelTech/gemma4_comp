@@ -161,11 +161,13 @@ rotations, and resilient re-questions consume new reservations. The full
 operator contract, positive-budget environment, privacy boundary, and current
 coverage matrix are in [Provider budgeting](PROVIDER_BUDGETING.md).
 
-The transport lock is exact for the four primary-router HTTP paths, as enforced
-by `validate_provider_budget_coverage.py`. It is not a repository-wide network
+The transport lock is exact for the four primary-router HTTP paths and the
+optional adverse-media model verifier, as enforced by
+`validate_provider_budget_coverage.py`. It is not a repository-wide network
 interceptor: self-contained Kaggle kernels, package/application adapters, and
-standalone scripts with their own HTTP clients remain operator-controlled. Keep provider
-credentials unavailable to those paths during deterministic maintenance.
+other standalone scripts with their own HTTP clients remain
+operator-controlled. Keep provider credentials unavailable to those paths
+during deterministic maintenance.
 
 When model work resumes, use this order:
 
@@ -183,11 +185,11 @@ When model work resumes, use this order:
 7. Keep v2/h2/per-dimension experiments in versioned files, separate from the
    v1/h1 batched board.
 
-The shared primary-router ledger is complete and tested without provider calls.
-The remaining transport work is to migrate direct standalone research clients,
-then design a portable notebook equivalent and an injectable
-package/application-adapter contract without changing existing benchmark
-evidence lanes.
+The shared primary-router ledger and first direct-client migration are complete
+and tested without provider calls. The remaining transport work is to migrate
+other direct standalone research clients one at a time, then design a portable
+notebook equivalent and an injectable package/application-adapter contract
+without changing existing benchmark evidence lanes.
 
 ## Dataset Improvement Plan
 
@@ -465,7 +467,7 @@ for model spend, private access, or external publication.
    corridor workbook with full lineage and source metadata.
 2. Clear the strict quality and provenance gates and append a new planned
    fine-tune record through the normal engine.
-3. When spend is separately authorized, configure the completed primary-router
+3. When spend is separately authorized, configure the completed covered-call
    ledger with reviewed pricing and run a small frozen Ollama smoke matrix with
    checkpoint reuse.
 4. Expand only the cells justified by confidence intervals or disagreement,

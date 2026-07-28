@@ -45,11 +45,17 @@ import xml.etree.ElementTree as ET
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
 
+try:
+    from scripts import provider_budget
+except ModuleNotFoundError:  # supports ``python scripts/adverse_media.py``
+    import provider_budget
+
 _ROOT = Path(__file__).resolve().parents[1]
 USER_AGENT = "duecare-adverse-media/1.0 (+defensive anti-trafficking screening)"
 
 GDELT_DOC = "https://api.gdeltproject.org/api/v2/doc/doc"
 OPENSANCTIONS = "https://api.opensanctions.org/search/default"
+ADVERSE_MEDIA_MODEL_PROVIDER = "adverse-media-openai-compatible"
 
 # Allegation taxonomy -> trigger phrases (lowercase substring match).
 _ADVERSE_TERMS = {
@@ -406,6 +412,70 @@ def corpus_screen(rows: list[dict], fetch, *, timespan: str = "12m", articles=No
 
 # --- Gemma verification: precision filter over the high-recall keyword matches --
 
+def _adverse_media_output_limit() -> int:
+    raw = os.environ.get("DUECARE_ADVERSE_MEDIA_MAX_OUTPUT_TOKENS", "512")
+    try:
+        value = int(raw)
+    except ValueError as exc:
+        raise provider_budget.BudgetConfigurationError(
+            "DUECARE_ADVERSE_MEDIA_MAX_OUTPUT_TOKENS must be an integer"
+        ) from exc
+    if value <= 0:
+        raise provider_budget.BudgetConfigurationError(
+            "DUECARE_ADVERSE_MEDIA_MAX_OUTPUT_TOKENS must be positive"
+        )
+    return value
+
+
+def _provider_budget_attempt(*, model: str, prompt: str, max_output_tokens: int):
+    """Reserve one optional classifier attempt before provider transport."""
+    return provider_budget.environment_ledger().attempt(
+        provider=ADVERSE_MEDIA_MODEL_PROVIDER,
+        model=model,
+        prompt=prompt,
+        system=None,
+        max_output_tokens=max_output_tokens,
+    )
+
+
+def _adverse_media_model_completion(
+    prompt: str,
+    *,
+    base: str,
+    key: str,
+    model: str,
+) -> str:
+    """Call the optional direct model endpoint under the shared run budget."""
+    max_output_tokens = _adverse_media_output_limit()
+    body = json.dumps(
+        {
+            "model": model,
+            "temperature": 0.0,
+            "stream": False,
+            "max_tokens": max_output_tokens,
+            "messages": [{"role": "user", "content": prompt}],
+        }
+    ).encode("utf-8")
+    headers = {"Content-Type": "application/json"}
+    if key:
+        headers["Authorization"] = f"Bearer {key}"
+    request = urllib.request.Request(
+        base.rstrip("/") + "/chat/completions",
+        data=body,
+        headers=headers,
+    )
+    with _provider_budget_attempt(
+        model=model,
+        prompt=prompt,
+        max_output_tokens=max_output_tokens,
+    ) as budget_attempt:
+        with urllib.request.urlopen(request, timeout=90) as response:
+            payload = json.loads(response.read().decode("utf-8", "replace"))
+        output = payload["choices"][0]["message"]["content"]
+        budget_attempt.settle(response=payload, output_text=output)
+    return output
+
+
 def _model_fn_from_env():
     """A prompt->text callable backed by Gemma via an OpenAI-compatible/Ollama
     endpoint (DUECARE_MODEL_BASE_URL/_API_KEY/_NAME or OLLAMA_HOST/OLLAMA_API_KEY).
@@ -419,13 +489,12 @@ def _model_fn_from_env():
     model = os.environ.get("DUECARE_MODEL_NAME") or "gemma4:31b"
 
     def call(prompt: str) -> str:
-        body = json.dumps({"model": model, "temperature": 0.0, "stream": False,
-                           "messages": [{"role": "user", "content": prompt}]}).encode("utf-8")
-        req = urllib.request.Request(base.rstrip("/") + "/chat/completions", data=body,
-                                     headers={"Content-Type": "application/json",
-                                              "Authorization": f"Bearer {key}"})
-        with urllib.request.urlopen(req, timeout=90) as r:
-            return json.loads(r.read().decode("utf-8", "replace"))["choices"][0]["message"]["content"]
+        return _adverse_media_model_completion(
+            prompt,
+            base=base,
+            key=key,
+            model=model,
+        )
     return call
 
 

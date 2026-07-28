@@ -26,3 +26,17 @@ def test_unguarded_transport_is_rejected(tmp_path: Path) -> None:
     )
     findings = coverage.validate(router)
     assert len([finding for finding in findings if "outside _budget_attempt" in finding]) == 4
+
+
+def test_unguarded_direct_model_transport_is_rejected(tmp_path: Path) -> None:
+    direct_client = tmp_path / "adverse_media.py"
+    direct_client.write_text(
+        "def _adverse_media_model_completion():\n"
+        "    return urllib.request.urlopen('https://model.example')\n",
+        encoding="utf-8",
+    )
+    findings = coverage.validate(direct_client=direct_client)
+    assert any(
+        "adverse-media direct client" in finding and "outside _provider_budget_attempt" in finding
+        for finding in findings
+    )

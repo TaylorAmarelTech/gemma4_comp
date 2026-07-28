@@ -81,9 +81,9 @@ adjudication gates pass. The candidate source registry is
 `configs/duecare/training/corridor_curation_sources.json`; URL presence never
 implies training approval.
 `scripts/provider_budget.py` is the shared atomic attempt/token/cash ledger for
-the primary generation router, while
-`scripts/validate_provider_budget_coverage.py` statically prevents any of that
-router's four HTTP transports from moving outside a reservation. The public
+the primary generation router and the optional adverse-media model verifier,
+while `scripts/validate_provider_budget_coverage.py` statically prevents those
+five exact transports from moving outside a reservation. The public
 operator contract and honest non-universal boundary are in
 `docs/PROVIDER_BUDGETING.md`; pricing is copied from the empty public example to
 an ignored, provider-verified run file rather than guessed in Git.
