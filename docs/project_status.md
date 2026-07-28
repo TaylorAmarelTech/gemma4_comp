@@ -1,6 +1,6 @@
 ﻿# DueCare Project Status
 
-Current as of 2026-07-27.
+Current as of 2026-07-28.
 
 ## Active Submission Scope
 
@@ -35,22 +35,22 @@ snapshots, and older checklist/status docs are archived under
 
 ## Current Technical Posture
 
-- Root `AGENTS.md` names `master` as the release branch. The integrated
-  closeout advanced through pull requests 2, 4, 5, 6, 7, and
-  [8](https://github.com/TaylorAmarelTech/gemma4_comp/pull/8). Pull request 8 is
-  the latest validated substantive baseline at merge commit
-  `9385a837879209e18f8e013cf969a3e1ecbcfc91`; all 16 PR checks and all six
-  merge-triggered workflows passed. A release/tag remains a separate owner
-  decision, and every later candidate must rerun its own gates.
-- The wrap-up started from clean `master`, confirmed no model was loaded in
-  local Ollama, and its validation commands made no Ollama, hosted-model, or
-  Kaggle-quota calls. The
-  [post-merge CI](https://github.com/TaylorAmarelTech/gemma4_comp/actions/runs/30306149302),
-  [MkDocs Pages deployment](https://github.com/TaylorAmarelTech/gemma4_comp/actions/runs/30306149235),
-  [portable website build](https://github.com/TaylorAmarelTech/gemma4_comp/actions/runs/30306149166),
-  and [build-only Docker run](https://github.com/TaylorAmarelTech/gemma4_comp/actions/runs/30306149136)
-  all passed. Render serves the updated project status, and the new handoff,
-  provider-budgeting, and successor-rehearsal Pages routes were verified live.
+- Root `AGENTS.md` names `master` as the release branch. The final model-free
+  sequence advanced through pull requests
+  [11](https://github.com/TaylorAmarelTech/gemma4_comp/pull/11) through
+  [15](https://github.com/TaylorAmarelTech/gemma4_comp/pull/15). Pull request 15
+  is the current pre-handoff anchor at merge commit
+  `56e7283df1e191793355b340559733b4ef77f9fa`; all 16 PR checks passed, and the
+  exact local broad regression passed 4,646 tests with 9 skips. A release/tag
+  remains a separate owner decision, and every later candidate must rerun its
+  own gates.
+- The wrap-up validation made no Ollama, hosted-model, or Kaggle-quota calls.
+  Render remains the production website/API host; the independent
+  [`duecare-ai-site`](https://tayloramareltech.github.io/duecare-ai-site/)
+  repository preserves a read-only 51-route continuity copy without a
+  production `CNAME`; and this repository's Pages site remains MkDocs. Pull
+  request 14 also fixed the homepage story grid that had squeezed paragraph
+  text into the 28-pixel ordered-list number column.
 - A later 2026-07-27 live audit corrected the operational boundary: Hermes,
   the server-automation vetter, and orchestrator watchdogs/processes were still
   active independently of the paused autonomous engine. No local provider ledger existed for that
@@ -72,17 +72,20 @@ snapshots, and older checklist/status docs are archived under
   workflow owns package publication; a reviewed independent-SemVer manifest
   now reconciles the intentionally mixed versions and selects one package per
   production tag.
-- Maintainer succession is now explicit: [`MAINTAINER_HANDOFF.md`](MAINTAINER_HANDOFF.md)
-  is the operational pickup, and
+- Maintainer succession is now explicit:
+  [`CLAUDE_CODE_HANDOFF.md`](CLAUDE_CODE_HANDOFF.md) is the tracked coding-agent
+  pickup, [`MAINTAINER_HANDOFF.md`](MAINTAINER_HANDOFF.md) is the human
+  operational pickup, and
   [`PROJECT_TRANSITION_PLAN.md`](PROJECT_TRANSITION_PLAN.md) schedules the
   2026-07-26 through 2026-08-25 closeout. The separate `--scope handoff` gate is
   read-only and keeps both documents linked to live pickup evidence.
 - Public deployment ownership is reconciled: `duecare-ai.com` deploys from
-  `apps/duecare-ai.com` on Render; GitHub Pages deploys MkDocs through
-  `docs-deploy.yml`; the website static exporter remains an artifact workflow
-  and cannot overwrite Pages. The website exposes `/project-status` as the
-  public continuity entry point. Post-merge Pages, artifact, and live Render
-  route checks all passed on 2026-07-27.
+  `apps/duecare-ai.com` on Render; the separate `duecare-ai-site` repository
+  deploys the backend-free continuity Pages site; and this repository deploys
+  MkDocs through `docs-deploy.yml`. Its website exporter uploads both artifacts
+  but cannot overwrite MkDocs Pages. The website exposes `/project-status` as
+  the public continuity entry point, and the fallback manifest records its
+  `source_revision`.
 - The website's advertised schema URLs now have local route tests instead of
   pointing at 404s. Kaggle pages show point-in-time run status and distinguish
   public notebooks from private owner-side drafts.
@@ -120,6 +123,8 @@ snapshots, and older checklist/status docs are archived under
 
 ## Current Docs To Trust
 
+- [`CLAUDE_CODE_HANDOFF.md`](CLAUDE_CODE_HANDOFF.md) - current tracked coding-agent
+  pickup, public services, recent receipts, boundaries, and exact safe next work.
 - [`MAINTAINER_HANDOFF.md`](MAINTAINER_HANDOFF.md) - fresh-shell operations,
   system boundaries, access transfer, recovery, and acceptance.
 - [`PROJECT_TRANSITION_PLAN.md`](PROJECT_TRANSITION_PLAN.md) - dated 30-day
@@ -156,7 +161,9 @@ summary below is directional only; the register controls status and acceptance.
 4. When model quota is intentionally reopened, freeze and plan a small run,
    configure the covered-call ledger with finite attempt/input/output/cash
    caps and reviewed pricing, then deliberately resume the whole stack or only
-   the required caller and preserve checkpoint/resume state.
+   the required caller and preserve checkpoint/resume state. Treat Kimi K3 and
+   Meta Muse Spark 1.1 as required comparison lanes after revalidating exact
+   provider identifiers, access, capabilities, and pricing.
 5. Attach exact report, activity, prompt/response, training-metadata, chart,
    and evidence artifacts to any new claim.
 6. Keep A-00 as the active optional proof path. A-30 and the other appendix
@@ -168,15 +175,15 @@ Use the focused commands in [`FOR_PEER_REVIEW.md`](FOR_PEER_REVIEW.md). The docs
 contract tests intentionally fail if current entry docs drift back toward the
 retired appendix-ladder framing.
 
-Latest offline working-tree receipt on 2026-07-27:
+Latest pre-handoff offline receipt on 2026-07-28:
 
-- publication handoff: 2/2 gates passed, including 17/17 succession-document
+- publication handoff: 2/2 gates passed, including 23/23 succession-document
   checks and 65/65 live pickup checks;
 - publication core: 11/11 gates passed, including provider-budget coverage,
   deferred-work integrity, and the 18-package release-ownership/install-truth
   gate;
 - combined `packages tests` regression in the closeout 18-package workspace:
-  4,637 passed and 9 skipped with no warning summary under the zero-call
+  4,648 passed and 9 skipped with no warning summary under the zero-call
   transport lock; the focused
   43-test package run also passes with pandas `RuntimeWarning` promoted to an
   error;

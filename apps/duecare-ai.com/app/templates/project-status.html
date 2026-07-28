@@ -46,10 +46,11 @@
 <section class="ps-hero" data-screen-label="Project status &middot; Hero"><div class="wrap">
   <div class="ps-hero-grid">
     <div>
-      <span class="kicker">Project continuity &middot; snapshot 2026-07-27</span>
+      <span class="kicker">Project continuity &middot; snapshot 2026-07-28</span>
       <h1>A stable stopping point with an explicit path forward.</h1>
       <p class="ps-lede">DueCare is in a time-boxed maintainer transition through <strong>2026-08-25</strong>. Core code, public documentation, active Kaggle surfaces, and published dataset claims have a green model-free release gate. New model spending and a new training-improvement claim remain deliberately paused until their separate evidence gates are ready.</p>
       <div class="ps-actions">
+        <a class="btn" href="https://tayloramareltech.github.io/gemma4_comp/CLAUDE_CODE_HANDOFF/">Claude Code handoff <span aria-hidden="true">&rarr;</span></a>
         <a class="btn" href="https://tayloramareltech.github.io/gemma4_comp/MAINTAINER_HANDOFF/">Maintainer handoff <span aria-hidden="true">&rarr;</span></a>
         <a class="btn btn-ghost" href="https://tayloramareltech.github.io/gemma4_comp/PROJECT_TRANSITION_PLAN/">30-day transition</a>
         <a class="btn btn-ghost" href="https://tayloramareltech.github.io/gemma4_comp/DEFERRED_WORK/">Deferred work register</a>
@@ -61,7 +62,7 @@
       <dl>
         <dt>Core release gates</dt><dd>11 / 11 pass</dd>
         <dt>Handoff gates</dt><dd>2 / 2 pass</dd>
-        <dt>Combined regression</dt><dd>4,637 passed</dd>
+        <dt>Combined regression</dt><dd>4,648 passed</dd>
         <dt>Validator model calls</dt><dd>0</dd>
         <dt>Model/flywheel stack</dt><dd>cost-stopped</dd>
       </dl>
@@ -85,12 +86,12 @@
 
 <section class="ps-section" data-screen-label="Project status &middot; Deployment"><div class="wrap">
   <span class="ix">02 &middot; Public deployment ownership</span>
-  <h2>One source and one owner for each public surface.</h2>
-  <p class="intro">The website and documentation are related but intentionally deployed by different systems. This prevents one workflow from overwriting the other.</p>
+  <h2>One source, with a distinct owner for each public surface.</h2>
+  <p class="intro">Render production, the backend-free continuity copy, and the documentation are intentionally deployed by different systems. The source workflow builds portable artifacts but never overwrites either Pages deployment.</p>
   <div class="ps-grid">
-    <article class="ps-card"><span class="cap">Website</span><h3>duecare-ai.com</h3><p>The FastAPI hub in <code>apps/duecare-ai.com</code> deploys from <code>master</code> on Render. It serves product pages, public coordination APIs, sanitized proposal intake, and health endpoints. It does not load Gemma.</p></article>
-    <article class="ps-card"><span class="cap">Documentation</span><h3>GitHub Pages</h3><p>The MkDocs site deploys from <code>docs/</code> through <code>docs-deploy.yml</code> after changes reach <code>master</code>. It owns the repository's single GitHub Pages site.</p></article>
-    <article class="ps-card"><span class="cap">Portable build</span><h3>Static website artifact</h3><p><code>duecare-site-build.yml</code> exports the website as a downloadable artifact for a separate root-domain host. It never deploys into the MkDocs Pages environment.</p></article>
+    <article class="ps-card"><span class="cap">Production website</span><h3>duecare-ai.com</h3><p>The FastAPI hub in <code>apps/duecare-ai.com</code> deploys from <code>master</code> on Render. It serves product pages, public coordination APIs, sanitized proposal intake, and health endpoints. It does not load Gemma.</p></article>
+    <article class="ps-card"><span class="cap">Read-only continuity</span><h3><a href="https://tayloramareltech.github.io/duecare-ai-site/">duecare-ai-site</a></h3><p>A separate GitHub Pages repository publishes all 51 public routes plus five allowlisted snapshots. Mutable APIs and controls are disabled, its manifest records <code>source_revision</code>, and it has no production <code>CNAME</code>.</p></article>
+    <article class="ps-card"><span class="cap">Documentation</span><h3>gemma4_comp Pages</h3><p>The MkDocs site deploys through <code>docs-deploy.yml</code>. The source-only <code>duecare-site-build.yml</code> uploads website artifacts for the continuity repository but never calls the Pages deploy action here.</p></article>
   </div>
 </div></section>
 
@@ -107,6 +108,7 @@ python scripts/validate_provider_budget_coverage.py
 python scripts/autonomous_engine.py --status
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/stop_ollama_stack.ps1 -Status</pre></div>
     <nav class="ps-links" aria-label="Continuity documents">
+      <a href="https://tayloramareltech.github.io/gemma4_comp/CLAUDE_CODE_HANDOFF/"><strong>Claude Code handoff</strong><br />Tracked pickup order, live-service ownership, recent receipts, safety boundaries, and a copy-ready prompt.</a>
       <a href="https://tayloramareltech.github.io/gemma4_comp/MAINTAINER_HANDOFF/"><strong>Maintainer handoff</strong><br />Operations, boundaries, recovery, access transfer, and acceptance.</a>
       <a href="https://tayloramareltech.github.io/gemma4_comp/PROJECT_TRANSITION_PLAN/"><strong>30-day transition plan</strong><br />Weekly closeout, owner actions, rehearsal, and maintenance fallback.</a>
       <a href="https://tayloramareltech.github.io/gemma4_comp/PUBLICATION_READINESS/"><strong>Publication readiness</strong><br />Release boundary, limitations, data plan, Ollama plan, and ordered backlog.</a>
@@ -124,7 +126,7 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/stop_ollama_stac
   <div class="ps-grid" style="margin-top:28px;">
     <article class="ps-card"><span class="cap">P0 &middot; Release</span><h3>Freeze an approved tag</h3><ul><li>All 18 distributions build as wheels and source archives and clean-install as one cohort, but remain unpublished on PyPI.</li><li>Independent per-package semantic versions and exact tag syntax are frozen in one manifest.</li><li>An owner still chooses the first release package and reruns core/handoff gates on that exact revision.</li></ul></article>
     <article class="ps-card"><span class="cap">P1 &middot; Data</span><h3>Close the curation queue</h3><ul><li>Approve lawful, immutable source snapshots and record compatible rights.</li><li>Fill and independently adjudicate the exact 75 risk, benign-neighbour, and corridor-counterfactual slots.</li><li>Regenerate quality and provenance sequentially; do not fabricate approvals.</li></ul></article>
-    <article class="ps-card"><span class="cap">P2 &middot; Providers</span><h3>Extend the completed ledger</h3><ul><li>The primary router already budgets every attempt and retry atomically.</li><li>Migrate standalone, application, and package clients one at a time with zero-transport tests.</li><li>Design a portable notebook receipt before any broad funded evaluation.</li></ul></article>
+    <article class="ps-card"><span class="cap">P2 &middot; Providers</span><h3>Extend the completed ledger</h3><ul><li>The primary router already budgets every attempt and retry atomically.</li><li>Migrate standalone, application, and package clients one at a time with zero-transport tests.</li><li>Treat Kimi K3 and Meta Muse Spark 1.1 as required future comparison lanes after revalidating exact IDs, access, capabilities, and pricing.</li></ul></article>
   </div>
 </div></section>
 

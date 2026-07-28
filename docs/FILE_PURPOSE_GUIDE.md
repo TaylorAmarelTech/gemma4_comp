@@ -26,8 +26,8 @@ published evidence.
 | Kaggle kernels | `kaggle/_INDEX.md`, `kaggle/README.md`, `kaggle/NOTEBOOK_PURPOSE_AND_RUNBOOK.md` |
 | Public website | `apps/duecare-ai.com/README.md`, `/project-status`, page templates, route and static-export tests |
 | Python packages | Each package `README.md`, package tests, generated component docs |
-| Agent handoff | `AGENTS.md`, `CLAUDE.md`, `PROJECT_BIBLE.md`, `Plans.md`, `.claude/rules/` |
-| Maintainer succession | `docs/MAINTAINER_HANDOFF.md`, `docs/PROJECT_TRANSITION_PLAN.md`, `docs/DEFERRED_WORK.md`, `docs/SUCCESSOR_REHEARSAL.md`, `docs/PRIVATE_TRANSFER_RECEIPT_TEMPLATE.md` |
+| Agent handoff | `AGENTS.md`, `CLAUDE.md`, `docs/CLAUDE_CODE_HANDOFF.md`, `PROJECT_BIBLE.md`, `Plans.md`, `.claude/rules/` |
+| Maintainer succession | `docs/CLAUDE_CODE_HANDOFF.md`, `docs/MAINTAINER_HANDOFF.md`, `docs/PROJECT_TRANSITION_PLAN.md`, `docs/DEFERRED_WORK.md`, `docs/SUCCESSOR_REHEARSAL.md`, `docs/PRIVATE_TRANSFER_RECEIPT_TEMPLATE.md` |
 | Competition docs | `docs/FOR_KAGGLE_JUDGES.md`, `docs/kaggle_writeup_paste_ready.md`, `docs/kaggle_post_networked_knowledge_sharing.md`, `docs/video_script.md` |
 | Publication and peer review | `docs/PUBLICATION_READINESS.md`, `docs/FOR_PEER_REVIEW.md`, `docs/reproducibility.md` |
 
@@ -63,7 +63,7 @@ package-release, and collection
 gates; its handoff scope composes succession and live-pickup checks; and its
 separate training scope preserves an honest red result when strict dataset or
 provenance checks are not yet clean. `scripts/validate_maintainer_handoff.py`
-checks the two current succession documents, their discovery/local links, and
+checks the three current succession documents, their discovery/local links, and
 privacy-safe content plus the generated deferred-work register without calling
 a model or network service.
 `scripts/build_deferred_work_register.py` renders `docs/DEFERRED_WORK.md` from

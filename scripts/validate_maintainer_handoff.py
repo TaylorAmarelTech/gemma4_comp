@@ -18,6 +18,7 @@ from urllib.parse import unquote, urlsplit
 ROOT = Path(__file__).resolve().parents[1]
 
 HANDOFF_DOC = Path("docs/MAINTAINER_HANDOFF.md")
+CLAUDE_HANDOFF_DOC = Path("docs/CLAUDE_CODE_HANDOFF.md")
 TRANSITION_DOC = Path("docs/PROJECT_TRANSITION_PLAN.md")
 REHEARSAL_DOC = Path("docs/SUCCESSOR_REHEARSAL.md")
 TRANSFER_TEMPLATE = Path("docs/PRIVATE_TRANSFER_RECEIPT_TEMPLATE.md")
@@ -27,6 +28,7 @@ DEFERRED_VALIDATOR = Path("scripts/validate_deferred_work.py")
 
 REQUIRED_FILES: tuple[Path, ...] = (
     HANDOFF_DOC,
+    CLAUDE_HANDOFF_DOC,
     TRANSITION_DOC,
     REHEARSAL_DOC,
     TRANSFER_TEMPLATE,
@@ -65,6 +67,32 @@ HANDOFF_MARKERS: tuple[str, ...] = (
     "reports/cost_stop_status.json",
 )
 
+CLAUDE_HANDOFF_MARKERS: tuple[str, ...] = (
+    "# Claude Code Handoff",
+    "**Prepared:** 2026-07-28",
+    "## Read Order",
+    "## First 30 Minutes",
+    "## Current Repository Truth",
+    "## Public Services Kept Running",
+    "## Recent Closeout Receipts",
+    "## Active, Optional, And Historical Surfaces",
+    "## Model And Ollama Boundary",
+    "Kimi K3",
+    "Meta Muse Spark 1.1",
+    "## Dataset And Evaluation Boundary",
+    "## Current Deferred Work",
+    "contains 11 items",
+    "## Claude Code Pickup Prompt",
+    "## Handoff Acceptance",
+    "Saved `.claude/state/` files",
+    "duecare-ai-site",
+    "source_revision",
+    "DUECARE_MAX_PLANNED_MODEL_CALLS",
+    "stop_ollama_stack.ps1 -Status",
+    "4,646 passed",
+    "4,648 passed",
+)
+
 TRANSITION_MARKERS: tuple[str, ...] = (
     "**Status:**",
     "**Start date:**",
@@ -87,34 +115,44 @@ TRANSITION_MARKERS: tuple[str, ...] = (
 
 DISCOVERY_LINKS: dict[Path, tuple[str, ...]] = {
     Path("README.md"): (
+        "docs/CLAUDE_CODE_HANDOFF.md",
         "docs/MAINTAINER_HANDOFF.md",
         "docs/PROJECT_TRANSITION_PLAN.md",
         "docs/DEFERRED_WORK.md",
     ),
     Path("PROJECT_BIBLE.md"): (
+        "docs/CLAUDE_CODE_HANDOFF.md",
         "docs/MAINTAINER_HANDOFF.md",
         "docs/PROJECT_TRANSITION_PLAN.md",
         "docs/DEFERRED_WORK.md",
     ),
     Path("docs/index.md"): (
+        "CLAUDE_CODE_HANDOFF.md",
         "MAINTAINER_HANDOFF.md",
         "PROJECT_TRANSITION_PLAN.md",
         "DEFERRED_WORK.md",
     ),
     Path("docs/FILE_PURPOSE_GUIDE.md"): (
+        "CLAUDE_CODE_HANDOFF.md",
         "MAINTAINER_HANDOFF.md",
         "PROJECT_TRANSITION_PLAN.md",
         "DEFERRED_WORK.md",
     ),
     Path("mkdocs.yml"): (
+        "CLAUDE_CODE_HANDOFF.md",
         "MAINTAINER_HANDOFF.md",
         "PROJECT_TRANSITION_PLAN.md",
         "DEFERRED_WORK.md",
+    ),
+    Path("CLAUDE.md"): ("docs/CLAUDE_CODE_HANDOFF.md",),
+    Path(".claude/rules/05_project_bible_pickup.md"): (
+        "docs/CLAUDE_CODE_HANDOFF.md",
     ),
 }
 
 DOC_CROSS_LINKS: dict[Path, tuple[str, ...]] = {
     HANDOFF_DOC: (
+        "CLAUDE_CODE_HANDOFF.md",
         "PROJECT_TRANSITION_PLAN.md",
         "PUBLICATION_READINESS.md",
         "SUCCESSOR_REHEARSAL.md",
@@ -122,10 +160,19 @@ DOC_CROSS_LINKS: dict[Path, tuple[str, ...]] = {
         "DEFERRED_WORK.md",
     ),
     TRANSITION_DOC: (
+        "CLAUDE_CODE_HANDOFF.md",
         "MAINTAINER_HANDOFF.md",
         "PUBLICATION_READINESS.md",
         "SUCCESSOR_REHEARSAL.md",
         "DEFERRED_WORK.md",
+    ),
+    CLAUDE_HANDOFF_DOC: (
+        "../PROJECT_BIBLE.md",
+        "MAINTAINER_HANDOFF.md",
+        "PROJECT_TRANSITION_PLAN.md",
+        "PUBLICATION_READINESS.md",
+        "DEFERRED_WORK.md",
+        "SUCCESSOR_REHEARSAL.md",
     ),
 }
 
@@ -243,15 +290,26 @@ def deployment_contract_findings(root: Path = ROOT) -> list[str]:
         if marker not in docs_workflow:
             findings.append("docs Pages workflow contract incomplete")
             break
-    if "actions/upload-artifact@v7" not in site_workflow:
-        findings.append("website artifact workflow missing upload")
+    for marker in (
+        "actions/upload-artifact@v7",
+        "duecare-ai-read-only-fallback",
+        "/duecare-ai-site",
+    ):
+        if marker not in site_workflow:
+            findings.append("website artifact workflow contract incomplete")
+            break
     if "actions/deploy-pages" in site_workflow:
         findings.append("website artifact workflow deploys to Pages")
     for marker in ("rootDir: apps/duecare-ai.com", "branch: master"):
         if marker not in render_blueprint:
             findings.append("Render website blueprint contract incomplete")
             break
-    for marker in ("Render-hosted FastAPI app", "GitHub Pages docs"):
+    for marker in (
+        "Render-hosted FastAPI app",
+        "Read-only continuity preview",
+        "TaylorAmarelTech/duecare-ai-site",
+        "GitHub Pages docs",
+    ):
         if marker not in site_readme:
             findings.append("website ownership documentation incomplete")
             break
@@ -269,12 +327,14 @@ def public_continuity_surface_findings(root: Path = ROOT) -> list[str]:
     if '"/project-status": "project-status.html"' not in route_source:
         findings.append("project status route missing")
     for marker in (
+        "CLAUDE_CODE_HANDOFF",
         "MAINTAINER_HANDOFF",
         "PROJECT_TRANSITION_PLAN",
         "PUBLICATION_READINESS",
         "DEFERRED_WORK",
         "docs-deploy.yml",
         "duecare-site-build.yml",
+        "duecare-ai-site",
         "Model/flywheel stack",
         "stop_ollama_stack.ps1 -Status",
     ):
@@ -319,6 +379,36 @@ def deferred_work_register_check(root: Path = ROOT) -> dict[str, object]:
     return _check("deferred work register", ok, detail)
 
 
+def deferred_work_handoff_count_check(
+    handoff_texts: dict[Path, str], root: Path = ROOT
+) -> dict[str, object]:
+    """Require both durable handoffs to match the canonical register count."""
+    register_text = _safe_read(root.resolve() / DEFERRED_REGISTRY)
+    item_count = 0
+    alignment_ok = False
+    if register_text is not None:
+        try:
+            register = json.loads(register_text)
+            items = register.get("items", []) if isinstance(register, dict) else []
+            if isinstance(items, list):
+                item_count = len(items)
+                maintainer_text = handoff_texts.get(HANDOFF_DOC, "")
+                claude_text = handoff_texts.get(CLAUDE_HANDOFF_DOC, "")
+                alignment_ok = (
+                    f"currently contains {item_count} explicit items" in maintainer_text
+                    and f"contains {item_count} items" in claude_text
+                )
+        except json.JSONDecodeError:
+            pass
+    return _check(
+        "deferred work handoff count alignment",
+        alignment_ok,
+        f"both handoffs match the {item_count}-item register"
+        if alignment_ok
+        else "handoff count does not match the canonical register",
+    )
+
+
 def validate(root: Path = ROOT) -> dict[str, object]:
     """Return a JSON-serializable handoff validation result."""
     root = root.resolve()
@@ -336,6 +426,7 @@ def validate(root: Path = ROOT) -> dict[str, object]:
 
     doc_specs = (
         (HANDOFF_DOC, HANDOFF_MARKERS),
+        (CLAUDE_HANDOFF_DOC, CLAUDE_HANDOFF_MARKERS),
         (TRANSITION_DOC, TRANSITION_MARKERS),
     )
     handoff_texts: dict[Path, str] = {}
@@ -359,7 +450,7 @@ def validate(root: Path = ROOT) -> dict[str, object]:
             if content is None
             else [target for target in required_targets if target not in content]
         )
-        detail = "both succession documents linked"
+        detail = "required succession documents linked"
         if missing_targets:
             detail = f"missing {len(missing_targets)} required link(s)"
         checks.append(_check(f"{source} discovery links", not missing_targets, detail))
@@ -394,7 +485,7 @@ def validate(root: Path = ROOT) -> dict[str, object]:
         )
     )
 
-    for source in (HANDOFF_DOC, TRANSITION_DOC):
+    for source in (HANDOFF_DOC, CLAUDE_HANDOFF_DOC, TRANSITION_DOC):
         absolute_path = root / source
         broken = broken_local_links(absolute_path, root) if absolute_path.is_file() else []
         detail = "all local Markdown links resolve"
@@ -402,12 +493,15 @@ def validate(root: Path = ROOT) -> dict[str, object]:
             detail = f"{len(broken)} missing or out-of-root local link(s)"
         checks.append(_check(f"{source} local links", not broken, detail))
 
+    checks.append(deferred_work_handoff_count_check(handoff_texts, root))
+
     deployment_findings = deployment_contract_findings(root)
     checks.append(
         _check(
             "public deployment ownership",
             not deployment_findings,
-            "Render website and MkDocs Pages ownership are unambiguous"
+            "Render production, independent continuity Pages, and MkDocs Pages "
+            "ownership are unambiguous"
             if not deployment_findings
             else f"{len(deployment_findings)} deployment contract finding(s)",
         )

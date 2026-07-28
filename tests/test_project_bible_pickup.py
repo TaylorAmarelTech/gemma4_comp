@@ -138,21 +138,24 @@ def _write_minimal_pickup_tree(
     files = {
         "AGENTS.md": "agent rules\n",
         "CLAUDE.md": (
-            "Long-loop pickup brief (2026-07-02)\n"
+            "Current operating brief (2026-07-28)\n"
+            "[`docs/CLAUDE_CODE_HANDOFF.md`](docs/CLAUDE_CODE_HANDOFF.md)\n"
             "[`PROJECT_BIBLE.md`](PROJECT_BIBLE.md)\n"
             "[`Plans.md`](Plans.md)\n"
-            "compatibility bridge back to the project bible\n"
-            "not a second planning source\n"
+            "compatibility bridge for older Claude Code handoffs\n"
+            "not a planning source\n"
             "docs/codex/PROJECT_BIBLE.md\n"
             ".claude/rules/05_project_bible_pickup.md\n"
             "Fable 5-style agents\n"
+            "Saved `.claude/state/` files are historical evidence only\n"
             "Current validation discipline\n"
-            "treat older suite counts in this file as historical\n"
+            "Never reuse a saved suite count\n"
             "python -m pytest packages --collect-only -q\n"
         ),
         "ROOT_FILES.md": (
-            "| `PROJECT_BIBLE.md` | Root pointer to the canonical long-loop "
-            "pickup brief in `docs/codex/PROJECT_BIBLE.md`. |\n"
+            "| `CLAUDE.md` | Slim index for `docs/CLAUDE_CODE_HANDOFF.md`. |\n"
+            "| `PROJECT_BIBLE.md` | Root pointer to the tracked closeout handoff "
+            "and deeper `docs/codex/PROJECT_BIBLE.md` history. |\n"
             "| `Plans.md` | Compatibility bridge for older Claude Code handoffs. |\n"
         ),
         "PROJECT_BIBLE.md": (
@@ -165,6 +168,7 @@ def _write_minimal_pickup_tree(
             "not a separate planning source\n"
             "Read order for continuation sessions\n"
             "AGENTS.md\n"
+            "docs/CLAUDE_CODE_HANDOFF.md\n"
             "CLAUDE.md\n"
             "docs/codex/PROJECT_BIBLE.md\n"
             ".claude/rules/05_project_bible_pickup.md\n"
@@ -173,6 +177,7 @@ def _write_minimal_pickup_tree(
             "promote candidate dimensions\n"
             "normal preflight and review gates\n"
         ),
+        "docs/CLAUDE_CODE_HANDOFF.md": "# Claude Code Handoff\n",
         "Plans.md": (
             "compatibility bridge\n"
             "older Claude Code handoffs\n"
@@ -192,11 +197,13 @@ def _write_minimal_pickup_tree(
         ),
         ".claude/rules/05_project_bible_pickup.md": (
             "root `PROJECT_BIBLE.md`\n"
+            "docs/CLAUDE_CODE_HANDOFF.md\n"
             "docs/codex/PROJECT_BIBLE.md\n"
             "Plans.md\n"
             "compatibility bridge back to the project bible\n"
             "pause-safe loop\n"
             "Fable 5-style agents\n"
+            ".claude/state/\n"
             "reports/autonomous_engine.stop\n"
             "call Ollama\n"
             "promote candidate dimensions\n"
@@ -212,11 +219,11 @@ def _write_minimal_pickup_tree(
             "do not mix v2/h2 rows into the active leaderboard\n"
         ),
         "docs/FILE_PURPOSE_GUIDE.md": (
-            "| Agent handoff | `AGENTS.md`, `CLAUDE.md`, `PROJECT_BIBLE.md`, `Plans.md`, "
+            "| Agent handoff | `AGENTS.md`, `CLAUDE.md`, `docs/CLAUDE_CODE_HANDOFF.md`, `PROJECT_BIBLE.md`, `Plans.md`, "
             "`.claude/rules/` |\n"
         ),
         "docs/REPO_LAYOUT.md": (
-            "- AI pickup bridge: root [`PROJECT_BIBLE.md`](../PROJECT_BIBLE.md) "
+            "- AI pickup bridge: [`docs/CLAUDE_CODE_HANDOFF.md`](CLAUDE_CODE_HANDOFF.md) is current; root [`PROJECT_BIBLE.md`](../PROJECT_BIBLE.md) "
             "points Claude Code, Codex, and Fable 5-style agents to "
             "[`docs/codex/PROJECT_BIBLE.md`](codex/PROJECT_BIBLE.md); "
             "root [`Plans.md`](../Plans.md) is a compatibility bridge for older "
@@ -590,6 +597,7 @@ def test_project_bible_is_linked_from_agent_indexes():
     assert "not a separate planning source" in root_project_bible
     assert "Read order for continuation sessions" in root_project_bible
     assert "AGENTS.md" in root_project_bible
+    assert "docs/CLAUDE_CODE_HANDOFF.md" in root_project_bible
     assert "CLAUDE.md" in root_project_bible
     assert ".claude/rules/05_project_bible_pickup.md" in root_project_bible
     assert "reports/autonomous_engine.stop" in root_project_bible
@@ -612,28 +620,34 @@ def test_project_bible_is_linked_from_agent_indexes():
     assert "promote candidate dimensions" in plans
     assert "normal preflight and review gates" in plans
     assert "`PROJECT_BIBLE.md`" in root_files
-    assert "Root pointer to the canonical long-loop pickup brief" in root_files
+    assert "docs/CLAUDE_CODE_HANDOFF.md" in root_files
+    assert "Root pointer to the tracked closeout handoff" in root_files
     assert "docs/codex/PROJECT_BIBLE.md" in root_files
     assert "`Plans.md`" in root_files
     assert "Compatibility bridge for older Claude Code handoffs" in root_files
     assert "| Agent handoff |" in file_purpose_guide
+    assert "docs/CLAUDE_CODE_HANDOFF.md" in file_purpose_guide
     assert "PROJECT_BIBLE.md" in file_purpose_guide
     assert "Plans.md" in file_purpose_guide
     assert ".claude/rules/" in file_purpose_guide
     assert "AI pickup bridge" in repo_layout
+    assert "CLAUDE_CODE_HANDOFF.md" in repo_layout
     assert "../PROJECT_BIBLE.md" in repo_layout
     assert "../Plans.md" in repo_layout
     assert "codex/PROJECT_BIBLE.md" in repo_layout
     assert "Fable 5-style agents" in repo_layout
     assert "older Claude Code handoffs" in repo_layout
-    assert "Long-loop pickup brief (2026-07-02)" in claude
+    assert "Current operating brief (2026-07-28)" in claude
+    assert "[`docs/CLAUDE_CODE_HANDOFF.md`](docs/CLAUDE_CODE_HANDOFF.md)" in claude
     assert "[`PROJECT_BIBLE.md`](PROJECT_BIBLE.md)" in claude
     assert "[`Plans.md`](Plans.md)" in claude
-    assert "compatibility bridge back to the project bible" in claude
-    assert "not a second planning source" in claude
+    assert "compatibility bridge for older Claude Code handoffs" in claude
+    assert "not a planning source" in claude
     assert "docs/codex/PROJECT_BIBLE.md" in claude
     assert ".claude/rules/05_project_bible_pickup.md" in claude
     assert "Fable 5-style agents" in claude
+    assert "Saved `.claude/state/` files are historical evidence only" in claude
+    assert "Never reuse a saved suite count" in claude
     assert "[`PROJECT_BIBLE.md`](PROJECT_BIBLE.md)" in codex_readme
     assert "13_project_bible_continuation.md" in command_readme
     assert "docs/codex/goal_commands/13_project_bible_continuation.md" in project_bible
@@ -870,7 +884,7 @@ def test_project_bible_is_linked_from_agent_indexes():
         in project_bible
     )
     assert "Current validation discipline" in claude
-    assert "treat older suite counts in this file as historical" in claude
+    assert "Never reuse a saved suite count" in claude
     assert "python -m pytest packages --collect-only -q" in claude
 
 
@@ -903,11 +917,13 @@ def test_claude_hidden_pickup_rule_preserves_pause_boundary():
     rule = _read(".claude/rules/05_project_bible_pickup.md")
 
     assert "root `PROJECT_BIBLE.md`" in rule
+    assert "docs/CLAUDE_CODE_HANDOFF.md" in rule
     assert "docs/codex/PROJECT_BIBLE.md" in rule
     assert "Plans.md" in rule
     assert "compatibility bridge back to the project bible" in rule
     assert "pause-safe loop" in rule
     assert "Fable 5-style agents" in rule
+    assert ".claude/state/" in rule
     assert "reports/autonomous_engine.stop" in rule
     assert "call Ollama" in rule
     assert "promote candidate dimensions" in rule
@@ -970,6 +986,7 @@ def test_project_bible_pickup_validator_requires_delegated_validator_files():
         == GLOBAL_SAVED_ARTIFACT_VALIDATOR_DEPENDENCY_FILES
     )
     assert "Plans.md" in validator.REQUIRED_FILES
+    assert "docs/CLAUDE_CODE_HANDOFF.md" in validator.REQUIRED_FILES
     assert "scripts/validate_global_protections_saved_artifacts.py" in validator.REQUIRED_FILES
     assert "scripts/validate_project_bible_pickup.py" in validator.REQUIRED_FILES
     assert "scripts/validate_sister_project_planning.py" in validator.REQUIRED_FILES
@@ -2105,12 +2122,13 @@ def test_project_bible_pickup_validator_rejects_stale_claude_pickup_pointer(tmp_
     validator = _load_pickup_validator()
     _write_minimal_pickup_tree(tmp_path)
     (tmp_path / "CLAUDE.md").write_text(
-        "Long-loop pickup brief (2026-07-01)\n"
+        "Current operating brief (2026-07-27)\n"
         "docs/codex/PROJECT_BIBLE.md\n"
         ".claude/rules/05_project_bible_pickup.md\n"
         "Fable 5-style agents\n"
+        "Saved `.claude/state/` files are historical evidence only\n"
         "Current validation discipline\n"
-        "treat older suite counts in this file as historical\n"
+        "Never reuse a saved suite count\n"
         "python -m pytest packages --collect-only -q\n",
         encoding="utf-8",
     )

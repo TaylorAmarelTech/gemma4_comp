@@ -2,7 +2,9 @@
 
 This plan turns the final month of primary-maintainer involvement into a
 verifiable transfer rather than an informal document dump. Operational pickup
-is defined in the [Maintainer handoff](MAINTAINER_HANDOFF.md); the public release
+for coding agents is defined in the
+[Claude Code handoff](CLAUDE_CODE_HANDOFF.md), human operations are in the
+[Maintainer handoff](MAINTAINER_HANDOFF.md), and the public release
 boundary, limitations, dataset plan, and model-work backlog remain in
 [Publication readiness](PUBLICATION_READINESS.md).
 Every unfinished action is normalized in the generated
@@ -53,7 +55,7 @@ The project has reached a good stopping point when:
 | Release | Exact release or no-release decision | Commit/tag, release notes, version/citation reconciliation receipt |
 | Data and research | Accepted datasets separated from candidate, quarantine, and experimental evidence | Manifests, lineage/audit results, limitations register |
 | Operations | Access, recovery, alerts, backups, and publishing authority transferred | Private least-privilege transfer receipts |
-| Public deployment | Render website and MkDocs Pages have distinct, tested ownership | Website health, docs workflow receipt, and absence of a competing Pages deployer |
+| Public deployment | Render production, independent read-only continuity Pages, and MkDocs Pages have distinct, tested ownership | Website health, continuity `source_revision`, docs workflow receipt, and no competing deployer in this source repository |
 | Documentation | Public entry points and purpose maps lead to current handoff/release truth | Handoff validation and public-surface audit |
 | Continuity | Successor completes a fresh-shell pickup, safe change, and restore rehearsal | Signed or dated rehearsal record outside the public repo if it names people |
 
@@ -69,14 +71,16 @@ The project has reached a good stopping point when:
   closeout disables all five recurring tasks, keeps four daemon sentinels, and
   requires zero verified repository daemon processes; historical unmetered
   background usage is reconciled privately at the provider.
-- The closeout advanced through pull requests 2, 4, 5, 6, 7, and 8. The latest
-  validated substantive baseline is pull request 8 on `master`, merge commit
-  `9385a837879209e18f8e013cf969a3e1ecbcfc91`. Its 16 pull-request checks and
-  all six merge-triggered workflows passed. Render, MkDocs Pages, the portable
-  website build, and all six schema routes were live; the refreshed 592-link
-  audit found zero confirmed breakage and kept nine transient/unverified hosts
-  separate. Use live `master` as the base and rerun gates on every later
-  candidate.
+- The final model-free sequence advanced through pull requests 11 through 15.
+  The current pre-handoff anchor is pull request 15 on `master`, merge commit
+  `56e7283df1e191793355b340559733b4ef77f9fa`; all 16 pull-request checks passed,
+  and the exact local `packages tests` regression passed 4,646 tests with 9
+  skips. Render stayed live, the independent `duecare-ai-site` continuity
+  repository published the reviewed 51-route backend-free export without a
+  production `CNAME`, and this monorepo retained MkDocs as its Pages site. Pull
+  request 14 also corrected the homepage worker-story grid that had squeezed
+  body text into the 28-pixel number column. Use live `master` as the base and
+  rerun gates on every later candidate.
 - Keep the handoff, transition plan, deferred-work registry, purpose maps, and
   navigation links reconciled through their deterministic validators.
 - Confirm the canonical active Kaggle surfaces and keep optional/archived lanes
@@ -142,9 +146,11 @@ walkthrough, and documented corrections from rehearsal feedback.
   safety, reproducibility, pickup, or the bounded release claim.
 - Rerun affected tests, handoff scope, core scope, pickup validation, and public
   surface checks on the proposed final revision.
-- Verify `duecare-ai.com/project-status` from Render and the MkDocs handoff pages
-  from GitHub Pages after the release revision reaches `master`; do not deploy a
-  marketing bundle into the documentation Pages environment.
+- Verify `duecare-ai.com/project-status` from Render, the read-only continuity
+  export at `tayloramareltech.github.io/duecare-ai-site/` including its
+  `source_revision`, and the MkDocs handoff pages after the release revision
+  reaches `master`; do not deploy a marketing bundle into the documentation
+  Pages environment or assign production DNS to the fallback incidentally.
 - Record the training gate as passing or explicitly red. Do not weaken it and do
   not delay a valid no-new-training-claim core release solely to manufacture a
   green training lane.
@@ -213,7 +219,7 @@ or billing information.
 | Entity-intelligence pipeline | Propose-only, curator-reviewed, separate from worker-facing and training paths | A reviewed governance and evidence-admission change is approved |
 | Kaggle surface inventory | `01`, `02`, and `A-00` active; `03` and `04` optional; notebook-era variants archived | Root `AGENTS.md` and `kaggle/_INDEX.md` change together |
 | Release version/tag | Pending a deliberate owner decision | Week 2 release-candidate reconciliation is reviewed |
-| Target branch | Root rules name `master`; pull request 8 is the latest validated substantive baseline at `9385a837879209e18f8e013cf969a3e1ecbcfc91`, with all PR checks and six merge-triggered workflows green | Continue from live `master`; rerun gates on the exact candidate before any tag |
+| Target branch | Root rules name `master`; pull request 15 is the current pre-handoff anchor at `56e7283df1e191793355b340559733b4ef77f9fa`, with all 16 pull-request checks green and a 4,646-pass local broad regression | Continue from live `master`; rerun gates on the exact candidate before any tag |
 | Successor | Transfer path preferred; maintenance mode is the safe fallback | A successor accepts and completes the rehearsal |
 
 ### Closeout Decision Snapshot - 2026-07-27
@@ -304,7 +310,8 @@ below do not override it.
    versions and artifact receipts.
 2. Automate version/citation/changelog consistency checks and reproducible
    release builds without automating publication authority.
-3. Isolate legacy Ruff cleanup into small behavior-preserving changes.
+3. Keep the completed three-file Ruff cleanup enforced without file-wide
+   suppressions or reintroducing its retired deferred-work entry.
 4. Keep the strict-MkDocs repository-link resolver test-covered, and reduce
    informational notices only when doing so preserves the intentional
    public-versus-provenance navigation boundary.
@@ -330,6 +337,10 @@ below do not override it.
    only to disagreement, calibration, and decision-boundary cells.
 6. Emit sanitized budget and coverage receipts so an interrupted run can resume
    without duplicate paid calls.
+7. Treat **Kimi K3** and **Meta Muse Spark 1.1** as required future comparison
+   lanes. Reverify exact provider identifiers, access, modalities, context, and
+   pricing before spending; report an unavailable lane rather than silently
+   substituting another model.
 
 ### Dataset and evaluation quality
 
