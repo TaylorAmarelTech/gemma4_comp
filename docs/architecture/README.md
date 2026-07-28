@@ -1,5 +1,10 @@
 ﻿# Duecare platform — eight components
 
+Start with the [reusable capability-gap blueprint](capability_gap_blueprint.md)
+when adapting DueCare's evaluation, harness, agent, network, and governance
+pattern to another industry. This component index then maps that generic pattern
+onto the concrete DueCare implementation.
+
 | # | Component | Status | Purpose |
 |---|---|---|---|
 | 1 | [`duecare_runtime.md`](duecare_runtime.md) | **Live** | Gemma 4 model layer — local + cloud inference, model selection, output sanitizer |

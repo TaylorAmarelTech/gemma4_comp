@@ -21,15 +21,20 @@ life-cycle risk.
    recovery, and acceptance for a human successor.
 4. `docs/PROJECT_TRANSITION_PLAN.md` - dated 2026-07-26 through 2026-08-25
    closeout, rehearsal, release decision, and maintenance-mode fallback.
-5. `docs/PUBLICATION_READINESS.md` - canonical release/evidence boundary and
+5. `docs/POST_COMPETITION_HOSTING_TRANSITION.md` - event-gated Render-to-Pages
+   cutover and node-first continuity boundary after grading is owner-confirmed.
+6. `docs/architecture/capability_gap_blueprint.md` - reusable seven-plane
+   architecture, domain-pack contract, human governance, and agent/container
+   promotion boundary.
+7. `docs/PUBLICATION_READINESS.md` - canonical release/evidence boundary and
    limitations.
-6. `docs/CLOSEOUT_RESOLUTIONS_2026_07_28.md` - final disposition, evidence,
+8. `docs/CLOSEOUT_RESOLUTIONS_2026_07_28.md` - final disposition, evidence,
    claim boundary, and reopen condition for all 11 inherited items.
-7. `docs/DEFERRED_WORK.md` - generated outstanding queue; zero current items.
-8. `CLAUDE.md` - concise Claude Code index and rules map.
-9. `docs/codex/00_do_not_break.md` - recording-critical contract.
-10. `docs/codex/00_execution_order.md` - historical goal order and dependencies.
-11. `docs/FILE_PURPOSE_GUIDE.md` and `docs/REPO_LAYOUT.md` - update these when
+9. `docs/DEFERRED_WORK.md` - generated outstanding queue; zero current items.
+10. `CLAUDE.md` - concise Claude Code index and rules map.
+11. `docs/codex/00_do_not_break.md` - recording-critical contract.
+12. `docs/codex/00_execution_order.md` - historical goal order and dependencies.
+13. `docs/FILE_PURPOSE_GUIDE.md` and `docs/REPO_LAYOUT.md` - update these when
    adding public surfaces or long-lived docs outside an existing indexed area.
 
 Claude Code also auto-loads `.claude/rules/05_project_bible_pickup.md`, a
@@ -79,10 +84,11 @@ explicitly asks to restore them.
 >   privacy checks with live pickup consistency. It passed 2/2 gates on
 >   2026-07-28 (23/23 succession checks and the 65-check pickup validator with
 >   zero findings); it never authorizes model calls or engine resume.
-> - **Five exact model transports now enforce a shared provider budget.**
+> - **Seven exact model transports now enforce a shared provider budget.**
 >   `scripts/provider_budget.py` reserves attempt, input-token, output-token,
->   and reviewed cash allowance atomically before each of the four
->   `llm_generate.py` transports and the optional adverse-media model verifier.
+>   and reviewed cash allowance atomically before the four `llm_generate.py`
+>   transports, optional adverse-media verifier, model-failure candidate client,
+>   and contextual judge client.
 >   Offline tests prove zero-call denial occurs before HTTP and retries consume
 >   new reservations. This is not a universal interceptor for other standalone
 >   clients, package/application adapters, or self-contained Kaggle kernels;
@@ -91,7 +97,11 @@ explicitly asks to restore them.
 >   production website/API host, the separate `duecare-ai-site` repository
 >   publishes a backend-free read-only 51-route continuity copy without a
 >   production `CNAME`, and this repository's Pages deployment remains MkDocs.
->   The fallback manifest records its `source_revision`. Active
+>   The fallback manifest records its `source_revision`. This current state
+>   lasts through competition grading; after owner-confirmed completion, the
+>   approved event-gated target is durable Pages presentation plus independently
+>   governed runtime nodes, with mutable central APIs intentionally absent. See
+>   `docs/POST_COMPETITION_HOSTING_TRANSITION.md`. Active
 >   Kaggle 01 is `COMPLETE`; 02 and A-00 are `CANCEL_ACKNOWLEDGED`; optional 04
 >   is `COMPLETE`; optional 03 has no verified public URL. All 18 Python
 >   distributions remain unpublished on PyPI. The sole OIDC publisher now uses
@@ -99,6 +109,13 @@ explicitly asks to restore them.
 >   Render serves project status plus all six advertised schema endpoints, and the 2026-07-27 post-deploy 592-link audit
 >   found zero confirmed broken links and nine transient or unverified hosts.
 >   `ollama ps` showed no loaded model.
+> - **The 500-item Kimi/Gemini direction is frozen but has zero results.** The
+>   manifest plans 500 Kimi candidates, local deterministic grades, 500 Gemini
+>   3.1 Pro cross-family contextual judgments, and 500 separately reported Kimi
+>   self-judgments: 1,500 hosted calls maximum under a US$35 ceiling. Kimi extra
+>   usage is unfunded, no Gemini credential is present, and no candidate,
+>   automated-judge, or human-rating artifact exists. Read
+>   `docs/research/model_failure_run_readiness.md` before any authorization.
 > - **Generation is complete; exhaustive judging is closed as partial.** `reports/rich_lift/panel_perdim.coverage.json` reports
 >   `response_cells 236,157 / 236,157, 0 missing`. Every Gemma response for 78,719 prompts x 3 arms
 >   is on disk. Only judge calls remain: `panel_cells 47,813 / 708,471` (6.7%),
@@ -127,7 +144,7 @@ explicitly asks to restore them.
 >   reconciled. `validate_project_bible_pickup.py` remains the portable
 >   state-only pickup check.
 > - **Full suite re-verified green on 2026-07-28:** the integrated combined
->   `packages tests` run passed **4,653 tests, 9 skipped** with no warning
+>   `packages tests` run passed **4,669 tests, 9 skipped** with no warning
 >   summary under the zero-call transport lock. Mocked/loopback provider tests
 >   now isolate their fake transports explicitly while the real zero-call
 >   denial tests stay enforced. The former pandas Styler constant-range warnings are fixed; a

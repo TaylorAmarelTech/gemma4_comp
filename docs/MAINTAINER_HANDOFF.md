@@ -6,6 +6,8 @@ boundaries, run routine checks, and decide what is safe to publish. The dated
 coding-agent pickup is in the
 [Claude Code handoff](CLAUDE_CODE_HANDOFF.md), the closeout schedule is in the
 [30-day transition plan](PROJECT_TRANSITION_PLAN.md),
+the event-gated hosting decision is in the
+[post-competition hosting transition](POST_COMPETITION_HOSTING_TRANSITION.md),
 while the release boundary and evidence backlog remain in
 [Publication readiness](PUBLICATION_READINESS.md). The dated
 [closeout resolution receipt](CLOSEOUT_RESOLUTIONS_2026_07_28.md) records every
@@ -63,8 +65,17 @@ GitHub Pages deployment remains the MkDocs documentation site. The tracked
 [`CLAUDE_CODE_HANDOFF.md`](CLAUDE_CODE_HANDOFF.md) gives Claude Code and other
 coding agents the exact pickup prompt and live-state boundary.
 
-The 2026-07-28 maintenance candidate passed **4,653 tests with 9 skips** in 8
-minutes 4 seconds for the same broad command under the zero-call lock and
+This is intentionally time-bounded, not contradictory: Render stays active
+through competition grading. After the owner confirms grading is complete, the
+approved direction is to retire the centralized Fly/Render-style demo and make
+the backend-free Pages site the durable presentation layer. Pages will not
+preserve mutable APIs; local, partner, edge, mobile, Kaggle, or containerized
+nodes remain the runtime path. The exact no-early-shutdown, data-retention, DNS,
+HTTPS, crawl, and rollback gate is in the
+[post-competition hosting transition](POST_COMPETITION_HOSTING_TRANSITION.md).
+
+The 2026-07-28 maintenance candidate passed **4,669 tests with 9 skips** in 7
+minutes 57 seconds for the same broad command under the zero-call lock and
 offline provider/model flags. This is the current local receipt. The prior
 4,648-pass tracked-handoff result and the 4,646-pass PR #15 result remain exact
 historical receipts.
@@ -276,23 +287,37 @@ Use this precedence order when artifacts disagree:
 1. Live Git, filesystem, process, and validator output from the current
    workspace.
 2. Root `AGENTS.md` for safety rules, active surfaces, and required validation.
-3. [Claude Code handoff](CLAUDE_CODE_HANDOFF.md) for the tracked closeout
+3. [Capability-Gap Harness and Network Blueprint](architecture/capability_gap_blueprint.md)
+   for the reusable industry-neutral planes, domain-pack contract, evaluation
+   triangulation, human network, and agent/container promotion boundary.
+4. [Post-competition hosting transition](POST_COMPETITION_HOSTING_TRANSITION.md)
+   for the event-gated Render retirement, Pages boundary, node continuity, and
+   rollback acceptance test.
+5. [Claude Code handoff](CLAUDE_CODE_HANDOFF.md) for the tracked closeout
    pickup, live-service ownership, and recent receipts.
-4. [Deferred work register](DEFERRED_WORK.md) for the canonical status, owner,
+6. [Deferred work register](DEFERRED_WORK.md) for the canonical status, owner,
    authorization boundary, next action, and acceptance evidence for unfinished
    work.
-5. [Publication readiness](PUBLICATION_READINESS.md) for the release boundary
+7. [Publication readiness](PUBLICATION_READINESS.md) for the release boundary
    and known limitations.
-6. [`project_status.md`](project_status.md) and root `kaggle/_INDEX.md` for
+8. [`project_status.md`](project_status.md) and root `kaggle/_INDEX.md` for
    current public inventory.
-7. [`codex/PROJECT_BIBLE.md`](codex/PROJECT_BIBLE.md) for deep historical and
+9. [`codex/PROJECT_BIBLE.md`](codex/PROJECT_BIBLE.md) for deep historical and
    autonomous-engine context.
-8. Saved `.claude/state/` files and ignored reports as historical evidence only.
+10. Saved `.claude/state/` files and ignored reports as historical evidence only.
 
 Do not infer live completion from a handoff summary, an old manifest, or a
 healthy container alone. Re-run the smallest relevant read-only validator.
 
 ## Architecture And Boundaries
+
+The canonical reusable design is the
+[Capability-Gap Harness and Network Blueprint](architecture/capability_gap_blueprint.md).
+It presents seven separable planes (gap/claims, evidence/data, harness,
+evaluation, human governance, public network, and agent operations), a generic
+domain-pack contract, maturity levels, and a container-friendly target
+topology. The map below is the concrete DueCare implementation, not a claim
+that trafficking-specific knowledge transfers unchanged to another industry.
 
 The project has four intentionally separated flows:
 
@@ -413,7 +438,7 @@ Run the smallest applicable scope first, then widen only as needed:
 | Focused tests | `python -m pytest path/to/affected/tests -q` | Behavioral evidence for the edited area |
 | Package collection | `python -m pytest packages --collect-only -q` | Published package-test inventory remains discoverable |
 | Kaggle | `python scripts/validate_main_kaggle_kernels.py` and `py -3.12 scripts/validate_kaggle_page_sources.py` | Active kernel and generated-page contracts |
-| Provider budget | `python scripts/validate_provider_budget_coverage.py` | All four primary-router transports plus the adverse-media and model-failure study transports remain inside atomic reservations; this makes no provider call |
+| Provider budget | `python scripts/validate_provider_budget_coverage.py` | Seven registered transports (four primary-router, adverse-media, model-failure candidate, and model-failure judge) remain inside atomic reservations; this makes no provider call |
 | External links | `python scripts/check_external_links.py --check --workers 24` | Network audit that separates confirmed 4xx breakage from transient, DNS, SSL, redirect, and bot-blocked hosts |
 | Full regression | `python -m pytest packages tests -q` | Broad local regression; report skips and warnings exactly |
 | Training | `python scripts/validate_publication_readiness.py --scope training` | Strict dataset/provenance release lane; nonzero is expected until its documented queue closes |
@@ -441,6 +466,17 @@ Update the relevant purpose map when adding a durable public surface. Run
 hotline, office, fee, or policy details unless they are versioned knowledge
 objects with source dates.
 
+### Change public hosting
+
+Do not disable Render, alter production DNS, add a continuity-site `CNAME`, or
+revoke hosting credentials while competition grading continues. Once the owner
+confirms grading is complete, follow
+[`POST_COMPETITION_HOSTING_TRANSITION.md`](POST_COMPETITION_HOSTING_TRANSITION.md)
+in order. The transition is complete only when the 51-route/five-snapshot
+static build, offline crawl, mobile and desktop checks, HTTPS, optional DNS,
+private-data disposition, secret removal, and rollback receipt all pass. Treat
+the loss of centralized APIs as an explicit product boundary, not an outage.
+
 ### Change a dataset or training artifact
 
 Preserve source/license metadata, content hashes, lineage families, quarantine
@@ -453,9 +489,10 @@ declared rule-based review admits them.
 Model work requires a deliberate budget, frozen model IDs/revisions, prompt and
 rubric hashes, output limits, cache paths, and a stop condition. Run a
 non-mutating plan first. Unlock only the smallest sampled allowance, reuse
-checkpoints, and keep a sanitized receipt. The primary router now has a shared
-atomic call/token/cash ledger, so its startup plan and transport receipt can be
-compared. Direct package/application/standalone clients and self-contained
+checkpoints, and keep a sanitized receipt. The primary router and the direct
+model-failure candidate and judge clients now use the shared atomic
+call/token/cash ledger, so startup plans and transport receipts can be
+compared. Other direct package/application/standalone clients and self-contained
 notebook runtimes still need their own integration; withhold credentials from them
 during maintenance rather than assuming the router intercepts their traffic.
 Only after that policy is reviewed should an authorized maintainer run
@@ -479,13 +516,25 @@ and actual ledger cost. This produced no model result and did not justify the
 proposed 500-prompt lane. Do not retry until the billing owner deliberately
 funds extra usage and authorizes a new run ID and limits.
 
-The no-call 500-prompt plan is already frozen: category-balanced seed
+The candidate portion of the no-call 500-prompt plan is already frozen:
+category-balanced seed
 `20260728`, 117 categories, selection SHA-256
 `9d4aedf042f5f9d73e8372a8f1bf5538190d9791dbc692c38ca720aed1bc48eb`,
 158,922 estimated input tokens, 384,000 maximum output tokens, and a US$6.2368
-worst-case reservation at the rates checked that day. It produces 500 Kimi
-answers plus local deterministic grades only—no hosted judge and no human
-rating. Recompute `--plan` and investigate any hash drift before funding it.
+worst-case reservation at the rates checked that day.
+
+The full frozen campaign adds 500 Gemini 3.1 Pro cross-family contextual
+judgments and 500 separately labeled Kimi contextual self-judgments over the
+same `duecare-full` context. Its one-call holistic protocol is directional.
+The combined maximum is 1,500 hosted calls, 7,296,582 input tokens, 1,152,000
+output tokens, and US$34.448916 worst-case under a US$35 ceiling. It remains
+blocked because Kimi extra usage is unfunded and no Gemini credential is
+present; it has zero completions, automated judgments, or human ratings. Read
+the [campaign readiness receipt](research/model_failure_run_readiness.md) and
+frozen
+[`campaign manifest`](../configs/duecare/benchmarks/kimi_k3_500_context_judge_campaign.json),
+recompute every `--plan`, and investigate any hash or reservation drift before
+authorizing the candidate, Gemini, and Kimi self-judge phases separately.
 
 ### Publish or release
 
@@ -504,6 +553,12 @@ targets unavailable to Pages (outside `docs/` or intentionally excluded) to
 canonical GitHub source links; missing targets stay visible to MkDocs and still
 fail the strict build. The 2026-07-27 local strict receipt completed with zero
 warnings.
+
+The copy-ready final Kaggle community update is
+[`kaggle_final_closeout_post.md`](kaggle_final_closeout_post.md). Keep its model
+and human-evidence counts unchanged unless new reviewed artifacts exist. Kaggle
+discussion publication remains a manual, owner-authorized editor action; it is
+not evidence that the later hosting cutover gate has passed.
 
 ### Archive or recover
 

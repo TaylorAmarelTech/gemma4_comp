@@ -204,17 +204,21 @@ python -c "from duecare.server import create_app; from duecare.server.state impo
 > **Judges start here:** [`docs/FOR_KAGGLE_JUDGES.md`](./docs/FOR_KAGGLE_JUDGES.md) (hackathon-specific quick path).
 > Or: [`docs/FOR_PEER_REVIEW.md`](./docs/FOR_PEER_REVIEW.md) (full verification roster).
 > **Writeup (1500 words max):** [`docs/writeup_draft.md`](./docs/writeup_draft.md).
-> **Copy-ready networked knowledge-sharing Kaggle post:** [`docs/kaggle_post_networked_knowledge_sharing.md`](./docs/kaggle_post_networked_knowledge_sharing.md).
+> **Copy-ready final Kaggle closeout post:** [`docs/kaggle_final_closeout_post.md`](./docs/kaggle_final_closeout_post.md) - final implementation update, Kimi/Gemini plan, honest remaining evidence gaps, and the node-first post-grading hosting transition.
+> **Earlier networked knowledge-sharing Kaggle post:** [`docs/kaggle_post_networked_knowledge_sharing.md`](./docs/kaggle_post_networked_knowledge_sharing.md).
 > **Video script (~2:50):** [`docs/video_script.md`](./docs/video_script.md).
 > **Audit / readiness:** [`docs/readiness_dashboard.md`](./docs/readiness_dashboard.md).
 > **Offline publication wrap-up:** [`docs/PUBLICATION_READINESS.md`](./docs/PUBLICATION_READINESS.md) - one model-free core gate, the current training-data blocker, a credit-preserving Ollama plan, vetted public-resource candidates, and the exact next sequence.
 > **Dated closeout decisions:** [`docs/CLOSEOUT_RESOLUTIONS_2026_07_28.md`](./docs/CLOSEOUT_RESOLUTIONS_2026_07_28.md) - the honest disposition, evidence, claim boundary, and reopen condition for all 11 inherited items.
 > **Canonical deferred work:** [`docs/DEFERRED_WORK.md`](./docs/DEFERRED_WORK.md) - the generated outstanding-work register; it contains zero current items and is reserved for specifically reopened work.
 > **Provider budget contract:** [`docs/PROVIDER_BUDGETING.md`](./docs/PROVIDER_BUDGETING.md) - atomic attempt/token/cash reservations, sanitized receipts, zero-transport proof, and the exact boundary around direct and notebook callers.
+> **Reusable architecture:** [`docs/architecture/capability_gap_blueprint.md`](./docs/architecture/capability_gap_blueprint.md) - a cross-industry pattern for capability-gap discovery, evidence, harnesses, deterministic/frontier/human evaluation, governed agents, public networks, and safe promotion.
+> **Frozen Kimi/Gemini campaign:** [`docs/research/model_failure_run_readiness.md`](./docs/research/model_failure_run_readiness.md) - 500 Kimi candidate answers, deterministic grading, Gemini cross-family contextual judging, separately labeled Kimi self-judging, exact budgets, and current zero-result access blockers.
 > **Claude Code pickup:** [`docs/CLAUDE_CODE_HANDOFF.md`](./docs/CLAUDE_CODE_HANDOFF.md) - tracked closeout truth, live-service boundaries, recent merge receipts, exact safe next work, and a copy-ready successor prompt.
 > **Maintainer pickup:** [`docs/MAINTAINER_HANDOFF.md`](./docs/MAINTAINER_HANDOFF.md) - fresh-shell checks, architecture boundaries, routine operations, incident recovery, and transfer acceptance.
 > **Successor rehearsal:** [`docs/SUCCESSOR_REHEARSAL.md`](./docs/SUCCESSOR_REHEARSAL.md) - one model-free command for handoff, core, notebook, archive, and paused-engine evidence with a sanitized receipt.
 > **30-day closeout:** [`docs/PROJECT_TRANSITION_PLAN.md`](./docs/PROJECT_TRANSITION_PLAN.md) - the dated 2026-07-26 through 2026-08-25 succession, release, access, rehearsal, and maintenance-mode plan.
+> **Post-competition hosting:** [`docs/POST_COMPETITION_HOSTING_TRANSITION.md`](./docs/POST_COMPETITION_HOSTING_TRANSITION.md) - keep Render live through grading, then preserve public pages on GitHub Pages while deployments continue as independently governed nodes.
 > **Public continuity status:** [`duecare-ai.com/project-status`](https://duecare-ai.com/project-status) - release-ready work, deliberate stops, deployment ownership, and future-maintainer entry points.
 > **Harness lift report:** [`docs/harness_lift_report.md`](./docs/harness_lift_report.md) - quantifies how the safety layers change rubric scores.
 > **Corpus coverage:** [`docs/corpus_coverage.md`](./docs/corpus_coverage.md) - coverage matrices across category, sector, corridor, and ILO indicator.

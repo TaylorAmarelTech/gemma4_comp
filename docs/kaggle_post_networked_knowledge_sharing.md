@@ -1,5 +1,11 @@
 # Copy-ready Kaggle Post: DueCare Networked Knowledge Sharing
 
+> This remains the focused network-architecture post. For the final
+> competition update, new Kimi/Gemini evaluation plan, closeout state, and
+> post-grading move from centralized Render hosting to GitHub Pages plus
+> deployable nodes, use
+> [`kaggle_final_closeout_post.md`](kaggle_final_closeout_post.md).
+
 This page is a copy/paste draft for introducing DueCare on Kaggle as a Gemma 4
 ecosystem of local nodes, reviewed fact objects, anonymized evidence edges, and
 privacy-preserving knowledge sharing. It is intentionally separate from the

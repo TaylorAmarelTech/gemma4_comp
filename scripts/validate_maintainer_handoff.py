@@ -97,7 +97,7 @@ CLAUDE_HANDOFF_MARKERS: tuple[str, ...] = (
     "stop_ollama_stack.ps1 -Status",
     "4,646 passed",
     "4,648 passed",
-    "4,653 passed",
+    "4,669 passed",
 )
 
 TRANSITION_MARKERS: tuple[str, ...] = (

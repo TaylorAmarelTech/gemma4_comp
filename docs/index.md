@@ -14,6 +14,16 @@ around it: workbenches, harnesses, knowledge packs, search guards,
 anonymization gates, graph extraction, evaluation, benchmarks, and a public hub
 that can exchange only safe, reviewed objects.
 
+The same pattern is intentionally reusable beyond migrant-worker protection.
+The
+[Capability-Gap Harness and Network Blueprint](architecture/capability_gap_blueprint.md)
+shows how to replace the domain pack while preserving the evidence, harness,
+evaluation, human-governance, public-network, and agent-operations contracts.
+<!-- audit-allow:drift reason: maps a legacy compatibility name to canonical server automation -->
+It also maps Hermes, the legacy OpenClaw-compatible server-automation role,
+orchestration, sharing, and a container-friendly deployment target without
+claiming that the current agents autonomously contact or rate people.
+
 ## The ecosystem idea
 
 DueCare is not a single chatbot. It is a set of components designed to
@@ -113,6 +123,9 @@ For a shorter public explanation, read
 [Gemma 4 for Networked Knowledge Sharing Without Centralizing PII](gemma_networked_knowledge_sharing.md).
 For copy-ready Kaggle discussion copy with a title and opening paragraph, use
 [Copy-ready Kaggle Post: DueCare Networked Knowledge Sharing](kaggle_post_networked_knowledge_sharing.md).
+For the final competition closeout, new architecture/evaluation work, and
+post-grading node-first hosting decision, use the
+[copy-ready final Kaggle post](kaggle_final_closeout_post.md).
 
 ## Source verification
 
@@ -151,9 +164,13 @@ the full per-source map and connector reference live in the
 | **Try the workbench** | Open [DueCare App on Kaggle](https://www.kaggle.com/code/taylorsamarel/duecare-app), run it, and open the Cloudflare URL. |
 | **Take over maintenance** | Start with the tracked [Claude Code handoff](CLAUDE_CODE_HANDOFF.md), run the [successor pickup rehearsal](SUCCESSOR_REHEARSAL.md), use the [Maintainer handoff](MAINTAINER_HANDOFF.md), then follow the dated [30-day transition plan](PROJECT_TRANSITION_PLAN.md). |
 | **Check public project status** | Open the website [Project status & handoff](https://duecare-ai.com/project-status), then verify its receipts against [Publication readiness](PUBLICATION_READINESS.md). |
+| **Publish the final Kaggle update** | Use the exact [copy-ready closeout post](kaggle_final_closeout_post.md), keeping its zero-result Kimi/Gemini and zero-human-rating boundaries unchanged. |
+| **Transition after competition grading** | Follow the event-triggered [Post-Competition Hosting Transition](POST_COMPETITION_HOSTING_TRANSITION.md): keep Render live through grading, then move durable presentation to Pages and retain node deployment paths. |
 | **Review closeout decisions** | Read the dated [11-item closeout receipt](CLOSEOUT_RESOLUTIONS_2026_07_28.md), then use the zero-item [Deferred work register](DEFERRED_WORK.md) only if a stated reopen condition is met. |
 | **Review the proof path** | Start with the model-free [Publication readiness](PUBLICATION_READINESS.md) gate, then use [For Judges and Reviewers](FOR_PEER_REVIEW.md) and the active A-00 proof path. |
 | **Plan a provider-backed run** | Keep calls at zero until the [provider-budget contract](PROVIDER_BUDGETING.md) has a frozen run ID, token/cash caps, and reviewed pricing. |
+| **Inspect the frozen Kimi/Gemini campaign** | Read the [campaign readiness receipt](research/model_failure_run_readiness.md); it plans deterministic grading, a Gemini cross-family contextual judge, and a separately labeled Kimi self-judge, but currently has zero completed calls. |
+| **Replicate the architecture in another domain** | Start with the [Capability-Gap Harness and Network Blueprint](architecture/capability_gap_blueprint.md), then define a new versioned domain pack and claim boundary. |
 | **Install locally** | Use [Install](install.md) and [Local deployment](deployment_local.md). |
 | **Embed in another system** | Use [Embedding guide](embedding_guide.md), [OpenAPI spec](openapi.yaml), and [Deployment enterprise](deployment_enterprise.md). |
 | **Audit claims** | Use [Reproducibility](reproducibility.md), [Notebook guide](notebook_guide.md), and the validation commands linked there. |

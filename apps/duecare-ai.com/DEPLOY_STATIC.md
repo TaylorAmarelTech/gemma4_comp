@@ -6,6 +6,13 @@ static host can serve. It drives the **real app** through Starlette's
 committed assets rather than a second website fork. The exporter makes no
 network or model call.
 
+The approved event boundary is in
+[`docs/POST_COMPETITION_HOSTING_TRANSITION.md`](../../docs/POST_COMPETITION_HOSTING_TRANSITION.md):
+keep Render live through competition grading, then use this runbook only after
+grading completion is owner-confirmed. The target is durable Pages presentation
+plus independently governed nodes, not a claim that static hosting preserves
+the centralized mutable hub.
+
 ## Build
 
 ```powershell

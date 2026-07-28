@@ -18,6 +18,11 @@ promotion of candidate data.
   Pages copy, MkDocs Pages documentation, active notebook sources, package
   build contract, and deterministic verification stack are maintained from
   reviewed `master` revisions with distinct deployment ownership.
+- Render remains production through competition grading. After grading is
+  owner-confirmed complete, the approved event-gated target is durable Pages
+  presentation plus independently governed runtime nodes; Pages will not
+  preserve mutable hub APIs. Follow
+  [`POST_COMPETITION_HOSTING_TRANSITION.md`](POST_COMPETITION_HOSTING_TRANSITION.md).
 - The active Kaggle submission sources are exactly `01`, `02`, and `A-00`.
   The `03` and `04` benchmark surfaces are optional and are not prerequisites
   for repository closure.
@@ -46,10 +51,12 @@ python scripts/validate_publication_readiness.py --scope core
 
 The registered legacy Ruff slice completed on 2026-07-28: the three selected
 files pass the configured rules without suppressions, backed by their offline
-behavior tests. No `ready_local` item remains in the canonical queue. The first
-direct-client budget migration is also complete for the adverse-media verifier;
-other callers remain future bounded migrations under the exact coverage
-statement in [`PROVIDER_BUDGETING.md`](PROVIDER_BUDGETING.md).
+behavior tests. No `ready_local` item remains in the canonical queue. Seven
+registered transports now have shared atomic budget coverage: four primary
+generation paths, adverse-media verification, model-failure candidate
+generation, and contextual judging. Other callers remain future bounded
+migrations under the exact coverage statement in
+[`PROVIDER_BUDGETING.md`](PROVIDER_BUDGETING.md).
 
 ## Conditional Evidence And Dataset Opportunities
 

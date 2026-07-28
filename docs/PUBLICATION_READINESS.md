@@ -4,16 +4,22 @@ This is the model-free wrap-up path for DueCare. It separates the maintained
 public surface from explicitly excluded claims and work that may be reopened
 later only under a dated condition. Current as of 2026-07-28.
 
+For the transferable system design behind this domain implementation, start
+with the
+[Capability-Gap Harness and Network Blueprint](architecture/capability_gap_blueprint.md).
+
 ## Current Posture
 
 | Track | Current state | Publication rule |
 |---|---|---|
-| Core code, docs, active Kaggle surfaces, provider-budget coverage, deferred-work and closeout-receipt integrity, package-release ownership, and published dataset claims | **12/12 current core gates pass offline; the 2026-07-28 maintenance candidate passed 4,653 tests with 9 skips locally, while pull request 16 at `1c8f6b25` is the immediate fully merged predecessor** | Maintenance mode is enacted; rerun on any future exact release commit before tagging. |
+| Core code, docs, active Kaggle surfaces, provider-budget coverage, deferred-work and closeout-receipt integrity, package-release ownership, and published dataset claims | **12/12 current core gates pass offline; the 2026-07-28 maintenance candidate passed 4,669 tests with 9 skips locally, while pull request 16 at `1c8f6b25` is the immediate fully merged predecessor** | Maintenance mode is enacted; rerun on any future exact release commit before tagging. |
 | Maintainer succession and live pickup | **2/2 handoff gates passed offline; the tracked Claude handoff, Render site, independent read-only continuity Pages site, and MkDocs docs are reconciled** | Re-run from a fresh shell and complete the private/manual acceptance steps before ownership transfer. |
+| Public hosting transition | **Event-gated:** Render and `duecare-ai.com` stay live through competition grading; afterward Pages is the approved durable presentation target and independently governed nodes remain deployable | Do not shut down, change DNS, or remove secrets/data early. Follow every acceptance item in [`POST_COMPETITION_HOSTING_TRANSITION.md`](POST_COMPETITION_HOSTING_TRANSITION.md); Pages does not preserve mutable hub APIs. |
 | Existing dated benchmark and learning-study results | Retained as bounded evidence with their original model, dataset, rubric, and date | Do not silently relabel an old result as a new model or field-effectiveness result. |
 | New fine-tuning dataset | **Not clean yet:** the strict audit reports five dense single/generic-corridor typologies; the deterministic workbook has 75 unfilled slots and no fabricated approvals | Complete source snapshots, rights review, two-person adjudication, and lineage-safe rows; rerun the audit, then refresh provenance before training or a new model claim. |
 | Exhaustive per-dimension judging | Experimental, isolated, and incomplete | Keep it out of the default comparable board until its own exact closure gate passes. |
-| Local/hosted Ollama work | Optional and deferred; the whole Windows model/flywheel stack is cost-stopped and the primary router has an atomic attempt/token/cash ledger | Plan offline first; unlock a small allowance only for a frozen, priced run, and keep direct/notebook clients outside the router explicitly labeled. |
+| Kimi/Gemini directional campaign | **Frozen but externally blocked:** 1,500-call maximum; zero candidate completions, automated judgments, or human ratings; Kimi extra usage is unfunded and no Gemini key is present | Re-run the no-call plans and authorize candidate, Gemini cross-family judge, and Kimi self-judge phases separately; never blend the self-judge into the primary automated result. |
+| Other local/hosted model work | Optional and deferred; the whole Windows model/flywheel stack is cost-stopped and seven registered transports have atomic attempt/token/cash coverage | Plan offline first; unlock a small allowance only for a frozen, priced run, and keep uncovered direct/notebook clients explicitly labeled. |
 
 The dated
 [`CLOSEOUT_RESOLUTIONS_2026_07_28.md`](CLOSEOUT_RESOLUTIONS_2026_07_28.md)
@@ -83,7 +89,7 @@ merged predecessor landed through
 `1c8f6b25729da869b2775a29321ab3b74bd4715f`; all 16 checks passed. Pull request
 15's exact local broad regression passed 4,646 tests with 9 skips, and the
 subsequent tracked-handoff candidate passed 4,648 tests with 9 skips; both are
-historical. The current maintenance candidate passed 4,653 tests with 9 skips in 8 minutes 4
+historical. The current maintenance candidate passed 4,669 tests with 9 skips in 7 minutes 57
 seconds under the zero-call lock and offline provider/model flags.
 These receipts are not a substitute
 for rerunning the command on an eventual release tag.
@@ -169,8 +175,9 @@ rotations, and resilient re-questions consume new reservations. The full
 operator contract, positive-budget environment, privacy boundary, and current
 coverage matrix are in [Provider budgeting](PROVIDER_BUDGETING.md).
 
-The transport lock is exact for the four primary-router HTTP paths and the
-optional adverse-media model verifier, as enforced by
+The transport lock is exact for seven registered HTTP paths: four primary
+router transports, the optional adverse-media verifier, the model-failure
+candidate client, and the contextual judge client, as enforced by
 `validate_provider_budget_coverage.py`. It is not a repository-wide network
 interceptor: self-contained Kaggle kernels, package/application adapters, and
 other standalone scripts with their own HTTP clients remain
@@ -197,7 +204,17 @@ When model work resumes, use this order:
    run time; preserve an unavailable-lane receipt rather than substituting a
    different model silently.
 
-The shared primary-router ledger and first direct-client migration are complete
+The current Kimi campaign is already preregistered in
+[`kimi_k3_500_context_judge_campaign.json`](../configs/duecare/benchmarks/kimi_k3_500_context_judge_campaign.json):
+500 Kimi baseline answers, deterministic grades, 500 Gemini 3.1 Pro
+cross-family contextual judgments, and 500 separately labeled Kimi contextual
+self-judgments. Its holistic protocol is directional. The exact maximum is
+1,500 calls, 7,296,582 estimated input tokens, 1,152,000 maximum output tokens,
+and US$34.448916 worst-case. It has not run. Follow the
+[readiness receipt](research/model_failure_run_readiness.md); access failures
+are not benchmark rows.
+
+The shared primary-router ledger and three direct-client migrations are complete
 and tested without provider calls. The remaining transport work is to migrate
 other direct standalone research clients one at a time, then design a portable
 notebook equivalent and an injectable package/application-adapter contract
@@ -347,6 +364,11 @@ status and rerun the read-only validator when possible.
 
 ## System Map For The Next Maintainer
 
+The map below is the project-specific summary. The reusable seven-plane
+architecture, generic domain-pack contract, agent roles, human-network loop,
+and container target are in the
+[Capability-Gap Harness and Network Blueprint](architecture/capability_gap_blueprint.md).
+
 The three major flows intentionally remain separate:
 
 ```text
@@ -387,7 +409,7 @@ worker-facing answers, benchmark labels, or training rows automatically.
 - The training gate is red because of corridor coverage and the resulting
   stale fingerprints in an older planned registry record. This is a truthful
   provenance stop, not a reason to rewrite the ledger.
-- The current integrated `packages tests` regression passed 4,653 tests with nine
+- The current integrated `packages tests` regression passed 4,669 tests with nine
   skips and no warning summary in the locked 18-package workspace. Mocked and
   loopback provider tests explicitly isolate their fake transports while the
   real zero-call denial tests remain enabled. The
@@ -410,6 +432,12 @@ worker-facing answers, benchmark labels, or training rows automatically.
   `CNAME`; and `docs-deploy.yml` owns this repository's MkDocs Pages site.
   `duecare-site-build.yml` uploads both source artifacts but never deploys over
   MkDocs. The continuity manifest exposes its checked `source_revision`.
+- That current ownership has a documented event boundary rather than an
+  immediate change: keep Render active through competition grading. After the
+  owner confirms grading is complete, follow the
+  [post-competition hosting transition](POST_COMPETITION_HOSTING_TRANSITION.md)
+  to make Pages the durable presentation, explicitly retire centralized APIs,
+  and preserve the runtime as independently deployable nodes.
 - GitHub Action majors were verified against official releases on 2026-07-27
   and refreshed across CI, Pages, website artifacts, scheduled work, Docker,
   Helm, Gitleaks, and package publication. The triggered CI, Pages,
@@ -468,6 +496,8 @@ new versioned evidence lane rather than changing the existing board in place.
 - [ ] Generated manifests, purpose maps, project status, and handoff artifacts
       agree with the code, deferred-work register, and current active Kaggle
       inventory.
+- [ ] Public copy says which hosting phase is current and does not imply that a
+      static Pages site provides Render's mutable APIs.
 - [ ] A deliberate release-version decision reconciles workspace package
       versions, changelog, tag, and the currently unversioned `CITATION.cff`;
       do not bump them implicitly during cleanup.
@@ -481,9 +511,10 @@ met, use this dependency order without treating it as standing authorization:
    independently adjudicated corridor row is admitted.
 2. Refresh strict quality and append-only provenance only after genuinely new
    admitted data exists; do not refresh metadata to disguise a red gate.
-3. Run Kimi K3, Meta Muse Spark 1.1, or any other provider only for a frozen,
-   preregistered question with exact identifiers and finite attempt/token/cash
-   caps.
+3. Run the frozen Kimi/Gemini campaign only after its external access blockers
+   clear and each phase has exact identifiers and finite attempt/token/cash
+   caps. Treat Meta Muse Spark 1.1 or another provider as a separate frozen
+   extension, not a silent substitution.
 4. Prefer a small uncertainty-reducing judge or human-review slice over
    resuming the declined exhaustive per-dimension sweep.
 5. Publish a package, notebook, model, or dataset only when a real consumer or

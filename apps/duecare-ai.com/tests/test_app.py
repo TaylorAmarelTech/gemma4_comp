@@ -360,7 +360,7 @@ def test_project_status_page_keeps_release_and_training_claims_separate(tmp_path
     assert "0 items" in response.text
     assert "remain unpublished on PyPI" in response.text
     assert "2 / 2 pass" in response.text
-    assert "4,653 passed" in response.text
+    assert "4,669 passed" in response.text
     assert "Model/flywheel stack" in response.text and "cost-stopped" in response.text
     assert "auxiliary discovery and server-automation callers" in response.text
     assert "does not claim its historical provider usage was zero" in response.text
@@ -386,8 +386,20 @@ def test_project_status_page_keeps_release_and_training_claims_separate(tmp_path
     assert "364 review items, zero human ratings" in response.text
     assert "it cannot send" in response.text
     assert "HTTP 402" in response.text
-    assert "500 public synthetic prompts and 117 categories" in response.text
-    assert "deterministic grades, not human ratings" in response.text
+    assert "500-item campaign is hash-bound and category-balanced" in response.text
+    assert "never merged into a claim of human validation" in response.text
+    assert "One domain implementation, a reusable capability-gap pattern" in response.text
+    assert "Kimi K3 plus two kinds of judging" in response.text
+    assert "1,500 calls planned; zero results invented" in response.text
+    assert "Gemini 3.1 Pro" in response.text
+    assert "7,296,582 input tokens" in response.text
+    assert "capability_gap_blueprint" in response.text
+    assert "model_failure_run_readiness" in response.text
+    assert "overflow-wrap: break-word" in response.text
+    assert "Post-competition decision: pages plus independently governed nodes" in response.text
+    assert "Render and the centralized hub stay available through competition grading" in response.text
+    assert "kaggle_final_closeout_post" in response.text
+    assert "POST_COMPETITION_HOSTING_TRANSITION" in response.text
 
 
 def test_stats_page_discloses_beta_data_and_uses_live_counters(tmp_path) -> None:

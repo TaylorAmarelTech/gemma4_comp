@@ -21,18 +21,31 @@ are historical evidence only.
 1. Root [`AGENTS.md`](../AGENTS.md) for active surfaces, safety rules, and the
    required validation ladder.
 2. This handoff for the closeout state and immediate pickup sequence.
-3. Root [`PROJECT_BIBLE.md`](../PROJECT_BIBLE.md) for the canonical handoff map.
-4. [`MAINTAINER_HANDOFF.md`](MAINTAINER_HANDOFF.md) for human operations,
+3. [`architecture/capability_gap_blueprint.md`](architecture/capability_gap_blueprint.md)
+   for the reusable industry-neutral system architecture, agent boundaries,
+   human network, and container promotion path.
+4. Root [`PROJECT_BIBLE.md`](../PROJECT_BIBLE.md) for the canonical handoff map.
+5. [`MAINTAINER_HANDOFF.md`](MAINTAINER_HANDOFF.md) for human operations,
    recovery, access transfer, and acceptance.
-5. [`PROJECT_TRANSITION_PLAN.md`](PROJECT_TRANSITION_PLAN.md) for the dated
+6. [`PROJECT_TRANSITION_PLAN.md`](PROJECT_TRANSITION_PLAN.md) for the dated
    closeout and maintenance-mode fallback.
-6. [`PUBLICATION_READINESS.md`](PUBLICATION_READINESS.md) for the bounded
+7. [`POST_COMPETITION_HOSTING_TRANSITION.md`](POST_COMPETITION_HOSTING_TRANSITION.md)
+   for the owner-confirmed, post-grading Render-to-Pages cutover and node-first
+   continuity boundary.
+8. [`kaggle_final_closeout_post.md`](kaggle_final_closeout_post.md) for the
+   copy-ready final community update; publication through Kaggle's editor is a
+   manual owner action.
+9. [`PUBLICATION_READINESS.md`](PUBLICATION_READINESS.md) for the bounded
    release claim and intentionally red training lane.
-7. [`CLOSEOUT_RESOLUTIONS_2026_07_28.md`](CLOSEOUT_RESOLUTIONS_2026_07_28.md)
+10. [`research/model_failure_run_readiness.md`](research/model_failure_run_readiness.md)
+   and the frozen
+   [`Kimi/Gemini campaign`](../configs/duecare/benchmarks/kimi_k3_500_context_judge_campaign.json)
+   before any provider-backed evaluation work.
+11. [`CLOSEOUT_RESOLUTIONS_2026_07_28.md`](CLOSEOUT_RESOLUTIONS_2026_07_28.md)
    for the final item-by-item disposition and claim boundaries.
-8. [`DEFERRED_WORK.md`](DEFERRED_WORK.md) for genuinely reopened work; it
+12. [`DEFERRED_WORK.md`](DEFERRED_WORK.md) for genuinely reopened work; it
    contains zero current items at this handoff.
-9. [`codex/PROJECT_BIBLE.md`](codex/PROJECT_BIBLE.md) only when deeper benchmark,
+13. [`codex/PROJECT_BIBLE.md`](codex/PROJECT_BIBLE.md) only when deeper benchmark,
    dataset, or autonomous-engine history is needed.
 
 Root [`Plans.md`](../Plans.md) exists only as a compatibility bridge for older
@@ -103,11 +116,15 @@ source ref. Its machine-readable receipt is the
 [`static/snapshots/manifest.json`](https://tayloramareltech.github.io/duecare-ai-site/static/snapshots/manifest.json)
 file; compare `source_revision` with the intended source commit.
 
-If Render is ever retired, follow
-[`apps/duecare-ai.com/DEPLOY_STATIC.md`](../apps/duecare-ai.com/DEPLOY_STATIC.md).
-A root-domain cutover requires explicit approval, a root-path build, live crawl,
-HTTPS/DNS verification, and a tested rollback. Do not make that cutover as an
-incidental documentation change.
+The approved direction is event-gated: keep Render and production DNS intact
+through competition grading. Only after the owner confirms grading is complete,
+follow the
+[`post-competition hosting transition`](POST_COMPETITION_HOSTING_TRANSITION.md)
+and [`DEPLOY_STATIC.md`](../apps/duecare-ai.com/DEPLOY_STATIC.md). A root-domain
+cutover requires a root-path build, live crawl, HTTPS/DNS verification, private
+data-retention decision, and tested rollback. Do not make that cutover as an
+incidental documentation change, and do not imply that Pages preserves mutable
+hub APIs.
 
 ## Recent Closeout Receipts
 
@@ -128,8 +145,8 @@ harness anti-regression, privacy scan, active Kaggle contract, package build,
 and container build also passed. No Ollama or hosted-model call was made for
 these closeout changes.
 
-The 2026-07-28 maintenance candidate passed `4,653 passed, 9 skipped` for the
-same broad command in 8 minutes 4 seconds under
+The 2026-07-28 maintenance candidate passed `4,669 passed, 9 skipped` for the
+same broad command in 7 minutes 57 seconds under
 `DUECARE_MAX_PLANNED_MODEL_CALLS=0` and offline provider/model flags. This is
 the current local receipt. The earlier `4,648 passed` tracked-handoff result and PR
 #15's 4,646-pass result remain dated history.
@@ -173,10 +190,12 @@ The expected closeout posture is:
   model call without explicit current authorization and a finite reviewed
   budget.
 
-The shared ledger covers four primary `llm_generate.py` transports plus the
-optional adverse-media verifier. It reserves attempts, input tokens, output
-tokens, and reviewed cash allowance before transport. It is not a universal
-network interceptor for every adapter or self-contained notebook. Follow
+The shared ledger's static coverage gate now verifies seven direct transports:
+four primary `llm_generate.py` transports, the optional adverse-media verifier,
+the model-failure candidate client, and the contextual judge client. It
+reserves attempts, input tokens, output tokens, and reviewed cash allowance
+before transport. It is not a universal network interceptor for every adapter
+or self-contained notebook. Follow
 [`PROVIDER_BUDGETING.md`](PROVIDER_BUDGETING.md) and migrate any remaining
 direct caller one bounded transport at a time.
 
@@ -194,6 +213,18 @@ The later 2026-07-28 Kimi K3 access check reached Ollama with the verified
 usage. It produced zero completions, provider tokens, or actual ledger cost.
 Treat the model lane as access-blocked, not tested, and do not retry or expand
 to 500 prompts without a newly funded, owner-authorized finite run.
+
+The exact 500-item extension is now frozen rather than left as a vague next
+step. It plans 500 Kimi baseline answers, local deterministic grades, 500
+Gemini 3.1 Pro cross-family contextual judgments, and 500 separately reported
+Kimi contextual self-judgments. The one-call holistic rubric is directional.
+The combined maximum is 1,500 hosted calls, 7,296,582 input tokens, 1,152,000
+output tokens, and US$34.448916 worst-case under a US$35 ceiling. Execution is
+still blocked: Ollama extra usage is unfunded and no Gemini API credential is
+present. There are zero candidate completions, automated judgments, or human
+ratings. Re-run the no-call plans in
+[`model_failure_run_readiness.md`](research/model_failure_run_readiness.md) and
+investigate any hash or reservation drift before authorizing phases separately.
 
 ## Dataset And Evaluation Boundary
 
@@ -234,17 +265,25 @@ source-freshness review is 2026-10-28.
 Use this exact prompt from the repository root:
 
 ```text
-Read AGENTS.md, docs/CLAUDE_CODE_HANDOFF.md, PROJECT_BIBLE.md,
+Read AGENTS.md, docs/CLAUDE_CODE_HANDOFF.md,
+docs/architecture/capability_gap_blueprint.md, PROJECT_BIBLE.md,
 .claude/rules/05_project_bible_pickup.md, docs/MAINTAINER_HANDOFF.md,
-docs/PUBLICATION_READINESS.md, docs/CLOSEOUT_RESOLUTIONS_2026_07_28.md, and
-docs/DEFERRED_WORK.md. Treat live Git,
+docs/POST_COMPETITION_HOSTING_TRANSITION.md, docs/PUBLICATION_READINESS.md,
+docs/CLOSEOUT_RESOLUTIONS_2026_07_28.md, and docs/DEFERRED_WORK.md. If
+provider-backed evaluation is in scope, also read
+docs/research/model_failure_run_readiness.md and
+configs/duecare/benchmarks/kimi_k3_500_context_judge_campaign.json. Treat live Git,
 filesystem, process, validator, and hosting state as authoritative; treat saved
 .claude/state and ignored reports as historical evidence only. Set
 DUECARE_MAX_PLANNED_MODEL_CALLS=0. Run the handoff, deferred-work, core, Project
 Bible pickup, autonomous-engine status, and whole-stack status checks before
 editing. Do not start Ollama, resume recurring tasks, spend model or Kaggle
 quota, change Render or DNS, publish artifacts, or promote candidate data
-without explicit current authorization. Pick only work whose owner and
+without explicit current authorization. Keep Render active through competition
+grading; the post-grading transition requires owner confirmation and every gate
+in docs/POST_COMPETITION_HOSTING_TRANSITION.md. Do not interpret the frozen campaign
+as completed evidence: it currently has zero Kimi answers, Gemini judgments,
+Kimi self-judgments, or human ratings. Pick only work whose owner and
 authorization boundary are satisfied, make a narrow reviewable change, update
 generated artifacts and purpose maps, and report exact validation evidence.
 ```
@@ -258,8 +297,10 @@ change rehearsal, an archive restore check, and the acceptance list in
 [`MAINTAINER_HANDOFF.md`](MAINTAINER_HANDOFF.md).
 
 Maintenance mode is already enacted because no successor has accepted. Keep
-Render, the independent read-only continuity site, MkDocs documentation, and
-public source available unless the owner makes a separate retirement decision.
+Render available through competition grading and keep the independent read-only
+continuity site, MkDocs documentation, and public source available. After the
+owner confirms grading is complete, execute the event-gated hosting runbook;
+until then, it is a plan rather than authorization to retire a live service.
 Keep model callers stopped, label volatile legal or operational facts as
 freshness-limited, and preserve the dated 11-item receipt rather than reviving
 declined work as vague promises.

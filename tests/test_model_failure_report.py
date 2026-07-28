@@ -2,6 +2,7 @@
 
 Offline synthetic rows cover report rendering and privacy-safe CLI output.
 """
+
 from __future__ import annotations
 
 import importlib.util
@@ -51,7 +52,14 @@ def test_render_redacts_sensitive_model_and_judge_labels():
     judge = "judge@example.com-case-987654321"
     md = mfr.render(
         [_row(model)],
-        [{"model": model, "dimension": "sense_resolution", "verdict": "PASS", "judge_model": judge}],
+        [
+            {
+                "model": model,
+                "dimension": "sense_resolution",
+                "verdict": "PASS",
+                "judge_model": judge,
+            }
+        ],
     )
 
     assert model not in md
@@ -118,53 +126,71 @@ def test_main_skips_malformed_jsonl_rows_and_judge_rows(tmp_path, capsys):
     judge = tmp_path / "judge.jsonl"
     out = tmp_path / "report.md"
     inp.write_text(
-        "\n".join([
-            json.dumps(_row("model-a")),
-            "{not-json",
-            json.dumps({"ok": True, "model": "model-b", "response": "missing grade"}),
-            json.dumps({
-                "ok": True,
-                "model": {"private": "worker@example.com"},
-                "prompt_id": "probe-1",
-                "response": "Structured model should be skipped.",
-                "grade": _row()["grade"],
-            }),
-            json.dumps({
-                "ok": True,
-                "model": "model-c",
-                "prompt_id": ["probe-1"],
-                "response": "Structured prompt_id should be skipped.",
-                "grade": _row()["grade"],
-            }),
-            json.dumps({
-                "ok": True,
-                "model": "model-d",
-                "prompt_id": "probe-1",
-                "response": {"private": "worker@example.com"},
-                "grade": _row()["grade"],
-            }),
-            json.dumps({
-                "ok": True,
-                "model": "model-e",
-                "prompt_id": "probe-1",
-                "response": "Malformed grade should be skipped.",
-                "grade": {"domain_sense_resolution": ["not", "a", "dict"]},
-            }),
-        ]) + "\n",
+        "\n".join(
+            [
+                json.dumps(_row("model-a")),
+                "{not-json",
+                json.dumps({"ok": True, "model": "model-b", "response": "missing grade"}),
+                json.dumps(
+                    {
+                        "ok": True,
+                        "model": {"private": "worker@example.com"},
+                        "prompt_id": "probe-1",
+                        "response": "Structured model should be skipped.",
+                        "grade": _row()["grade"],
+                    }
+                ),
+                json.dumps(
+                    {
+                        "ok": True,
+                        "model": "model-c",
+                        "prompt_id": ["probe-1"],
+                        "response": "Structured prompt_id should be skipped.",
+                        "grade": _row()["grade"],
+                    }
+                ),
+                json.dumps(
+                    {
+                        "ok": True,
+                        "model": "model-d",
+                        "prompt_id": "probe-1",
+                        "response": {"private": "worker@example.com"},
+                        "grade": _row()["grade"],
+                    }
+                ),
+                json.dumps(
+                    {
+                        "ok": True,
+                        "model": "model-e",
+                        "prompt_id": "probe-1",
+                        "response": "Malformed grade should be skipped.",
+                        "grade": {"domain_sense_resolution": ["not", "a", "dict"]},
+                    }
+                ),
+            ]
+        )
+        + "\n",
         encoding="utf-8",
     )
     judge.write_text(
-        "\n".join([
-            json.dumps({
-                "model": "model-a",
-                "dimension": "sense_resolution",
-                "verdict": "PASS",
-                "judge_model": "judge-a",
-            }),
-            "{not-json",
-            json.dumps({"dimension": "sense_resolution", "verdict": "FAIL", "judge_model": "judge-a"}),
-            json.dumps({"model": "model-a", "verdict": "FAIL", "judge_model": "judge-a"}),
-        ]) + "\n",
+        "\n".join(
+            [
+                json.dumps(
+                    {
+                        "model": "model-a",
+                        "dimension": "sense_resolution",
+                        "verdict": "PASS",
+                        "judge_model": "judge-a",
+                    }
+                ),
+                "{not-json",
+                json.dumps(
+                    {"dimension": "sense_resolution", "verdict": "FAIL", "judge_model": "judge-a"}
+                ),
+                json.dumps({"model": "model-a", "verdict": "FAIL", "judge_model": "judge-a"}),
+            ]
+        )
+        + "\n",
         encoding="utf-8",
     )
 
@@ -180,3 +206,97 @@ def test_main_skips_malformed_jsonl_rows_and_judge_rows(tmp_path, capsys):
     assert "model-d" not in md
     assert "model-e" not in md
     assert "worker@example.com" not in md
+
+
+def test_holistic_cross_family_and_self_judges_stay_separate():
+    base = {
+        "model": "kimi-k3",
+        "prompt_id": "probe-1",
+        "protocol": "holistic",
+        "dimension": "holistic",
+        "dimensions": {
+            "sense_resolution": {"verdict": "PASS"},
+            "legal_grounding": {"verdict": "PARTIAL"},
+            "harm_safety": {"verdict": "PASS"},
+            "actionability": {"verdict": "FAIL"},
+        },
+    }
+    judge_rows = [
+        {
+            **base,
+            "judge_model": "gemini-3.1-pro-preview",
+            "judge_relationship": "cross_family",
+            "primary_eligible": True,
+        },
+        {
+            **base,
+            "judge_model": "kimi-k3",
+            "judge_relationship": "self_family",
+            "self_judge": True,
+        },
+    ]
+
+    md = mfr.render([_row("kimi-k3")], judge_rows)
+
+    assert "Cross-family contextual judge" in md
+    assert "Same-family contextual self-judge (diagnostic)" in md
+    assert "one structured call per response; directional pilot evidence" in md
+    assert "Judge-to-judge agreement" in md
+    assert "4/4 (100%)" in md
+    assert "verdicts (definitive)" not in md.lower()
+    assert "this is the credible verdict" not in md.lower()
+
+
+def test_main_accepts_multiple_judge_files(tmp_path):
+    inp = tmp_path / "results.jsonl"
+    cross = tmp_path / "cross.jsonl"
+    self_judge = tmp_path / "self.jsonl"
+    out = tmp_path / "report.md"
+    _write_jsonl(inp, [_row("kimi-k3")])
+    _write_jsonl(
+        cross,
+        [
+            {
+                "model": "kimi-k3",
+                "prompt_id": "probe-1",
+                "dimension": "sense_resolution",
+                "verdict": "PASS",
+                "judge_model": "gemini-3.1-pro-preview",
+                "protocol": "per-dimension",
+                "judge_relationship": "cross_family",
+            }
+        ],
+    )
+    _write_jsonl(
+        self_judge,
+        [
+            {
+                "model": "kimi-k3",
+                "prompt_id": "probe-1",
+                "dimension": "sense_resolution",
+                "verdict": "PARTIAL",
+                "judge_model": "kimi-k3",
+                "protocol": "per-dimension",
+                "judge_relationship": "self_family",
+            }
+        ],
+    )
+
+    assert (
+        mfr.main(
+            [
+                "--in",
+                str(inp),
+                "--judge",
+                str(cross),
+                str(self_judge),
+                "--out",
+                str(out),
+            ]
+        )
+        == 0
+    )
+
+    md = out.read_text(encoding="utf-8")
+    assert "gemini-3.1-pro-preview" in md
+    assert "Same-family contextual self-judge" in md

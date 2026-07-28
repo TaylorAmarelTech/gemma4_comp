@@ -27,8 +27,11 @@ published evidence.
 | Public website | `apps/duecare-ai.com/README.md`, `/project-status`, page templates, route and static-export tests |
 | Python packages | Each package `README.md`, package tests, generated component docs |
 | Agent handoff | `AGENTS.md`, `CLAUDE.md`, `docs/CLAUDE_CODE_HANDOFF.md`, `PROJECT_BIBLE.md`, `Plans.md`, `.claude/rules/` |
+| Reusable capability-gap architecture | `docs/architecture/capability_gap_blueprint.md`, `docs/architecture/README.md`, `docs/harness_ecosystem.md`, `docs/information_sharing_architecture.md` |
+| Contextual model-failure campaign | `configs/duecare/benchmarks/kimi_k3_500_context_judge_campaign.json`, `scripts/model_failure_study.py`, `scripts/model_failure_judge.py`, `scripts/model_failure_report.py`, `docs/research/model_failure_run_readiness.md`, `docs/research/model_failure_study_methodology.md` |
 | Maintainer succession | `docs/CLAUDE_CODE_HANDOFF.md`, `docs/MAINTAINER_HANDOFF.md`, `docs/PROJECT_TRANSITION_PLAN.md`, `docs/CLOSEOUT_RESOLUTIONS_2026_07_28.md`, `docs/DEFERRED_WORK.md`, `docs/SUCCESSOR_REHEARSAL.md`, `docs/PRIVATE_TRANSFER_RECEIPT_TEMPLATE.md` |
 | Competition docs | `docs/FOR_KAGGLE_JUDGES.md`, `docs/kaggle_writeup_paste_ready.md`, `docs/kaggle_post_networked_knowledge_sharing.md`, `docs/video_script.md` |
+| Final competition communication | `docs/kaggle_final_closeout_post.md`, `docs/POST_COMPETITION_HOSTING_TRANSITION.md`, `apps/duecare-ai.com/DEPLOY_STATIC.md` |
 | Publication and peer review | `docs/PUBLICATION_READINESS.md`, `docs/FOR_PEER_REVIEW.md`, `docs/reproducibility.md` |
 
 ## Generated Module Metadata
@@ -86,9 +89,10 @@ adjudication gates pass. The candidate source registry is
 `configs/duecare/training/corridor_curation_sources.json`; URL presence never
 implies training approval.
 `scripts/provider_budget.py` is the shared atomic attempt/token/cash ledger for
-the primary generation router and the optional adverse-media model verifier,
-while `scripts/validate_provider_budget_coverage.py` statically prevents those
-five exact transports from moving outside a reservation. The public
+the primary generation router, optional adverse-media model verifier, and
+model-failure candidate and judge clients, while
+`scripts/validate_provider_budget_coverage.py` statically prevents those seven
+exact transports from moving outside a reservation. The public
 operator contract and honest non-universal boundary are in
 `docs/PROVIDER_BUDGETING.md`; pricing is copied from the empty public example to
 an ignored, provider-verified run file rather than guessed in Git.

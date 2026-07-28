@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en"><head><meta charset="utf-8" /><meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>Project status &amp; continuity &middot; DueCare AI</title>
-<meta name="description" content="DueCare project continuity, release readiness, maintainer handoff, deployment ownership, known limitations, and the path for a future maintainer." />
+<meta name="description" content="DueCare project continuity, reusable capability-gap architecture, evaluation readiness, maintainer handoff, deployment ownership, and known limitations." />
 <link rel="stylesheet" href="/static/styles.css" /><link rel="stylesheet" href="/static/hub-pages.css" />
 <style>
   .ps-hero { padding: 58px 0 42px; border-bottom: 1px solid var(--line); }
@@ -19,12 +19,13 @@
   .ps-section h2 { margin: 8px 0 0; font-size: clamp(26px, 3vw, 38px); line-height: 1.12; font-weight: 500; letter-spacing: -.02em; }
   .ps-section .intro { max-width: 70ch; margin: 14px 0 28px; color: var(--ink-2); line-height: 1.65; }
   .ps-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
-  .ps-card { min-height: 220px; border: 1px solid var(--line); border-radius: 13px; padding: 22px; background: var(--paper); }
+  .ps-card { min-width: 0; min-height: 220px; border: 1px solid var(--line); border-radius: 13px; padding: 22px; background: var(--paper); overflow-wrap: break-word; word-break: normal; }
   .ps-card .cap { font-family: var(--mono); font-size: 10px; text-transform: uppercase; letter-spacing: .11em; color: var(--ink-3); }
   .ps-card h3 { margin: 12px 0 8px; font-size: 20px; line-height: 1.2; }
   .ps-card p, .ps-card li { color: var(--ink-2); font-size: 14px; line-height: 1.58; }
   .ps-card ul { margin: 12px 0 0; padding-left: 18px; }
   .ps-card code { font-size: 12px; }
+  .ps-card code, .ps-card a { overflow-wrap: anywhere; }
   .ps-boundary { border-left: 4px solid var(--warn); background: var(--paper-2); padding: 22px 24px; margin-top: 24px; }
   .ps-boundary strong { display: block; margin-bottom: 8px; }
   .ps-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 24px; }
@@ -64,7 +65,7 @@
         <dt>Core maintenance gates</dt><dd>12 / 12 pass</dd>
         <dt>Handoff gates</dt><dd>2 / 2 pass</dd>
         <dt>Outstanding register</dt><dd>0 items</dd>
-        <dt>Combined regression</dt><dd>4,653 passed</dd>
+        <dt>Combined regression</dt><dd>4,669 passed</dd>
         <dt>Validator model calls</dt><dd>0</dd>
         <dt>Model/flywheel stack</dt><dd>cost-stopped</dd>
       </dl>
@@ -97,8 +98,25 @@
   </div>
 </div></section>
 
+<section class="ps-section" data-screen-label="Project status &middot; Reusable architecture"><div class="wrap">
+  <span class="ix">03 &middot; Reusable architecture and evaluation</span>
+  <h2>One domain implementation, a reusable capability-gap pattern.</h2>
+  <p class="intro">DueCare now documents how the same separation of evidence, harnesses, deterministic checks, contextual model judges, governed agents, human review, and public sharing can be rebuilt for another industry or LLM capability gap. The generic architecture does not make trafficking-specific rules portable by assumption; every new vertical still needs its own sources, rubric, privacy policy, controls, and qualified reviewers.</p>
+  <div class="ps-grid">
+    <article class="ps-card"><span class="cap">Architecture &middot; reusable</span><h3>From gap discovery to maintained network</h3><p>The <a href="https://tayloramareltech.github.io/gemma4_comp/architecture/capability_gap_blueprint/">capability-gap blueprint</a> maps seven separate planes: claims, evidence, runtime harness, evaluation, human governance, network/publication, and agent operations. It includes a domain-pack contract, maturity ladder, container-friendly topology, promotion boundary, and replica acceptance checklist.</p></article>
+    <article class="ps-card"><span class="cap">Evaluation &middot; frozen</span><h3>Kimi K3 plus two kinds of judging</h3><p>The 500-item campaign is hash-bound and category-balanced. Each successful Kimi K3 answer receives a local deterministic grade, one independent Gemini 3.1 Pro judgment with the DueCare GREP/RAG/tool context, and one separately labelled Kimi K3 contextual self-judgment. The independent and self-family results can be compared, but never merged into a claim of human validation.</p></article>
+    <article class="ps-card"><span class="cap">Execution &middot; blocked</span><h3>1,500 calls planned; zero results invented</h3><p>The full directional topology is 500 candidate calls plus 500 Gemini judgments and 500 Kimi self-judgments. Its pre-answer worst-case reservation is 7,296,582 input tokens, 1,152,000 output tokens, and US$34.448916 at rates checked on 2026-07-28. It has not run: Kimi returned HTTP 402 for empty extra usage, and no Gemini credential is present.</p></article>
+  </div>
+  <div class="ps-boundary"><strong>Agent names do not change promotion authority.</strong>Hermes currently stages propose-only synthetic research prompts. Server automation routes and vets proposals. The Public Information Research Monitor accepts public-source update proposals. None contacts civil-society members, collects ratings, or promotes its own output; outreach remains draft-only and curator-controlled.</div>
+  <div class="ps-actions">
+    <a class="btn" href="https://tayloramareltech.github.io/gemma4_comp/architecture/capability_gap_blueprint/">Reusable architecture <span aria-hidden="true">&rarr;</span></a>
+    <a class="btn btn-ghost" href="https://github.com/TaylorAmarelTech/gemma4_comp/blob/master/configs/duecare/benchmarks/kimi_k3_500_context_judge_campaign.json">Frozen campaign manifest</a>
+    <a class="btn btn-ghost" href="https://tayloramareltech.github.io/gemma4_comp/PROVIDER_BUDGETING/">Budget contract</a>
+  </div>
+</div></section>
+
 <section class="ps-section" data-screen-label="Project status &middot; Deployment"><div class="wrap">
-  <span class="ix">03 &middot; Public deployment ownership</span>
+  <span class="ix">04 &middot; Public deployment ownership</span>
   <h2>One source, with a distinct owner for each public surface.</h2>
   <p class="intro">Render production, the backend-free continuity copy, and the documentation are intentionally deployed by different systems. The source workflow builds portable artifacts but never overwrites either Pages deployment.</p>
   <div class="ps-grid">
@@ -106,10 +124,16 @@
     <article class="ps-card"><span class="cap">Read-only continuity</span><h3><a href="https://tayloramareltech.github.io/duecare-ai-site/">duecare-ai-site</a></h3><p>A separate GitHub Pages repository publishes all 51 public routes plus five allowlisted snapshots. Mutable APIs and controls are disabled, its manifest records <code>source_revision</code>, and it has no production <code>CNAME</code>.</p></article>
     <article class="ps-card"><span class="cap">Documentation</span><h3>gemma4_comp Pages</h3><p>The MkDocs site deploys through <code>docs-deploy.yml</code>. The source-only <code>duecare-site-build.yml</code> uploads website artifacts for the continuity repository but never calls the Pages deploy action here.</p></article>
   </div>
+  <div class="ps-boundary"><strong>Post-competition decision: pages plus independently governed nodes.</strong>Render and the centralized hub stay available through competition grading. After grading is owner-confirmed complete and the cutover gate passes, GitHub Pages becomes the durable public presentation. Static hosting will not provide mutable hub APIs, submissions, accounts, admin state, or automation. Organizations can still run the FastAPI hub and DueCare runtime as local or partner-owned nodes.</div>
+  <div class="ps-actions">
+    <a class="btn" href="https://tayloramareltech.github.io/gemma4_comp/kaggle_final_closeout_post/">Final Kaggle post <span aria-hidden="true">&rarr;</span></a>
+    <a class="btn btn-ghost" href="https://tayloramareltech.github.io/gemma4_comp/POST_COMPETITION_HOSTING_TRANSITION/">Hosting transition runbook</a>
+    <a class="btn btn-ghost" href="https://tayloramareltech.github.io/duecare-ai-site/">Read-only Pages site</a>
+  </div>
 </div></section>
 
 <section class="ps-section" data-screen-label="Project status &middot; Pickup"><div class="wrap">
-  <span class="ix">04 &middot; Pick up the project</span>
+  <span class="ix">05 &middot; Pick up the project</span>
   <h2>Start with live evidence, then read the history.</h2>
   <p class="intro">Saved handoff artifacts and ignored reports are historical evidence. A maintainer establishes current truth from Git, live process/engine status, and read-only validators before changing or publishing anything.</p>
   <div class="ps-runbook">
@@ -125,23 +149,26 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/stop_ollama_stac
       <a href="https://tayloramareltech.github.io/gemma4_comp/CLAUDE_CODE_HANDOFF/"><strong>Claude Code handoff</strong><br />Tracked pickup order, live-service ownership, recent receipts, safety boundaries, and a copy-ready prompt.</a>
       <a href="https://tayloramareltech.github.io/gemma4_comp/MAINTAINER_HANDOFF/"><strong>Maintainer handoff</strong><br />Operations, boundaries, recovery, access transfer, and acceptance.</a>
       <a href="https://tayloramareltech.github.io/gemma4_comp/PROJECT_TRANSITION_PLAN/"><strong>30-day transition plan</strong><br />Weekly closeout, owner actions, rehearsal, and maintenance fallback.</a>
+      <a href="https://tayloramareltech.github.io/gemma4_comp/POST_COMPETITION_HOSTING_TRANSITION/"><strong>Post-competition hosting transition</strong><br />Keep Render through grading, then move public presentation to Pages while retaining deployable local and partner nodes.</a>
       <a href="https://tayloramareltech.github.io/gemma4_comp/PUBLICATION_READINESS/"><strong>Publication readiness</strong><br />Release boundary, limitations, data plan, Ollama plan, and ordered backlog.</a>
       <a href="https://tayloramareltech.github.io/gemma4_comp/CLOSEOUT_RESOLUTIONS_2026_07_28/"><strong>11-item closeout receipt</strong><br />Dated outcomes, rationale, verification, claim boundaries, evidence, and exact reopen conditions.</a>
       <a href="https://tayloramareltech.github.io/gemma4_comp/DEFERRED_WORK/"><strong>Deferred work register</strong><br />Validated zero-item queue reserved for genuinely reopened work.</a>
       <a href="https://tayloramareltech.github.io/gemma4_comp/PROVIDER_BUDGETING/"><strong>Provider budgeting</strong><br />Atomic attempt/token/cash controls, sanitized receipts, and the exact coverage boundary.</a>
+      <a href="https://tayloramareltech.github.io/gemma4_comp/research/model_failure_run_readiness/"><strong>Kimi/Gemini campaign readiness</strong><br />Exact 1,500-call topology, deterministic and contextual judge roles, current access blockers, and no-call plans.</a>
+      <a href="https://tayloramareltech.github.io/gemma4_comp/architecture/capability_gap_blueprint/"><strong>Reusable capability-gap architecture</strong><br />Cross-industry planes, domain-pack contract, judging separation, agent roles, network loop, and replica checklist.</a>
       <a href="https://tayloramareltech.github.io/gemma4_comp/SUCCESSOR_REHEARSAL/"><strong>Successor rehearsal</strong><br />One model-free pickup command with a privacy-minimized local receipt.</a>
     </nav>
   </div>
 </div></section>
 
 <section class="ps-section" data-screen-label="Project status &middot; Next"><div class="wrap">
-  <span class="ix">05 &middot; Final decisions</span>
+  <span class="ix">06 &middot; Final decisions</span>
   <h2>Zero outstanding items, without pretending every idea shipped.</h2>
   <p class="intro">The <a href="https://tayloramareltech.github.io/gemma4_comp/CLOSEOUT_RESOLUTIONS_2026_07_28/">dated closeout receipt</a> is authoritative for all 11 inherited items. The validated <a href="https://tayloramareltech.github.io/gemma4_comp/DEFERRED_WORK/">deferred-work register</a> now contains zero items. A future maintainer reopens work only when a receipt condition is actually met.</p>
   <div class="ps-grid" style="margin-top:28px;">
     <article class="ps-card"><span class="cap">Release &middot; decided</span><h3>Maintain, do not publish for appearance</h3><ul><li>All 18 distributions build, but remain unpublished on PyPI by explicit decision.</li><li>Independent per-package semantic versions and guarded tag syntax remain ready if a real consumer need emerges.</li><li>No release tag or optional Kaggle rerun was created during closeout.</li></ul></article>
     <article class="ps-card"><span class="cap">Data &middot; excluded</span><h3>Keep missing human evidence visible</h3><ul><li>The 75-slot corridor workbook remains at zero admitted rows because rights and independent review are absent.</li><li>The 364-item human packet is validated, but no ratings or agreement result exist.</li><li>Strict training quality and provenance stay red; no model-improvement or field-effectiveness claim is made.</li></ul></article>
-    <article class="ps-card"><span class="cap">Providers &middot; access checked</span><h3>Preserve credits and exact boundaries</h3><ul><li>The primary router and migrated failure-study caller budget attempts, tokens, and cash atomically, while the recurring stack stays cost-stopped.</li><li>A later operator-authorized Kimi K3 check made five bounded requests; Ollama resolved the model but returned HTTP 402 because extra-usage balance was empty. There were zero completions, provider tokens, or actual ledger cost, so the proposed 500-prompt lane did not run.</li><li>The frozen no-call plan spans 500 public synthetic prompts and 117 categories with a US$6.2368 worst-case reservation. It yields deterministic grades, not human ratings. Meta Muse Spark 1.1 remains a required future comparison lane.</li></ul></article>
+    <article class="ps-card"><span class="cap">Providers &middot; access checked</span><h3>Preserve credits and exact boundaries</h3><ul><li>Seven registered transports now budget attempts, tokens, and cash atomically, including both failure-study candidate and judge clients; the recurring stack stays cost-stopped.</li><li>A bounded Kimi K3 check reached Ollama but returned HTTP 402 because extra-usage balance was empty. There were zero completions, provider tokens, or actual ledger cost.</li><li>The frozen 500-item extension adds deterministic grades, 500 Gemini cross-family judgments, and 500 separately labelled Kimi self-judgments. It remains blocked with zero results; Meta Muse Spark 1.1 remains a required future comparison lane.</li></ul></article>
   </div>
 </div></section>
 

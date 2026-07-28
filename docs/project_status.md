@@ -89,6 +89,14 @@ snapshots, and older checklist/status docs are archived under
   but cannot overwrite MkDocs Pages. The website exposes `/project-status` as
   the public continuity entry point, and the fallback manifest records its
   `source_revision`.
+- A later owner decision now defines the post-competition endpoint: keep Render
+  and the current centralized hub available through competition grading, then
+  retire centralized Fly/Render-style hosting only after the event-triggered
+  [`Post-Competition Hosting Transition`](POST_COMPETITION_HOSTING_TRANSITION.md)
+  passes. GitHub Pages will preserve the public presentation; mutable hub APIs,
+  submissions, accounts, admin, and automation will no longer be available
+  centrally. The runtime and FastAPI hub remain deployable as independently
+  governed local or partner nodes.
 - The website's advertised schema URLs now have local route tests instead of
   pointing at 404s. Kaggle pages show point-in-time run status and distinguish
   public notebooks from private owner-side drafts.
@@ -109,6 +117,14 @@ snapshots, and older checklist/status docs are archived under
   zero qualified independent human ratings. Automated rubric scores and
   LLM-judge outputs are not human input and do not establish agreement or field
   effectiveness.
+- The industry-neutral system design is now explicit in the
+  [Capability-Gap Harness and Network Blueprint](architecture/capability_gap_blueprint.md).
+  It separates the gap/domain pack, evidence, harness, evaluation, human
+  governance, public-network, and agent-operations planes so the pattern can be
+  replicated outside trafficking without copying trafficking-specific claims.
+  The document also distinguishes a container-friendly target topology from
+  DueCare's current host-scheduled Hermes, server-automation, orchestrator, and
+  autonomous-engine processes.
 - Broad local/hosted Ollama work is deferred. The rich harness supports a
   non-mutating `--plan` and a startup ceiling through
   `--max-planned-model-calls` / `DUECARE_MAX_PLANNED_MODEL_CALLS`.
@@ -122,13 +138,24 @@ snapshots, and older checklist/status docs are archived under
   categories (seed `20260728`, selection SHA-256
   `9d4aedf042f5f9d73e8372a8f1bf5538190d9791dbc692c38ca720aed1bc48eb`),
   reserves 158,922 estimated input and 384,000 maximum output tokens, and has a
-  US$6.2368 worst-case reservation at the checked rates. It would create local
-  deterministic grades, not hosted-judge or human ratings.
+  US$6.2368 worst-case reservation at the checked rates.
+- A subsequent frozen campaign now extends that candidate lane with a local
+  deterministic grade on every successful answer, 500 cross-family
+  `gemini-3.1-pro-preview` contextual judgments, and 500 separately labeled
+  Kimi K3 contextual self-judgments. The holistic judge protocol is directional,
+  not publication-grade per-dimension adjudication. Across all three hosted
+  phases, the exact maximum is 1,500 calls, 7,296,582 estimated input tokens,
+  1,152,000 maximum output tokens, and US$34.448916 worst-case. The campaign
+  remains `blocked_external_access`: Kimi extra usage is unfunded and no Gemini
+  API credential is present. It has zero candidate completions, automated
+  judgments, or human ratings. The authoritative receipt is
+  [`kimi_k3_500_context_judge_campaign.json`](../configs/duecare/benchmarks/kimi_k3_500_context_judge_campaign.json).
 - Calls entering the primary `llm_generate.py` router now also pass through a
   shared SQLite attempt/token/cash ledger. Offline tests prove zero-call mode
   blocks before HTTP transport and that retries consume separate reservations.
-  The baseline model-failure study caller is also covered after the Kimi access
-  check. This does not yet intercept every other direct package/application/
+  Both the baseline model-failure candidate caller and its contextual judge
+  caller are also covered after the Kimi access check. This does not yet
+  intercept every other direct package/application/
   standalone client or self-contained Kaggle kernel; the exact contract is
   [`PROVIDER_BUDGETING.md`](PROVIDER_BUDGETING.md).
 - All three scheduled model-call wrappers now fail closed unless the shared router has
@@ -156,6 +183,16 @@ snapshots, and older checklist/status docs are archived under
 
 ## Current Docs To Trust
 
+- [`architecture/capability_gap_blueprint.md`](architecture/capability_gap_blueprint.md) -
+  reusable industry-neutral architecture, domain-pack boundary, evaluation
+  triangulation, human network, and agent/container promotion path.
+- [`research/model_failure_run_readiness.md`](research/model_failure_run_readiness.md) -
+  exact Kimi/Gemini campaign topology, blockers, plans, and execution contract.
+- [`kaggle_final_closeout_post.md`](kaggle_final_closeout_post.md) - exact final
+  Kaggle community update covering new work, honest gaps, and node-first future.
+- [`POST_COMPETITION_HOSTING_TRANSITION.md`](POST_COMPETITION_HOSTING_TRANSITION.md) -
+  keep Render running through grading, then perform the validated Pages/DNS/data
+  transition without implying that static hosting retains central APIs.
 - [`CLAUDE_CODE_HANDOFF.md`](CLAUDE_CODE_HANDOFF.md) - current tracked coding-agent
   pickup, public services, recent receipts, boundaries, and exact safe next work.
 - [`MAINTAINER_HANDOFF.md`](MAINTAINER_HANDOFF.md) - fresh-shell operations,
@@ -191,16 +228,19 @@ summary below is directional only; the register controls status and acceptance.
 3. Approve source snapshots, then fill and independently adjudicate the 75-row
    corridor workbook before making a new fine-tuning or adapter-improvement
    claim.
-4. When model quota is intentionally reopened, freeze and plan a small run,
-   configure the covered-call ledger with finite attempt/input/output/cash
-   caps and reviewed pricing, then deliberately resume the whole stack or only
-   the required caller and preserve checkpoint/resume state. Treat Kimi K3 and
-   Meta Muse Spark 1.1 as required comparison lanes after revalidating exact
-   provider identifiers, access, capabilities, and pricing.
+4. If the frozen Kimi/Gemini campaign is funded, re-run all three no-call plans,
+   investigate any selection/context/token drift, then authorize candidate,
+   Gemini cross-family judge, and Kimi self-judge phases separately under the
+   shared ledger. Preserve checkpoint/resume state and keep Meta Muse Spark 1.1
+   as a required future comparison lane after revalidating its exact provider
+   identifier, access, capabilities, and pricing.
 5. Attach exact report, activity, prompt/response, training-metadata, chart,
    and evidence artifacts to any new claim.
 6. Keep A-00 as the active optional proof path. A-30 and the other appendix
    notebooks remain archived under `kaggle/_archive/notebooks/`.
+7. When the owner confirms competition grading is complete, publish the final
+   Kaggle closeout post and execute the post-competition hosting transition;
+   until then, keep Render and all current public URLs running.
 
 ## Verification
 
@@ -216,7 +256,7 @@ Latest pre-handoff offline receipt on 2026-07-28:
   zero-item deferred-work integrity, the dated 11-item closeout receipt, and the
   18-package release-ownership/install-truth gate;
 - combined `packages tests` regression in the closeout 18-package workspace:
-  4,653 passed and 9 skipped in 8 minutes 4 seconds with no warning summary under the zero-call
+  4,669 passed and 9 skipped in 7 minutes 57 seconds with no warning summary under the zero-call
   transport lock; the focused
   43-test package run also passes with pandas `RuntimeWarning` promoted to an
   error;

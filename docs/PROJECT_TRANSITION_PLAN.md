@@ -7,6 +7,10 @@ for coding agents is defined in the
 [Maintainer handoff](MAINTAINER_HANDOFF.md), and the public release
 boundary, limitations, dataset plan, and model-work backlog remain in
 [Publication readiness](PUBLICATION_READINESS.md).
+The separate
+[post-competition hosting transition](POST_COMPETITION_HOSTING_TRANSITION.md)
+is the authoritative event-gated runbook for retiring centralized hosting only
+after competition grading is owner-confirmed complete.
 Every unfinished action is normalized in the generated
 [Deferred work register](DEFERRED_WORK.md); that register wins if a duplicated
 status, owner, boundary, or acceptance test drifts.
@@ -28,6 +32,14 @@ mode is now effective. Keep Render production, the independent read-only
 continuity site, GitHub Pages documentation, the source repository, and existing
 published research artifacts running. Keep all recurring model/flywheel tasks
 disabled and planned model calls at zero.
+
+The later hosting direction is also decided without authorizing an immediate
+shutdown: Render and `duecare-ai.com` remain available through competition
+grading. After the owner confirms grading is complete, GitHub Pages becomes the
+durable presentation layer, centralized mutable hub APIs end, and the runtime
+continues through independently governed local, partner, Kaggle, edge, mobile,
+or containerized nodes. Follow the linked hosting transition gate before any
+service, DNS, secret, disk, or retention change.
 
 All 11 inherited register items have explicit outcomes rather than silent
 deferral: one current source-freshness cycle completed; the release disposition
@@ -69,7 +81,10 @@ The project has reached a good stopping point when:
 - a future successor's first reopened item must have a clear owner, acceptance
   test, and explicit model-credit budget; and
 - `DEFERRED_WORK.md` is current, placeholder-free, and agrees with the public
-  status, release boundary, and owner-only checklist.
+  status, release boundary, and owner-only checklist; and
+- the current hosting phase is explicit: Render remains live through grading,
+  or a post-grading cutover receipt proves every Pages, data-retention, DNS,
+  HTTPS, API-boundary, secret-removal, and rollback gate passed.
 
 ## Workstreams And Deliverables
 
@@ -80,7 +95,7 @@ The project has reached a good stopping point when:
 | Release | Exact release or no-release decision | Commit/tag, release notes, version/citation reconciliation receipt |
 | Data and research | Accepted datasets separated from candidate, quarantine, and experimental evidence | Manifests, lineage/audit results, limitations register |
 | Operations | Access, recovery, alerts, backups, and publishing authority transferred | Private least-privilege transfer receipts |
-| Public deployment | Render production, independent read-only continuity Pages, and MkDocs Pages have distinct, tested ownership | Website health, continuity `source_revision`, docs workflow receipt, and no competing deployer in this source repository |
+| Public deployment | Render remains production through grading; independent read-only continuity Pages and MkDocs Pages have distinct ownership; post-grading retirement is event-gated | Website health, continuity `source_revision`, docs workflow receipt, and, after owner confirmation, the complete `POST_COMPETITION_HOSTING_TRANSITION.md` cutover receipt |
 | Documentation | Public entry points and purpose maps lead to current handoff/release truth | Handoff validation and public-surface audit |
 | Continuity | Successor completes a fresh-shell pickup, safe change, and restore rehearsal | Signed or dated rehearsal record outside the public repo if it names people |
 
@@ -136,8 +151,10 @@ known red lanes recorded; candidate release boundary agreed.
   needed to support published claims.
 - Complete private access-transfer invitations using least privilege, and test
   recovery/second-factor paths without sharing recovery material in Git.
-- Prepare a one-hour architecture/evidence walkthrough using one benchmark
-  trace and one dataset-lineage trace end to end.
+- Prepare a one-hour architecture/evidence walkthrough from the reusable
+  [Capability-Gap Harness and Network Blueprint](architecture/capability_gap_blueprint.md),
+  then trace one benchmark result and one dataset-lineage item end to end in
+  the concrete DueCare implementation.
 
 **Exit evidence:** release-candidate receipt, artifact hashes, restore receipt,
 and access-transfer matrix ready for successor rehearsal.
@@ -206,6 +223,12 @@ receipt, limitations, and tested successor or maintenance-mode owner.
 6. Archive the closeout receipts and limitations, then remove outgoing access
    according to the agreed recovery plan.
 
+If competition grading is still underway during this window, leave Render and
+production DNS unchanged. If grading has been owner-confirmed complete, the
+hosting transition is a separate operational sequence with its own crawl,
+retention, HTTPS/DNS, and rollback acceptance gate; do not compress it into the
+general closeout checklist.
+
 No new feature, dataset family, provider integration, or broad benchmark run
 enters this window.
 
@@ -221,6 +244,8 @@ successor; local repository edits do not complete them:
 - rotate any credential involved in an incident and review platform audit logs;
 - publish a GitHub release, package, model/dataset, Kaggle revision, website
   deployment, or competition submission;
+- confirm competition grading is complete and authorize the event-gated
+  centralized-host retirement or any production DNS change;
 - authorize any nonzero model-credit budget, removal of the four daemon stop
   sentinels, or re-enabling of the recurring tasks; and
 - decide whether to retain, transfer, or retire public support commitments.
@@ -245,6 +270,7 @@ or billing information.
 | Exhaustive per-dimension lane | Exhaustive closure declined as low-value; partial evidence stays experimental and isolated | A preregistered narrower slice has positive expected information value and a frozen budget |
 | Entity-intelligence pipeline | Propose-only, curator-reviewed, separate from worker-facing and training paths | A reviewed governance and evidence-admission change is approved |
 | Kaggle surface inventory | `01`, `02`, and `A-00` active; `03` and `04` optional; notebook-era variants archived | Root `AGENTS.md` and `kaggle/_INDEX.md` change together |
+| Public hosting after grading | Render remains production through grading; afterward the approved target is durable Pages presentation plus independently governed runtime nodes, with centralized mutable APIs intentionally absent | Owner confirms grading completion and every acceptance item in `POST_COMPETITION_HOSTING_TRANSITION.md` passes |
 | Release version/tag | No release tag or PyPI publication during closeout | A real consumer need and a maintainer-owned package release proposal exist |
 | Target branch | Root rules name `master`; pull request 16 at `1c8f6b25729da869b2775a29321ab3b74bd4715f` is the immediate fully merged predecessor, with all 16 checks green | Continue from live `master`; rerun gates on the exact candidate before any tag |
 | Successor | Current owner retains private maintenance/recovery authority; no transfer is claimed | A named successor is authorized, accepts, and completes the rehearsal plus private receipt |
@@ -284,8 +310,8 @@ provider usage.
 
 - [x] `validate_publication_readiness.py --scope handoff` passes (2/2 checks).
 - [x] `validate_publication_readiness.py --scope core` passes (12/12 checks).
-- [x] The exact broad regression is recorded: 4,653 passed and 9 skipped in
-      8:04, with the intentionally red training and partial experimental lanes
+- [x] The exact broad regression is recorded: 4,669 passed and 9 skipped in
+      7:57, with the intentionally red training and partial experimental lanes
       excluded from release claims.
 - [x] Public docs, purpose maps, Project Bible, status, roadmap, Kaggle index,
       generated zero-item deferred-work register, unchanged package versions,
@@ -358,17 +384,20 @@ below do not override it.
 
 ### Ollama and provider calls
 
-1. Keep the completed ledger mandatory for every `llm_generate.py` attempt and
-   the adverse-media verifier; migrate other standalone/application/package
-   clients and design a portable notebook equivalent one caller at a time.
+1. Keep the completed ledger mandatory for every `llm_generate.py`,
+   adverse-media, model-failure candidate, and model-failure judge attempt;
+   migrate other standalone/application/package clients and design a portable
+   notebook equivalent one caller at a time.
 2. Make retry classification explicit: retry transient transport/service errors
    only; fail closed on authentication, permission, quota, and invalid requests.
 3. Use content-addressed generation/judging caches keyed by provider, immutable
    model revision, prompt, rubric, decoding settings, and harness version.
 4. Add preflight capability discovery and a dry-run plan that cannot start a
    daemon, write a heartbeat, or mutate result artifacts.
-5. Spend first on a small stratified smoke matrix, then allocate extra judging
-   only to disagreement, calibration, and decision-boundary cells.
+5. If its access blockers clear, execute the frozen Kimi/Gemini campaign in
+   separately authorized candidate, cross-family judge, and self-judge phases;
+   then allocate any extra judging only to disagreement, calibration, and
+   decision-boundary cells.
 6. Emit sanitized budget and coverage receipts so an interrupted run can resume
    without duplicate paid calls.
 7. Treat **Kimi K3** and **Meta Muse Spark 1.1** as required future comparison

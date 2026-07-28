@@ -1,0 +1,175 @@
+{
+  "schema": "duecare.context-judge-campaign.v1",
+  "campaign_id": "kimi-k3-directional-500-20260728",
+  "frozen_at": "2026-07-28",
+  "execution_state": {
+    "status": "blocked_external_access",
+    "candidate_completions": 0,
+    "independent_judgments": 0,
+    "self_judgments": 0,
+    "human_ratings": 0,
+    "blockers": [
+      "Ollama returned HTTP 402 on five bounded Kimi K3 access attempts because the account extra-usage balance was empty.",
+      "No GEMINI_API_KEY or equivalent Google Gemini credential is present in the local project environment.",
+      "The configured OpenRouter credential previously returned HTTP 401 and is not an authorized fallback."
+    ]
+  },
+  "selection": {
+    "include_seeds": true,
+    "mode": "category-balanced",
+    "seed": 20260728,
+    "prompt_count": 500,
+    "category_count": 117,
+    "selection_sha256": "9d4aedf042f5f9d73e8372a8f1bf5538190d9791dbc692c38ca720aed1bc48eb"
+  },
+  "candidate_lane": {
+    "provider": "ollama_cloud",
+    "model": "kimi-k3",
+    "endpoint": "https://ollama.com/v1/chat/completions",
+    "key_env": "OLLAMA_API_KEY",
+    "calls": 500,
+    "max_output_tokens_per_call": 768,
+    "reserved_input_tokens": 158922,
+    "reserved_output_tokens": 384000,
+    "pricing_as_of": "2026-07-28",
+    "input_usd_per_million": 3.0,
+    "output_usd_per_million": 15.0,
+    "worst_case_usd": 6.236766,
+    "answer_condition": "baseline neutral system prompt; no DueCare harness context"
+  },
+  "deterministic_lane": {
+    "grader": "duecare.chat.harness.grade_response_universal",
+    "provider_calls": 0,
+    "coverage": "every successful candidate answer",
+    "role": "reproducible conservative cross-check"
+  },
+  "context_contract": {
+    "mode": "duecare-full",
+    "contents": [
+      "fired GREP indicators",
+      "top-eight retrieved RAG excerpts",
+      "deterministic tool results"
+    ],
+    "context_set_sha256": "109f18c68f7b09e193bc9e2a41b55628b9267fa2c73f10ab3fcb9fad098656db",
+    "context_chars_total": 5922118,
+    "context_chars_min": 5288,
+    "context_chars_median": 11434,
+    "context_chars_max": 16025,
+    "candidate_response_byte_limit": 6000,
+    "privacy": "Only public synthetic prompts and versioned public DueCare context may leave the machine. Raw worker or private case data is prohibited."
+  },
+  "judge_protocol": {
+    "mode": "holistic",
+    "claim_label": "directional",
+    "dimensions": [
+      "sense_resolution",
+      "legal_grounding",
+      "harm_safety",
+      "actionability"
+    ],
+    "calls_per_candidate_per_judge": 1,
+    "max_output_tokens_per_call": 768,
+    "reserved_input_tokens_per_judge_lane": 3568830,
+    "reserved_output_tokens_per_judge_lane": 384000,
+    "input_plan_basis": "Exact repository token estimate over all 500 frozen prompts, their real duecare-full context, the judge rubric/system prompt, and a conservative 6000-byte candidate-answer reservation. Rerun --plan against actual answers before execution.",
+    "publication_note": "The one-call holistic protocol is a directional pilot. The same runner retains a per-dimension protocol that makes one call per dimension for a later publication-grade adjudication; those extra calls are not included in this campaign."
+  },
+  "judge_lanes": [
+    {
+      "provider": "gemini_api",
+      "model": "gemini-3.1-pro-preview",
+      "endpoint": "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions",
+      "key_env": "GEMINI_API_KEY",
+      "calls": 500,
+      "relationship": "cross_family",
+      "primary_eligible": true,
+      "result_role": "primary independent automated judge",
+      "reasoning_effort": "low",
+      "json_mode": true,
+      "pricing_as_of": "2026-07-28",
+      "input_usd_per_million": 2.0,
+      "output_usd_per_million": 12.0,
+      "worst_case_usd": 11.74566
+    },
+    {
+      "provider": "ollama_cloud",
+      "model": "kimi-k3",
+      "endpoint": "https://ollama.com/v1/chat/completions",
+      "key_env": "OLLAMA_API_KEY",
+      "calls": 500,
+      "relationship": "self_family",
+      "primary_eligible": false,
+      "result_role": "secondary contextual self-judge and bias diagnostic",
+      "reasoning_effort": "provider default",
+      "json_mode": false,
+      "pricing_as_of": "2026-07-28",
+      "input_usd_per_million": 3.0,
+      "output_usd_per_million": 15.0,
+      "worst_case_usd": 16.46649
+    }
+  ],
+  "aggregate_reservation": {
+    "hosted_calls": 1500,
+    "deterministic_calls": 0,
+    "reserved_input_tokens": 7296582,
+    "reserved_output_tokens": 1152000,
+    "worst_case_usd": 34.448916,
+    "recommended_cash_ceiling_usd": 35.0,
+    "note": "The ceiling is a maximum reservation, not expected spend. Failed attempts and retries consume new attempt budget; authorize each phase only after its exact plan is reviewed."
+  },
+  "interpretation_contract": {
+    "primary_result": "Gemini 3.1 Pro cross-family contextual judgment",
+    "secondary_result": "Kimi K3 contextual self-judgment, reported separately",
+    "deterministic_result": "DueCare local grade, reported alongside both model judges",
+    "required_analysis": [
+      "deterministic-versus-Gemini agreement",
+      "deterministic-versus-Kimi agreement",
+      "Gemini-versus-Kimi agreement",
+      "category-stratified scores and failures",
+      "largest rule/model disagreements for human adjudication"
+    ],
+    "prohibited_claims": [
+      "human validation",
+      "field effectiveness",
+      "ground truth",
+      "independent Kimi judgment"
+    ]
+  },
+  "official_sources": {
+    "kimi_k3": "https://ollama.com/library/kimi-k3:cloud",
+    "gemini_model": "https://ai.google.dev/gemini-api/docs/models/gemini-3.1-pro-preview",
+    "gemini_pricing": "https://ai.google.dev/gemini-api/docs/pricing",
+    "gemini_openai_compatibility": "https://ai.google.dev/gemini-api/docs/openai"
+  },
+  "commands": {
+    "candidate_plan_args": [
+      "python", "scripts/model_failure_study.py", "--models", "kimi-k3",
+      "--include-seeds", "--limit", "500", "--selection-mode", "category-balanced",
+      "--selection-seed", "20260728", "--max-tokens", "768", "--out",
+      "reports/model_failure_study/kimi_k3_directional_500.jsonl", "--base-url",
+      "https://ollama.com/v1/chat/completions", "--key-env", "OLLAMA_API_KEY",
+      "--max-planned-model-calls", "500", "--plan"
+    ],
+    "gemini_judge_plan_args": [
+      "python", "scripts/model_failure_judge.py", "--in",
+      "reports/model_failure_study/kimi_k3_directional_500.jsonl", "--out",
+      "reports/model_failure_study/gemini_31_context_judge.jsonl", "--base-url",
+      "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions",
+      "--key-env", "GEMINI_API_KEY", "--judge-model", "gemini-3.1-pro-preview",
+      "--context", "duecare-full", "--protocol", "holistic", "--response-byte-limit",
+      "6000", "--max-tokens", "768", "--planning-input-rate", "2",
+      "--planning-output-rate", "12", "--reasoning-effort", "low", "--json-mode",
+      "--max-planned-model-calls", "500", "--plan"
+    ],
+    "kimi_self_judge_plan_args": [
+      "python", "scripts/model_failure_judge.py", "--in",
+      "reports/model_failure_study/kimi_k3_directional_500.jsonl", "--out",
+      "reports/model_failure_study/kimi_k3_context_self_judge.jsonl", "--base-url",
+      "https://ollama.com/v1/chat/completions", "--key-env", "OLLAMA_API_KEY",
+      "--judge-model", "kimi-k3", "--context", "duecare-full", "--protocol",
+      "holistic", "--response-byte-limit", "6000", "--max-tokens", "768",
+      "--planning-input-rate", "3", "--planning-output-rate", "15",
+      "--max-planned-model-calls", "500", "--plan"
+    ]
+  }
+}

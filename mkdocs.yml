@@ -187,8 +187,15 @@ nav:
       - Methodology: research/training_methodology.md
       - Training for understanding: research/training_for_understanding.md
       - Regimes and systems: research/training_regimes_and_systems.md
+  - Architecture:
+      - Reusable capability-gap blueprint: architecture/capability_gap_blueprint.md
+      - DueCare component map: architecture/README.md
+      - Harness ecosystem: harness_ecosystem.md
+      - Information-sharing architecture: information_sharing_architecture.md
+      - System components and critical paths: system_components_and_critical_paths.md
   - Information Sharing:
       - Why networked Gemma sharing matters: gemma_networked_knowledge_sharing.md
+      - Final Kaggle closeout post: kaggle_final_closeout_post.md
       - Copy-ready Kaggle post: kaggle_post_networked_knowledge_sharing.md
       - Architecture: information_sharing_architecture.md
       - Autonomous improvement loop: autonomous_improvement_loop.md
@@ -202,10 +209,13 @@ nav:
       - Maintainer handoff: MAINTAINER_HANDOFF.md
       - Successor pickup rehearsal: SUCCESSOR_REHEARSAL.md
       - 30-day project transition: PROJECT_TRANSITION_PLAN.md
+      - Post-competition hosting transition: POST_COMPETITION_HOSTING_TRANSITION.md
       - Publication readiness and next work: PUBLICATION_READINESS.md
       - 2026-07-28 closeout decisions: CLOSEOUT_RESOLUTIONS_2026_07_28.md
       - Deferred work register: DEFERRED_WORK.md
       - Provider budgeting: PROVIDER_BUDGETING.md
+      - Kimi/Gemini campaign readiness: research/model_failure_run_readiness.md
+      - Contextual judge methodology: research/model_failure_study_methodology.md
       - Package inventory and release state: PACKAGE_INVENTORY.md
       - For judges and reviewers: FOR_PEER_REVIEW.md
       - Reproducibility: reproducibility.md

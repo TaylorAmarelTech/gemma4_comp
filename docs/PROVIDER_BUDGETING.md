@@ -3,9 +3,10 @@
 DueCare has a shared, fail-closed budget ledger for every model-network attempt
 that enters the primary generation router in `scripts/llm_generate.py`, the
 optional OpenAI-compatible classifier in `scripts/adverse_media.py`, and the
-baseline study in `scripts/model_failure_study.py`. The ledger and direct-client
-migrations are tested offline. The later Kimi access check is recorded
-separately below.
+baseline candidate and contextual judge clients in
+`scripts/model_failure_study.py` and `scripts/model_failure_judge.py`. The
+ledger and direct-client migrations are tested offline. The later Kimi access
+check and frozen Kimi/Gemini campaign are recorded separately below.
 
 ## What The Ledger Enforces
 
@@ -120,7 +121,7 @@ The first approved frozen smoke matrix should treat these as required candidate
 lanes, not optional substitutions:
 
 - **Kimi K3.** On 2026-07-28 the verified identifiers were
-  `kimi-k3:cloud` on [Ollama](https://ollama.com/library/kimi-k3) and
+  `kimi-k3:cloud` on [Ollama](https://ollama.com/library/kimi-k3:cloud) and
   `moonshotai/kimi-k3` on
   [OpenRouter](https://openrouter.ai/moonshotai/kimi-k3-20260715). Ollama
   labels the model as extra usage requiring an eligible paid plan and lists a
@@ -128,6 +129,14 @@ lanes, not optional substitutions:
   output. OpenRouter listed the same one-million-token context and $3/M input,
   $15/M output rates. A future smoke therefore needs both a cash cap and an
   output-token cap before any broader matrix.
+- **Gemini 3.1 Pro.** The frozen cross-family judge uses
+  [`gemini-3.1-pro-preview`](https://ai.google.dev/gemini-api/docs/models/gemini-3.1-pro-preview)
+  through Google's official
+  [OpenAI-compatible endpoint](https://ai.google.dev/gemini-api/docs/openai).
+  The model card lists a 1,048,576-token input limit and 65,536-token output
+  limit. [Pricing](https://ai.google.dev/gemini-api/docs/pricing) checked on
+  2026-07-28 was $2/M input and $12/M output for prompts up to 200K tokens,
+  with no free tier for this preview model.
 - **Meta Muse Spark 1.1.** This is the precise model name; "Meta Muse 1.1" is
   only shorthand. Meta announced developer access through the public-preview
   [Meta Model API](https://ai.meta.com/blog/introducing-muse-spark-meta-model-api/),
@@ -174,8 +183,31 @@ categories with selection SHA-256
 It plans exactly 500 Kimi calls, reserves 158,922 estimated input tokens and
 384,000 maximum output tokens, and has a US$6.2368 worst-case reservation at
 the verified $3/M input and $15/M output rates. Every returned response would
-receive a local deterministic DueCare grade; this lane includes no hosted
-judge call and is not human validation.
+receive a local deterministic DueCare grade.
+
+### Frozen contextual-judge extension
+
+The authoritative
+[`kimi_k3_500_context_judge_campaign.json`](../configs/duecare/benchmarks/kimi_k3_500_context_judge_campaign.json)
+extends the candidate phase without blending evidence layers:
+
+- 500 baseline Kimi answers plus zero-call deterministic grades;
+- 500 `gemini-3.1-pro-preview` cross-family contextual judgments, eligible as
+  the primary automated result; and
+- 500 Kimi K3 contextual self-judgments, reported only as a bias diagnostic.
+
+Both judges receive the same hash-bound `duecare-full` bundle (fired GREP
+indicators, top-eight RAG excerpts, and deterministic tool results). The
+one-call holistic protocol returns all four rubric dimensions and is labeled
+directional. A publication-grade `--protocol per-dimension` run remains a
+separate, four-times-larger judge plan.
+
+The frozen aggregate maximum is 1,500 hosted calls, 7,296,582 estimated input
+tokens, 1,152,000 maximum output tokens, and US$34.448916 worst-case under a
+US$35 ceiling. No part has executed: Kimi extra usage is unfunded and no Gemini
+API credential is present. See the
+[run-readiness receipt](research/model_failure_run_readiness.md) for the exact
+no-call commands, phase separation, resume rules, and reconciled report command.
 
 Availability, access rules, context, and prices are volatile. Recheck the
 official catalog immediately before approving a run; never use a paid prompt
@@ -194,17 +226,19 @@ finite run-ledger requirements above remain in force.
 |---|---|---|
 | `llm_generate.py` Ollama Cloud, NVIDIA, Anthropic, and registered OpenAI-compatible transports | Enforced | One shared run budget covers every attempt, retry, key rotation, and re-question that reaches this router. |
 | `adverse_media.py` optional OpenAI-compatible verification classifier | Enforced | One reservation precedes its direct `urlopen()` transport; every manual retry consumes another reservation, and the request has a finite output cap. Keyless GDELT, Google News, and OpenSanctions retrieval are data-source calls, not model calls, and remain outside model-token accounting. |
+| `model_failure_study.py` candidate generation and `model_failure_judge.py` contextual judging | Enforced | Each direct `urlopen()` attempt is inside the shared reservation. Both retain independent no-call planning ceilings and resumable result files. |
 | Autonomous-engine, discovery, and server-automation PowerShell model-call entry points | Enforced at startup and transport | Refuse launch without the finite shared budget; keep all watchdogs and sentinels cost-stopped during maintenance. |
 | Rich-harness and judge paths that call `provider_chat()` or `resilient_chat()` | Enforced through the router | Keep the existing logical `--plan` ceiling too; planning and transport receipts answer different questions. |
 | Self-contained Kaggle kernels, including active 01/A-00 and optional 03 | Not connected to the local SQLite ledger | Offline validation needs no secrets. For a live notebook run, use that notebook's explicit sample/call limits and inspect its export before claiming completion. |
 | Package/application model adapters and standalone scripts that issue their own HTTP requests | Not yet universal | Remove or withhold credentials during maintenance; migrate the caller to this ledger contract before a funded broad run. This includes the optional website automation provider path. |
 | Local deterministic inference without a metered provider | Outside cash accounting | Preserve its own timeout, context, and resource limits. |
 
-The static coverage validator deliberately makes the first two model-call rows
-exact: it parses the router and fails if any of its four HTTP transports moves
-outside `_budget_attempt`, then checks the one direct adverse-media model
-transport against `_provider_budget_attempt`. It does not claim to scan or
-intercept every independent HTTP client in the repository.
+The static coverage validator deliberately makes these seven registered
+transports exact: it parses the router and fails if any of its four HTTP
+transports moves outside `_budget_attempt`, checks the direct adverse-media
+transport against `_provider_budget_attempt`, and verifies the candidate and
+judge `urlopen()` calls remain inside their ledger attempts. It does not claim
+to scan or intercept every independent HTTP client in the repository.
 
 ## Verification
 
@@ -213,22 +247,25 @@ python scripts/validate_provider_budget_coverage.py
 python -m pytest tests/test_provider_budget.py `
   tests/test_adverse_media_budget.py `
   tests/test_adverse_media.py `
+  tests/test_model_failure_study.py `
+  tests/test_model_failure_judge.py `
+  tests/test_kimi_k3_context_judge_campaign.py `
   tests/test_validate_provider_budget_coverage.py `
   tests/test_llm_generate_retry.py `
   tests/test_stop_ollama_stack.py -q
 ```
 
-The contract tests cover zero-transport denial for both covered call paths,
+The contract tests cover zero-transport denial for the covered direct clients,
 concurrent atomic reservation, frozen policies, pricing lookup, token/cash
 caps, sanitized receipts, exact and estimated usage, failed-attempt retention,
 and retry accounting.
 
 ## Next Transport Work
 
-The adverse-media verifier is the first direct standalone research client to
-complete this migration. The next maintainer should inventory and migrate one
-remaining direct caller per reviewable change, then decide how package and
-application adapters should accept an injectable ledger. Notebook runtimes need
-a portable equivalent because Kaggle cannot share the local SQLite file. Keep
-those migrations separate from benchmark result lanes, and do not describe the
-current two-surface guard as a repository-wide network interceptor.
+The adverse-media verifier and both direct model-failure clients have completed
+this migration. The next maintainer should inventory and migrate one remaining
+direct caller per reviewable change, then decide how package and application
+adapters should accept an injectable ledger. Notebook runtimes need a portable
+equivalent because Kaggle cannot share the local SQLite file. Keep those
+migrations separate from benchmark result lanes, and do not describe the
+current seven-transport guard as a repository-wide network interceptor.

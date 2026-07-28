@@ -12,6 +12,7 @@ ROOT = Path(__file__).resolve().parents[1]
 ROUTER = ROOT / "scripts" / "llm_generate.py"
 DIRECT_CLIENT = ROOT / "scripts" / "adverse_media.py"
 MODEL_FAILURE_CLIENT = ROOT / "scripts" / "model_failure_study.py"
+MODEL_FAILURE_JUDGE_CLIENT = ROOT / "scripts" / "model_failure_judge.py"
 PRIMARY_FUNCTIONS = {
     "ollama_chat",
     "nvidia_chat",
@@ -20,6 +21,7 @@ PRIMARY_FUNCTIONS = {
 }
 DIRECT_FUNCTIONS = {"_adverse_media_model_completion"}
 MODEL_FAILURE_FUNCTIONS = {"call_chat"}
+MODEL_FAILURE_JUDGE_FUNCTIONS = {"call_judge"}
 
 
 @dataclass(frozen=True)
@@ -125,6 +127,7 @@ def validate(
     path: Path = ROUTER,
     direct_client: Path = DIRECT_CLIENT,
     model_failure_client: Path = MODEL_FAILURE_CLIENT,
+    model_failure_judge_client: Path = MODEL_FAILURE_JUDGE_CLIENT,
 ) -> list[str]:
     findings = _validate_surface(
         path,
@@ -153,6 +156,16 @@ def validate(
             included_functions=MODEL_FAILURE_FUNCTIONS,
         )
     )
+    findings.extend(
+        _validate_surface(
+            model_failure_judge_client,
+            label="model-failure judge direct client",
+            transport_name="urlopen",
+            guard_name="attempt",
+            expected_functions=MODEL_FAILURE_JUDGE_FUNCTIONS,
+            included_functions=MODEL_FAILURE_JUDGE_FUNCTIONS,
+        )
+    )
     return findings
 
 
@@ -161,15 +174,24 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--router", type=Path, default=ROUTER)
     parser.add_argument("--direct-client", type=Path, default=DIRECT_CLIENT)
     parser.add_argument("--model-failure-client", type=Path, default=MODEL_FAILURE_CLIENT)
+    parser.add_argument(
+        "--model-failure-judge-client", type=Path, default=MODEL_FAILURE_JUDGE_CLIENT
+    )
     args = parser.parse_args(argv)
-    findings = validate(args.router, args.direct_client, args.model_failure_client)
+    findings = validate(
+        args.router,
+        args.direct_client,
+        args.model_failure_client,
+        args.model_failure_judge_client,
+    )
     if findings:
         for finding in findings:
             print(f"[provider-budget-coverage] FAIL: {finding}")
         return 1
     print(
         "[provider-budget-coverage] PASS: four primary-router transports and "
-        "the adverse-media and model-failure direct transports are reservation-wrapped"
+        "the adverse-media, model-failure candidate, and model-failure judge direct "
+        "transports are reservation-wrapped"
     )
     return 0
 

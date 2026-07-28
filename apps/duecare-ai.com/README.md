@@ -13,6 +13,14 @@ This is the public website and coordination service for **duecare-ai.com**. It i
 | GitHub source repo | https://github.com/TaylorAmarelTech/gemma4_comp | Monorepo source of truth for packages, Kaggle kernels, docs, validation scripts, GitHub Actions, and this Render app. |
 | GitHub Pages docs | https://tayloramareltech.github.io/gemma4_comp/ | Static MkDocs site generated from `docs/`. It is for onboarding, install docs, architecture, reproducibility, and judge/reviewer documentation; it is not the API server. |
 
+**Post-competition decision:** keep Render and the current centralized hub live
+through competition grading. After the owner confirms grading is complete,
+follow
+[`docs/POST_COMPETITION_HOSTING_TRANSITION.md`](../../docs/POST_COMPETITION_HOSTING_TRANSITION.md)
+to make Pages the durable presentation and retire centralized Fly/Render-style
+hosting. The static site will not retain mutable APIs; this app remains
+available for organizations to self-host as independently governed nodes.
+
 ## Monorepo source of truth
 
 Active website development now happens inside the main Gemma 4 / Duecare monorepo:
@@ -122,6 +130,8 @@ The fallback uses an isolated empty hub store, five checksum-bound public
 snapshots, an early API-blocking script, disabled state-changing controls, and
 a custom 404. See [DEPLOY_STATIC.md](DEPLOY_STATIC.md) for the domain-cutover
 and rollback gate. The live Render build remains the only mutable/API surface.
+That remains current through grading; it is not an instruction to retire Render
+before the post-competition acceptance gate passes.
 
 ## Local smoke test
 

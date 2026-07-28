@@ -51,7 +51,7 @@ CORE_GATES: tuple[Gate, ...] = (
     Gate(
         "provider budget coverage",
         ("scripts/validate_provider_budget_coverage.py",),
-        "all six registered model transports reserve against one run budget",
+        "all seven registered model transports reserve against one run budget",
     ),
     Gate("active Kaggle kernels", ("scripts/validate_main_kaggle_kernels.py",),
          "active kernel syntax, metadata, and static contracts"),

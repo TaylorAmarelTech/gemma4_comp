@@ -1,85 +1,126 @@
-# Model-failure study — funded-run readiness (preflight before turning on OpenRouter credit)
+# Kimi K3 context-judge campaign readiness
 
-> Question this answers: *"Is everything ready for me to turn credits on?"* and
-> *"Do we have a clear pipeline, report template, mid-investigation checkpoints,
-> validation, so we can test this via OpenRouter and more advanced LLMs?"*
->
-> **Verdict: YES — the machine is built, wired, and proven end-to-end on the free
-> Ollama-cloud provider. Turning on OpenRouter credit changes ONE flag
-> (`--provider openrouter`); nothing else in the pipeline changes.** Compiled 2026-06-08.
+**Status as of 2026-07-28: mechanically ready, externally access-blocked, and
+not executed.** This is a preflight receipt, not a benchmark result.
 
-## 1. One-command run after you fund the key
+The frozen campaign is
+[`kimi_k3_500_context_judge_campaign.json`](../../configs/duecare/benchmarks/kimi_k3_500_context_judge_campaign.json).
+It specifies one exact 500-prompt selection, three hosted lanes, a deterministic
+cross-check, the context contract, provider rates, call/token/cash ceilings,
+interpretation rules, and official provider sources.
 
-```bash
-set -a; . ./.env; set +a                                   # OPENROUTER_API_KEY now funded
-PY="$LOCALAPPDATA/gemma4-testenv/venv/Scripts/python.exe"
+## Exact study topology
 
-# Dry-run first (zero spend) -- confirms the key is live + shows the plan:
-"$PY" scripts/model_failure_loop.py --provider openrouter --dry-run
+| Phase | Calls | Role | Publication treatment |
+|---|---:|---|---|
+| Kimi K3 baseline answers | 500 | Candidate behavior without the DueCare harness | Model output, not a rating |
+| DueCare deterministic grade | 0 hosted | Reproducible local cross-check on every successful answer | Conservative screen |
+| Gemini 3.1 Pro contextual judge | 500 | Cross-family automated judge with the frozen DueCare context | Primary automated, directional |
+| Kimi K3 contextual judge | 500 | Same-family self-critique over the same context and rubric | Secondary diagnostic only |
+| Qualified human review | 0 planned here | Future independent adjudication of disagreements | Required before human-validation claims |
 
-# Then the real frontier run (generation + judge + report, self-healing):
-"$PY" scripts/model_failure_loop.py --provider openrouter --run-tag frontier \
-  --include-seeds --limit 160 --gen-quota 160 --judge-model anthropic/claude-3.7-sonnet
+Total hosted-call ceiling: **1,500**. The frozen reservation is **7,296,582
+input tokens**, **1,152,000 maximum output tokens**, and **US$34.448916
+worst-case** at the rates checked on 2026-07-28. Use a **US$35 hard ceiling**;
+this is a maximum reservation, not expected spend. Retries consume new attempt
+budget.
+
+The 500-prompt selection covers 117 categories with seed `20260728` and
+selection SHA-256
+`9d4aedf042f5f9d73e8372a8f1bf5538190d9791dbc692c38ca720aed1bc48eb`.
+The real offline `duecare-full` context set has SHA-256
+`109f18c68f7b09e193bc9e2a41b55628b9267fa2c73f10ab3fcb9fad098656db`.
+
+## Current blockers
+
+- Five separately authorized Kimi K3 access attempts reached Ollama and returned
+  HTTP 402 because the account had no extra-usage balance. They produced zero
+  completions, provider tokens, or actual cost.
+- No `GEMINI_API_KEY` (or equivalent Google Gemini credential) is available in
+  the project environment.
+- The configured OpenRouter credential previously returned HTTP 401 and is not
+  an authorized substitute.
+
+Do not retry merely to clear a checklist. Execution begins only after the
+billing owner funds Ollama extra usage, supplies a Gemini credential, rechecks
+the official prices and model IDs, and creates one reviewed provider-budget
+policy per authorized phase.
+
+## Zero-call preflight
+
+These commands need no provider credential, write no result file, and make no
+network model call:
+
+```powershell
+python scripts/model_failure_study.py `
+  --models kimi-k3 --include-seeds --limit 500 `
+  --selection-mode category-balanced --selection-seed 20260728 `
+  --max-tokens 768 `
+  --out reports/model_failure_study/kimi_k3_directional_500.jsonl `
+  --base-url https://ollama.com/v1/chat/completions `
+  --key-env OLLAMA_API_KEY --max-planned-model-calls 500 --plan
 ```
 
-That is the entire operator action. The loop probes the key, generates across the
-frontier roster, judges one dimension per call, validates coverage, self-heals
-transient errors, and renders the report — checkpointing after every stage.
+The judge plans require successful candidate rows, so run them only after the
+candidate phase exists:
 
-## 2. Readiness checklist (with evidence)
+```powershell
+python scripts/model_failure_judge.py `
+  --in reports/model_failure_study/kimi_k3_directional_500.jsonl `
+  --out reports/model_failure_study/gemini_31_context_judge.jsonl `
+  --base-url https://generativelanguage.googleapis.com/v1beta/openai/chat/completions `
+  --key-env GEMINI_API_KEY --judge-model gemini-3.1-pro-preview `
+  --context duecare-full --protocol holistic --response-byte-limit 6000 `
+  --max-tokens 768 --planning-input-rate 2 --planning-output-rate 12 `
+  --reasoning-effort low --json-mode --max-planned-model-calls 500 --plan
 
-| # | Requirement | Status | Evidence |
-|---|---|---|---|
-| 1 | **Clear pipeline** (one command, all stages) | READY | `scripts/model_failure_loop.py`: preflight → generate → validate → judge → validate → report. `py_compile` clean. |
-| 2 | **Provider-switchable to OpenRouter / advanced LLMs** | READY | `--provider auto\|ollama\|openrouter`; `auto` probed OpenRouter (401, no credit) → fell back to Ollama-cloud (live) automatically. One flag to switch. |
-| 3 | **Report template** | READY | `docs/research/model_failure_report_TEMPLATE.md` (annotated) + `model_failure_report.py` auto-renders §2–6. |
-| 4 | **Report methodology** | READY | `docs/research/model_failure_study_methodology.md` — RQs, roster, two-layer grading, cost model, §7 turnkey run plan. |
-| 5 | **Mid-investigation checkpoints** | READY | `loop_state_<tag>.json` written after EVERY stage; report re-rendered each round → a current artifact always exists mid-run. |
-| 6 | **Validation gates** | READY | preflight provider probe (abort if no live provider); validate-gen (abort on zero responses, list below-quota models); validate-judge (coverage %, ERROR/UNPARSED count). |
-| 7 | **Self-healing / no-error loop** | READY | ERROR/UNPARSED verdicts auto-retried next round (`_done` excludes non-final); generation `--retry-errors`; loop-until-dry stop when no progress. |
-| 8 | **Judge integrity** | READY | One dimension per judge call (per project rule — never batched). Cross-family judge for the funded run (Claude judging the open/frontier roster). |
-| 9 | **Robust verdict parsing** | READY | `parse_verdict` takes the LAST valid JSON object (after reasoning) — unit-tested incl. the "PARTIAL-mentioned-first but answer FAIL" trap. Fixes a real misclassification that would have corrupted frontier verdicts. |
-| 10 | **Reproducibility** | READY | `git_sha` + provider + models + judge recorded in every checkpoint; temp 0; full responses stored (no truncation); synthetic probes only (no PII). |
-| 11 | **End-to-end PROOF on free provider** | DONE | The free Ollama-cloud run judged the 120-response pilot set with `gemma4:31b` (zero UNPARSED/ERROR) and rendered the full two-layer report — see `model_failure_on_human_exploitation.md`. |
+python scripts/model_failure_judge.py `
+  --in reports/model_failure_study/kimi_k3_directional_500.jsonl `
+  --out reports/model_failure_study/kimi_k3_context_self_judge.jsonl `
+  --base-url https://ollama.com/v1/chat/completions `
+  --key-env OLLAMA_API_KEY --judge-model kimi-k3 `
+  --context duecare-full --protocol holistic --response-byte-limit 6000 `
+  --max-tokens 768 --planning-input-rate 3 --planning-output-rate 15 `
+  --max-planned-model-calls 500 --plan
+```
 
-## 3. What the free-provider proof demonstrated
+Compare every plan to the frozen manifest. Any selection, context, call-count,
+token, rate, or hash drift requires review before removing `--plan`.
 
-Running the identical loop on Ollama-cloud (no funded key) end-to-end proved every
-moving part **before** any spend:
+## Execution and recovery contract
 
-- Provider auto-resolution works (OpenRouter dead → Ollama live, logged).
-- The judge produces clean per-dimension verdicts (PASS/FAIL/PARTIAL, 0 UNPARSED).
-- The differentiated distribution (not all-PARTIAL) confirmed the hardened parser; an
-  earlier reasoning-model judge had collapsed everything to PARTIAL via a parse bug —
-  caught and fixed here, which is exactly the kind of failure you do NOT want to
-  discover *after* paying for frontier generation.
-- The two-layer report (deterministic screen + LLM-judge table) renders.
+1. Follow [Provider Budgeting](../PROVIDER_BUDGETING.md) to set a stable run ID,
+   reviewed pricing file, SQLite ledger, and finite attempt/input/output/cash
+   caps for the current phase.
+2. Execute candidate generation first. The JSONL appends completed results and
+   supports a reviewed resume without repeating successful prompt/model pairs.
+3. Re-run both judge commands with `--plan` against the actual answers. Actual
+   answer lengths can change the reservation; do not rely only on the frozen
+   conservative estimate.
+4. Run Gemini and Kimi judge phases under separate run IDs and ledgers. Remove
+   `--plan` only from the phase presently authorized.
+5. Render one reconciled report with both files:
 
-So the funded run is not a first attempt — it is the same proven loop pointed at a
-better roster and a stronger (cross-family) judge.
+   ```powershell
+   python scripts/model_failure_report.py `
+     --in reports/model_failure_study/kimi_k3_directional_500.jsonl `
+     --judge reports/model_failure_study/gemini_31_context_judge.jsonl `
+             reports/model_failure_study/kimi_k3_context_self_judge.jsonl `
+     --out reports/model_failure_study/kimi_k3_context_report.md
+   ```
 
-## 4. Cost when you fund (from the measured cost model)
+The renderer expands holistic dimension verdicts, keeps cross-family and
+self-family panels separate, and reports deterministic/judge and
+judge-to-judge exact agreement.
 
-~760 tokens/call generation. With the frontier roster (~7 models) + a Claude
-per-dimension judge over ~160 prompts/model: generation ≈ $15–30, judge ≈ $20–40,
-optional DueCare-harnessed arm ≈ $10–20 → a publishable report well within **$100**,
-with headroom. Deterministic grading is free. See methodology §6 for the table.
+## What “ready” does and does not mean
 
-## 5. What changes vs. the free proof (be explicit)
+Ready means the selection, context, prompts, parsing, hash-bound resume keys,
+budget reservations, report reconciliation, and offline tests exist. It does
+not mean provider access works, a Kimi answer exists, Gemini has judged
+anything, a human has rated anything, or field effectiveness has been shown.
 
-- **Roster:** open-weight models → closed frontier (GPT-4o/4.1, Claude 3.7/3.5,
-  Gemini 2.5 Pro) + cheap anchors.
-- **Judge:** `gemma4:31b` (fast proof judge, self-judges its own rows) → cross-family
-  `anthropic/claude-3.7-sonnet` (the scientifically preferred independent judge).
-- **Throughput:** Ollama-cloud serialises (slow but free) → OpenRouter parallelises
-  (faster, billed). `--workers` already set.
-- **Nothing else** — same prompts, same dimensions, same grading, same report.
-
-## 6. Residual caveats (honest)
-
-- The funded run's verdicts are only as good as the judge; we report the judge model
-  and use a cross-family judge to limit self-preference bias.
-- Model versions drift — the run is pinned + dated in the checkpoint header.
-- The DueCare-harnessed arm (the lift number) is the highest-value add; budget for it
-  explicitly or label it deferred in the report (§5 of the template forbids implying
-  it ran when it didn't).
+The economical one-call holistic protocol is a **directional pilot**. A later
+publication-grade automated adjudication can use `--protocol per-dimension`,
+which preserves one rubric dimension per provider call. That larger run must be
+planned and funded separately; it is not hidden inside the 1,500-call ceiling.

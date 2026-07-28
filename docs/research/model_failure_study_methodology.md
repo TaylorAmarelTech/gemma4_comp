@@ -1,183 +1,187 @@
-# Model-failure study — methodology & run plan
+# Model-failure study methodology
 
-> Design for a rigorous, reproducible study of how LLMs handle human-exploitation
-> / trafficking prompts, and how much the DueCare harness closes the gap. This doc
-> is the spec; `scripts/model_failure_study.py` (generation), `scripts/model_failure_judge.py`
-> (LLM judge), and `scripts/model_failure_report.py` (aggregation) are the
-> implementation. Everything here is wired and validated on a 12-model open-roster
-> pilot; the only thing gating the full run is a working frontier key (see §7).
+This document defines a reproducible way to measure a capability gap, attach
+the exact DueCare grounding context, and triangulate results with deterministic,
+cross-family, same-family, and eventually human review. It accompanies:
 
-## 1. Research questions
+- `scripts/model_failure_study.py` for baseline candidate generation and local
+  deterministic grading;
+- `scripts/model_failure_judge.py` for contextual automated judging;
+- `scripts/model_failure_report.py` for separated aggregation and agreement;
+- the frozen
+  [`Kimi K3 500-item campaign`](../../configs/duecare/benchmarks/kimi_k3_500_context_judge_campaign.json).
 
-- **RQ1 (recognition):** At baseline (no harness), do models recognise exploitation
-  framings as problematic?
-- **RQ2 (grounding):** Do they *ground* the answer in the specific framework — debt
-  bondage, kafala, recruitment-fee rules, ILO conventions — or stop at "this seems
-  wrong"?
-- **RQ3 (equivocation resistance):** Can a benign-domain analogy ("a worker bond is
-  basically a financial instrument", "I'm just the sponsor, like sponsoring an
-  event") launder an exploitative arrangement past the model?
-- **RQ4 (harness lift):** How much does wrapping the same prompt in the DueCare
-  harness (GREP + RAG + persona) change the answer?
+No current Kimi K3 or Gemini 3.1 result exists. The 2026-07-28 campaign is
+access-blocked and has zero completed hosted calls.
 
-## 2. What the pilot already showed (and why this design)
+## Research questions
 
-Pilot: 12 frontier-class open models (Ollama-cloud) × 10 equivocation probes =
-120 responses, deterministic grading. Result: **99% did-not-resolve** the
-trafficking sense (PARTIAL+FAIL), but **~0% endorsed** it (1 FAIL, and that one was
-a grader false-positive — a good answer that *quoted* "safekeeping" to debunk it),
-and only **1/108 fully resolved** (PASS).
+1. **Recognition:** does a baseline model identify exploitation and coercion?
+2. **Grounding:** does it connect the facts to relevant indicators, rules, and
+   evidence instead of producing generic concern?
+3. **Equivocation resistance:** does benign framing obscure debt bondage,
+   recruitment fees, document retention, sponsorship control, or related risk?
+4. **Safety and utility:** is the response protective, appropriately bounded,
+   and actionable without inventing referrals or volatile legal facts?
+5. **Intervention value:** in a separately controlled arm, how much does a
+   versioned harness improve these outcomes?
 
-Two lessons baked into this design:
-1. **The honest finding is RQ2, not "models endorse exploitation".** Models broadly
-   recognise the problem (good) but rarely ground it (the gap DueCare fills). The
-   report must say this, not overclaim.
-2. **A deterministic keyword grader is a screen, not a verdict.** It false-FAILs
-   euphemism-debunking and can't separate "vaguely correct" from "properly
-   grounded". **A definitive cross-model comparison requires an independent LLM
-   judge** (§5). This is the single biggest reason to spend the budget.
+## Unit of analysis and selection
 
-## 3. Models (roster)
+The unit is one `(candidate model, frozen prompt, candidate response)` tuple.
+Prompts are public synthetic/composite benchmark items; raw worker cases and
+private data are prohibited.
 
-Two pools, judged identically:
+The current directional campaign selects exactly 500 prompts across 117
+categories using category-balanced selection, seed `20260728`, and SHA-256
+`9d4aedf042f5f9d73e8372a8f1bf5538190d9791dbc692c38ca720aed1bc48eb`.
+The selection hash must be reproduced before execution. Adding, deleting, or
+editing source prompts creates a new campaign rather than silently changing
+this one.
 
-- **Open / open-weight (Ollama-cloud, working today):** deepseek-v3.2,
-  deepseek-v4-flash, qwen3-next:80b, glm-4.6, glm-5, kimi-k2.5, minimax-m2,
-  mistral-large-3:675b, nemotron-3-super, cogito-2.1:671b, gemini-3-flash-preview,
-  gemma4:31b. (gpt-oss excluded — returns empty content via the API.)
-- **Closed frontier (OpenRouter, needs a funded key — the $100):** openai/gpt-4o,
-  openai/gpt-4.1, anthropic/claude-3.7-sonnet, anthropic/claude-3.5-sonnet,
-  google/gemini-2.5-pro, plus cheaper anchors (gpt-4o-mini, claude-3.5-haiku).
+## Candidate condition
 
-Gemma 4 (gemma4:31b) is included as the project's reference model — **not** as the
-DueCare fine-tune; the DueCare harness arm (§4) is the product comparison.
+Kimi K3 receives each prompt with the neutral baseline system message,
+temperature zero, and no DueCare GREP, retrieval, tool, or persona context.
+This isolates baseline capability. Each successful response is stored with its
+prompt/model identity and receives the local deterministic grade immediately.
 
-## 4. Prompts & arms
+The campaign reserves 500 Kimi calls, 158,922 estimated input tokens, and
+384,000 maximum output tokens. The answer cap is 768 tokens. The result runner
+is resumable and uses response hashes so a changed answer cannot inherit an old
+judge verdict.
 
-- **Prompt corpus:** the **18 ambiguity probes**
-  (`configs/duecare/domains/trafficking/ambiguity_probes.jsonl`) — 16 ambiguous terms
-  across equivocation (7), victim-voice (6), definition (4), and **adversarial** (1, an
-  evasion-script *refusal* test) — plus an optional **stratified sample of the seed
-  benchmark** (`seed_prompts.jsonl`) via `--include-seeds`. The probe set is the
-  high-signal headline (each row carries graded worst/best + ILO-grounded metadata);
-  target **~150 prompts/model** with seeds (the budget supports far more — see §6).
-- **Arm A — baseline:** raw prompt, neutral "helpful assistant" system message,
-  temperature 0. Measures the model's own behaviour.
-- **Arm B — DueCare-harnessed (the lift):** same prompt wrapped with the DueCare
-  GREP + RAG + persona harness before the model call. Run on a subset of models to
-  quantify the lift. (Build: reuse `duecare.chat.harnesses.default_harness`.)
+## Fixed contextual evidence
 
-## 5. Grading — two layers
+Both automated judges receive the same `duecare-full` context assembled
+offline for each prompt:
 
-1. **Deterministic screen (free, fast):** `duecare.chat.harness.grade_response_universal`
-   — every response, every dimension. Good for triage + the `domain_sense_resolution`
-   signal. Known to be keyword-noisy; reported with caveats, never as the verdict.
-2. **Independent LLM judge (the definitive measure):** `scripts/model_failure_judge.py`.
-   - **One dimension per judge call** (per the project's per-dimension grading
-     integrity rule — never batch dimensions into one call).
-   - Judge dimensions: `sense_resolution`, `legal_grounding`, `harm_safety`,
-     `actionability` (rubrics in the judge script).
-   - **Judge model from a different family** than the model under test (reduce
-     self-preference bias): e.g. judge open models with a frontier judge
-     (Claude/GPT-4o) and frontier models with a second strong judge; report
-     judge-model and note the bias control.
-   - Temperature 0; structured PASS/PARTIAL/FAIL + one-line reason.
+- fired deterministic GREP indicators;
+- the top eight retrieved versioned RAG excerpts; and
+- deterministic tool results.
 
-## 6. Cost model (measured)
+The frozen 500-prompt context set contains 5,922,118 characters (5,288 minimum,
+11,434 median, 16,025 maximum per prompt) and has SHA-256
+`109f18c68f7b09e193bc9e2a41b55628b9267fa2c73f10ab3fcb9fad098656db`.
+Judge outputs retain context evidence IDs and hashes, not a second raw copy of
+the full context. The judge prompt marks candidate text and retrieved context
+as untrusted evaluation material.
 
-Measured generation: **~760 tokens/call** (~60 in, ~700 out; cap 800). Deterministic
-grading is free. With a 15-model roster, $100 buys (generation only):
+## Four evidence layers
 
-| Roster | $/call | prompts per model within $100 |
-|---|---|---|
-| open/cheap | ~$0.0007 | ~9,500 |
-| mixed | ~$0.004 | ~1,650 |
-| all frontier-closed | ~$0.012 | ~550 |
+| Layer | Source | Strength | Required label |
+|---|---|---|---|
+| Deterministic | `grade_response_universal` | Reproducible and free; keyword/rule noise remains | Screen or cross-check |
+| Cross-family automated | Gemini 3.1 Pro with frozen context | Independent model family and structured rubric | Primary automated judgment |
+| Same-family automated | Kimi K3 judging Kimi K3 with identical context | Reveals self-preference and rubric sensitivity | Diagnostic self-judgment |
+| Human | Qualified, consented reviewers under a review protocol | Needed to calibrate consequential claims | Human validation only when actually collected |
 
-So **prompts/model is not the constraint** — the prompt inventory and the LLM judge
-are. With the judge: ~$0.02/prompt (cheap judge, key dims) → ~330 prompts/model;
-~$0.15/prompt (frontier per-dimension judge) → ~45 prompts/model. **Recommended $100
-allocation:** ~$15–30 generation across closed frontier models + ~$20–40 mid-tier
-independent judge on key dimensions + the harnessed arm = a publishable report for
-~$50–70, with headroom.
+Automated outputs are not human ratings or ground truth. The Kimi lane is not an
+independent judgment. No layer should be blended into a single score without
+showing its provenance and relationship.
 
-## 7. Run plan (turnkey)
+## Rubric and judge protocols
 
-**One command — the goal-guided loop.** `scripts/model_failure_loop.py` orchestrates
-all stages (preflight → generate → validate → judge → validate → report) as a bounded,
-self-healing loop with a checkpoint after every stage. It auto-resolves the provider
-(`auto` → OpenRouter if its key is live, else Ollama-cloud), so moving to the funded
-frontier roster is a single flag — nothing else changes.
+Both automated judges assess:
 
-```bash
-set -a; . ./.env; set +a
-PY="$LOCALAPPDATA/gemma4-testenv/venv/Scripts/python.exe"   # recovery venv (DueCare grader)
+- `sense_resolution`;
+- `legal_grounding`;
+- `harm_safety`; and
+- `actionability`.
 
-# (0) Validate the WHOLE pipeline with ZERO spend (preflight + provider probe + counts):
-"$PY" scripts/model_failure_loop.py --provider auto --dry-run
+Two protocols are supported:
 
-# (1) Prove the machine end-to-end on the FREE Ollama-cloud roster -- judge an existing
-#     response set + render the two-layer report; no funded key required:
-"$PY" scripts/model_failure_loop.py --provider ollama --run-tag v1 \
-  --skip-generation --responses reports/model_failure_study/study_v1.jsonl \
-  --judge-model gemma4:31b --workers 8
+1. **Holistic directional protocol:** one structured call per answer returns an
+   overall 0-100 score plus PASS/PARTIAL/FAIL and a short reason for every
+   dimension. This is the 500-item campaign protocol. It minimizes cost and is
+   appropriate for finding directional patterns and disagreement slices.
+2. **Per-dimension protocol:** one provider call evaluates exactly one rubric
+   dimension. This avoids cross-dimension coupling and is the stronger
+   publication-grade automated protocol, but requires four times as many judge
+   calls. It must be preregistered and budgeted separately.
 
-# (2) Full FRONTIER run once OPENROUTER_API_KEY is funded -- SAME command, one flag:
-"$PY" scripts/model_failure_loop.py --provider openrouter --run-tag frontier \
-  --include-seeds --limit 160 --gen-quota 160 --judge-model anthropic/claude-3.7-sonnet
-```
+Temperature is zero. Judge, candidate response, context, rubric, and final
+prompt hashes bind each result. Only final successful verdicts satisfy resume
+keys; ERROR and UNPARSED rows can be retried under a new reserved attempt.
 
-The loop writes `reports/model_failure_study/loop_state_<tag>.json` after each stage and
-re-renders the report every round, so a **mid-investigation inspection always has a
-current artifact**. Goals: every model ≥ `--gen-quota` responses; every
-(response × dimension) carries a FINAL verdict (ERROR/UNPARSED are auto-retried the next
-round); the report renders. It stops when goals are met or a round makes no progress.
+## Current judge assignment
 
-### Under the hood (the loop shells out to these three; run them directly if you prefer)
+- `gemini-3.1-pro-preview` is the primary cross-family contextual judge.
+- `kimi-k3` is the secondary same-family contextual self-judge.
 
-```bash
-# (a) generate            (b) judge, ONE dimension/call        (c) aggregate + render
-"$PY" scripts/model_failure_study.py  --base-url <url> --key-env <KEY> --models "..." --out <results.jsonl> [--retry-errors]
-"$PY" scripts/model_failure_judge.py  --base-url <url> --key-env <KEY> --judge-model <M> --in <results.jsonl> --out <judge.jsonl>
-"$PY" scripts/model_failure_report.py --in <results.jsonl> --judge <judge.jsonl> --out docs/research/model_failure_on_human_exploitation.md
-```
+The Gemini lane requests low reasoning effort and JSON response mode so the
+bounded 768-token output budget prioritizes the structured verdict. The Kimi
+lane uses provider-default reasoning and the same explicit JSON-only prompt;
+provider-specific request options remain recorded rather than disguised as an
+identical transport configuration.
 
-Endpoints: Ollama-cloud `https://ollama.com/v1/chat/completions` (`OLLAMA_API_KEY`,
-free today); OpenRouter `https://openrouter.ai/api/v1/chat/completions`
-(`OPENROUTER_API_KEY`, the funded frontier path).
+This pairing tests both a family-independent view and the candidate family's
+own critique without conflating them. A future panel may add another family,
+but only for a frozen uncertainty-reduction question and a separately reviewed
+budget.
 
-**Judge-model reliability (Ollama-cloud):** only models that return the verdict in the
-OpenAI `content` field work as judges — `deepseek-v3.2` (cross-family, the default) and
-`gemma4:31b` (fast, content-direct) do; `qwen3-next:80b` / `glm-4.6` /
-`gemini-3-flash-preview` leave `content` empty (text in `reasoning`) and are poor
-judges. The OpenRouter frontier judge (`anthropic/claude-3.7-sonnet`) is the
-scientifically preferred cross-family judge for the funded run.
+## Planned analysis
 
-## 8. Reproducibility & integrity
+Report at minimum:
 
-- Record `(git_sha, model_version, prompt_set_version)` in the results header; store
-  every raw response (no truncation, per project rules).
-- temperature 0 for both generation and judging; resumable (skip done pairs).
-- Synthetic prompts only — no real PII (probes are composite).
-- Report **confirmed findings separately from interpretation**; the deterministic
-  screen is labelled a screen, the LLM judge is the verdict.
+- deterministic versus Gemini exact agreement;
+- deterministic versus Kimi exact agreement;
+- Gemini versus Kimi exact agreement;
+- per-dimension PASS/PARTIAL/FAIL counts;
+- category-stratified scores and failure patterns;
+- invalid, missing, truncated, ERROR, and UNPARSED counts;
+- the largest rule/model and model/model disagreements for blind human review;
+- provider/model IDs, prompt/context hashes, protocol, date, token usage, and
+  ledger receipt.
 
-## 9. Limitations (state them in the report)
+Do not average away missing rows or treat access failures as low scores. Do not
+select illustrative examples only after seeing which ones support a preferred
+claim.
 
-- Deterministic grader is keyword-noisy (false-FAIL on euphemism mention).
-- LLM judge has its own biases → cross-family judge + report the judge model.
-- Model versions drift; pin + date the run.
-- Ollama-cloud serialises requests (~1–2 effective concurrency) → open-roster runs
-  are slow but cheap; OpenRouter is faster but billed.
-- Open vs closed pools use different endpoints; the judge normalises across them.
+## Cost and stopping rule
 
-## 10. Report template
+At the rates checked on 2026-07-28, the frozen holistic campaign reserves:
 
-The final report (`model_failure_on_human_exploitation.md`, auto-rendered by
-`model_failure_report.py`) follows: **(1)** scope + the read-before-tables caveat,
-**(2)** per-model table (resolved / incomplete / endorsed / avg %, and — when a
-judge file is supplied — judge PASS-rate per dimension), **(3)** per-probe and
-per-category tables, **(4)** baseline-vs-harnessed lift, **(5)** method, **(6)**
-limitations, **(7)** appendix of representative responses. The hand-written
-executive summary leads with RQ2 (grounding), not an over-claimed "endorsement"
-headline.
+| Lane | Maximum calls | Worst-case cost |
+|---|---:|---:|
+| Kimi candidates | 500 | US$6.236766 |
+| Gemini contextual judge | 500 | US$11.745660 |
+| Kimi contextual self-judge | 500 | US$16.466490 |
+| **Total** | **1,500** | **US$34.448916** |
+
+The hard ceiling is US$35. Each phase must use the shared provider ledger with
+finite attempt/input/output/cash caps and a reviewed pricing file. Failed calls
+and retries consume reservations. Stop on any policy breach, selection/context
+hash drift, provider identity drift, unexpected truncation rate, or systemic
+parse failure.
+
+Prices and access rules are volatile. Reverify them from the official provider
+pages immediately before spending; the manifest records the URLs used for the
+current estimate.
+
+## Reproducibility and privacy
+
+- Preserve the Git revision, manifest, exact CLI arguments, sanitized budget
+  receipt, result hashes, and report together.
+- Keep result and ledger files under ignored `reports/` until privacy and claim
+  review approves a publication artifact.
+- Never send raw PII, private case files, real worker contact details, or
+  unreviewed entity-intelligence output to a hosted judge.
+- Do not hardcode volatile hotline, fee, wage, office, or legal claims into
+  prompts unless they are versioned knowledge objects.
+- Keep the baseline candidate condition distinct from any future harnessed arm.
+
+## Interpretation boundaries
+
+The campaign can support statements about this frozen synthetic prompt sample,
+these exact provider model versions, and these grading protocols. It cannot by
+itself establish field effectiveness, legal correctness, safety for every
+corridor or language, human agreement, or general superiority.
+
+The historical 2026-06 open-model pilot remains useful as pipeline provenance,
+but its old roster and automated judge should not be presented as current Kimi
+K3/Gemini evidence. Use the
+[readiness receipt](model_failure_run_readiness.md) for exact commands and live
+access blockers, and the
+[capability-gap blueprint](../architecture/capability_gap_blueprint.md) for the
+industry-neutral architecture behind this study.
