@@ -18,11 +18,35 @@ def _registry() -> dict:
     return json.loads(builder.REGISTRY_PATH.read_text(encoding="utf-8"))
 
 
+def _registry_with_items() -> dict:
+    data = copy.deepcopy(_registry())
+    sample = {
+        "id": "sample-local-work",
+        "title": "Sample local work",
+        "priority": "P2",
+        "status": "ready_local",
+        "owner_role": "Repository maintainer",
+        "target": "A deterministic local change",
+        "reason": "The bounded test fixture remains open.",
+        "model_credit_policy": "zero_only",
+        "network_policy": "offline_only",
+        "depends_on": [],
+        "prerequisites": ["A clean fixture"],
+        "next_actions": ["Run the fixture"],
+        "acceptance_gates": ["The fixture passes"],
+        "evidence": ["AGENTS.md"],
+    }
+    second = copy.deepcopy(sample)
+    second.update({"id": "sample-second-work", "title": "Second sample work"})
+    data["items"] = [sample, second]
+    return data
+
+
 def test_canonical_deferred_work_register_is_valid_and_current() -> None:
     result = validator.validate()
 
     assert result["ok"] is True
-    assert result["items"] >= 10
+    assert result["items"] == 0
     assert result["findings"] == []
 
 
@@ -31,7 +55,8 @@ def test_rendered_document_names_every_item_and_exact_acceptance_boundary() -> N
     rendered = builder.render_registry(data)
 
     assert rendered == builder.DOCUMENT_PATH.read_text(encoding="utf-8")
-    assert "Empty fields, fabricated approvals, guessed versions" in rendered
+    assert "empty fields, fabricated approvals, guessed versions" in rendered
+    assert "**No outstanding items.**" in rendered
     assert "**Ready for model-free repository work:** None." in rendered
     for item in data["items"]:
         assert f'<a id="{item["id"]}"></a>' in rendered
@@ -39,7 +64,7 @@ def test_rendered_document_names_every_item_and_exact_acceptance_boundary() -> N
 
 
 def test_unresolved_token_is_rejected_without_echoing_its_value() -> None:
-    data = _registry()
+    data = _registry_with_items()
     data["items"][0]["reason"] = "TBD"
 
     findings = validator.validate_registry(data)
@@ -49,7 +74,7 @@ def test_unresolved_token_is_rejected_without_echoing_its_value() -> None:
 
 
 def test_missing_and_cyclic_dependencies_are_rejected() -> None:
-    data = copy.deepcopy(_registry())
+    data = _registry_with_items()
     first = data["items"][0]
     second = data["items"][1]
     first["depends_on"] = [second["id"]]
@@ -62,7 +87,7 @@ def test_missing_and_cyclic_dependencies_are_rejected() -> None:
 
 
 def test_ready_local_item_must_remain_offline_and_zero_credit() -> None:
-    data = copy.deepcopy(_registry())
+    data = _registry_with_items()
     ready = data["items"][0]
     ready["status"] = "ready_local"
     ready["model_credit_policy"] = "zero_only"
@@ -74,7 +99,7 @@ def test_ready_local_item_must_remain_offline_and_zero_credit() -> None:
 
 
 def test_malformed_field_types_return_findings_instead_of_crashing(tmp_path: Path) -> None:
-    data = copy.deepcopy(_registry())
+    data = _registry_with_items()
     data["items"][0]["priority"] = []
     data["items"][0]["status"] = {}
     registry = tmp_path / "deferred.json"

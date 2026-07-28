@@ -6,7 +6,7 @@ Gemma 4 path.
 
 ## Active Scope
 
-| Surface | Live status checked 2026-07-27 | What It Proves |
+| Surface | Live status checked 2026-07-28 | What It Proves |
 |---|---|---|
 | `kaggle/01-duecare-exploration-workbench/` | `COMPLETE` | Interactive harness comparison, chat, extraction, search controls, traces, and knowledge-pack flows. |
 | `kaggle/02-live-demo/` | `CANCEL_ACKNOWLEDGED` | Focused live demo and video narrative path; rerun only for needed recording evidence. |
@@ -35,10 +35,10 @@ and [`kaggle/_INDEX.md`](../kaggle/_INDEX.md).
 
 | Area | Current State |
 |---|---|
-| Offline publication core | 11/11 composed gates passed in the final model-free closeout, including provider-budget coverage, deferred-work integrity, and package-release ownership/install truth; rerun `python scripts/validate_publication_readiness.py --scope core` on the release commit. |
+| Offline publication core | 12/12 composed gates pass in the model-free maintenance candidate, including provider-budget coverage, zero-item deferred-work integrity, the dated 11-item resolution receipt, and package-release ownership/install truth; rerun `python scripts/validate_publication_readiness.py --scope core` on any future release commit. |
 | Public deployment | Pull request 15 is the current pre-handoff anchor at `56e7283df1e191793355b340559733b4ef77f9fa`; all 16 PR checks passed. Render production, the independent 51-route read-only `duecare-ai-site` Pages copy, and this repository's MkDocs Pages site have distinct owners; the fallback manifest records its source revision and does not claim production DNS. |
 | Curator governance | Inline grading guidance covers all 75 universal rubric dimensions; the strict curator validator reports zero errors and zero warnings, and CI now fails on either. |
-| Broad tests | Final tracked-handoff `packages tests` run under the zero-call transport lock: 4,648 passed, 9 skipped in 7 minutes 22 seconds. The registered three-file legacy Ruff slice also passes without file-wide suppression. |
+| Broad tests | Current maintenance-candidate `packages tests` run under the zero-call transport lock and offline provider/model flags: 4,653 passed, 9 skipped in 8 minutes 4 seconds. The registered three-file legacy Ruff slice also passes without file-wide suppression. |
 | Model/flywheel cost stop | All five recurring Windows tasks disabled, four daemon sentinels present, and zero verified repository daemon processes; inspect with `scripts/stop_ollama_stack.ps1 -Status`. |
 | New training readiness | Intentionally red: five dense generic-corridor typologies; 25 privacy-safe curation tasks and a 75-row minimum expansion target. |
 | Harness contract | Documented in [`harness_ecosystem.md`](harness_ecosystem.md), [`harness_pattern.md`](harness_pattern.md), and [`harness_standard_contract.md`](harness_standard_contract.md). |
@@ -48,27 +48,21 @@ and [`kaggle/_INDEX.md`](../kaggle/_INDEX.md).
 | Active A-00 exports | HTML, Markdown, JSON, CSV, charts, activity/evidence bundles, and report manifest under `/kaggle/working`. |
 | Test baseline | Focused contract gates are listed in [`FOR_PEER_REVIEW.md`](FOR_PEER_REVIEW.md). |
 
-## Remaining Human Actions
+## Closeout Actions
 
-The generated [`DEFERRED_WORK.md`](DEFERRED_WORK.md) register is authoritative
-for owners, prerequisites, model/network boundaries, evidence, and acceptance.
-
-1. Choose the first independently versioned Python package to release, freeze
-   the intended commit/tag, and rerun the model-free core and handoff gates.
-2. Run the two primary demo kernels on the intended GPU/runtime shape only when
-   new recording evidence is needed.
-3. Optional only: produce an A-00 evidence run with checkpoint/resume
-   enabled if new proof artifacts are needed.
-4. Download `/kaggle/working` artifacts before Kaggle shutdown.
-5. Capture final demo screenshots/video clips from Kernel 01 and Kernel 02.
-6. Submit with links pointing to the current active Kaggle path.
+There are no remaining current human-review or owner-decision actions. The
+dated [closeout resolution receipt](CLOSEOUT_RESOLUTIONS_2026_07_28.md) records
+all 11 outcomes, and the [deferred-work register](DEFERRED_WORK.md) contains
+zero items. Human curation, provider runs, package publication, Kaggle reruns,
+and private transfer become work only when their specific reopen conditions are
+met; they are not implied obligations of maintenance mode.
 
 Future funded comparison work must include Kimi K3 and Meta Muse Spark 1.1 as
 required lanes after exact provider IDs, access, capability, context, and
 pricing are reverified. Unavailable access is a reportable result, not a reason
 to substitute a different model silently.
 
-The manual checklist lives in [`USER_TODO.md`](USER_TODO.md).
+The resolved owner ledger lives in [`USER_TODO.md`](USER_TODO.md).
 
 ## Active A-00 Evidence Run Targets
 

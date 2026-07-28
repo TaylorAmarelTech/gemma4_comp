@@ -118,18 +118,27 @@ the exact configured model ID.
 The first approved frozen smoke matrix should treat these as required candidate
 lanes, not optional substitutions:
 
-- **Kimi K3.** On 2026-07-27 the verified identifiers were
+- **Kimi K3.** On 2026-07-28 the verified identifiers were
   `kimi-k3:cloud` on [Ollama](https://ollama.com/library/kimi-k3) and
   `moonshotai/kimi-k3` on
   [OpenRouter](https://openrouter.ai/moonshotai/kimi-k3-20260715). Ollama
-  labels the model as extra usage requiring an eligible paid plan, so a small
-  cash-capped smoke comes before any broader matrix.
+  labels the model as extra usage requiring an eligible paid plan and lists a
+  one-million-token context plus $3/M input, $0.30/M cached input, and $15/M
+  output. OpenRouter listed the same one-million-token context and $3/M input,
+  $15/M output rates. A future smoke therefore needs both a cash cap and an
+  output-token cap before any broader matrix.
 - **Meta Muse Spark 1.1.** This is the precise model name; "Meta Muse 1.1" is
   only shorthand. Meta announced developer access through the public-preview
   [Meta Model API](https://ai.meta.com/blog/introducing-muse-spark-meta-model-api/),
   and the verified OpenRouter identifier was
   [`meta/muse-spark-1.1`](https://openrouter.ai/meta/muse-spark-1.1) on
-  2026-07-27.
+  2026-07-28, with a one-million-token context and listed rates of $1.25/M
+  input and $4.25/M output.
+
+The 2026-07-28 closeout decision performed catalog verification only and made
+no model call. Kimi K3 and Meta Muse Spark 1.1 remain required lanes if a future
+frozen comparison is reopened; preserving credits is preferable to running an
+unmotivated smoke merely to empty a checklist.
 
 Availability, access rules, context, and prices are volatile. Recheck the
 official catalog immediately before approving a run; never use a paid prompt

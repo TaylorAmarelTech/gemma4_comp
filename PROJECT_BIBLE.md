@@ -18,6 +18,7 @@ model/data backlog:
 
 - [`docs/PUBLICATION_READINESS.md`](docs/PUBLICATION_READINESS.md)
 - [`docs/DEFERRED_WORK.md`](docs/DEFERRED_WORK.md)
+- [`docs/CLOSEOUT_RESOLUTIONS_2026_07_28.md`](docs/CLOSEOUT_RESOLUTIONS_2026_07_28.md)
 
 Current human-maintainer pickup and dated closeout plan:
 
@@ -33,8 +34,9 @@ Read order for continuation sessions:
 5. [`docs/MAINTAINER_HANDOFF.md`](docs/MAINTAINER_HANDOFF.md)
 6. [`docs/PROJECT_TRANSITION_PLAN.md`](docs/PROJECT_TRANSITION_PLAN.md)
 7. [`docs/PUBLICATION_READINESS.md`](docs/PUBLICATION_READINESS.md)
-8. [`docs/DEFERRED_WORK.md`](docs/DEFERRED_WORK.md)
-9. [`docs/codex/PROJECT_BIBLE.md`](docs/codex/PROJECT_BIBLE.md)
+8. [`docs/CLOSEOUT_RESOLUTIONS_2026_07_28.md`](docs/CLOSEOUT_RESOLUTIONS_2026_07_28.md)
+9. [`docs/DEFERRED_WORK.md`](docs/DEFERRED_WORK.md)
+10. [`docs/codex/PROJECT_BIBLE.md`](docs/codex/PROJECT_BIBLE.md)
 
 Saved `.claude/state/` files are historical evidence only. This pointer is not
 permission to start the autonomous judging engine, remove

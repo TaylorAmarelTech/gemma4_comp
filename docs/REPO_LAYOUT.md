@@ -33,6 +33,7 @@ Current as of 2026-07-28.
 - Manual checklist: [`docs/USER_TODO.md`](USER_TODO.md)
 - Claude Code pickup: [`docs/CLAUDE_CODE_HANDOFF.md`](CLAUDE_CODE_HANDOFF.md)
 - Canonical deferred work: [`docs/DEFERRED_WORK.md`](DEFERRED_WORK.md)
+- Dated closeout decisions: [`docs/CLOSEOUT_RESOLUTIONS_2026_07_28.md`](CLOSEOUT_RESOLUTIONS_2026_07_28.md)
 - Current status: [`docs/readiness_dashboard.md`](readiness_dashboard.md)
 - User path chooser: [`docs/user_paths.md`](user_paths.md)
 - Active Kaggle inventory: [`docs/current_kaggle_notebook_state.md`](current_kaggle_notebook_state.md)

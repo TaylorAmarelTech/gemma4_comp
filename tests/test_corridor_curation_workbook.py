@@ -4,6 +4,7 @@ import copy
 import importlib.util
 import json
 import sys
+from collections import Counter
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -176,6 +177,11 @@ def test_current_source_catalog_is_valid_but_every_source_is_quarantined():
     assert len(catalog["sources"]) >= 12
     assert all(source["training_use"] == "blocked" for source in catalog["sources"])
     assert all(source["snapshot_sha256"] is None for source in catalog["sources"])
+    assert Counter(source["reachability_status"] for source in catalog["sources"]) == {
+        "direct_response": 7,
+        "redirect_observed": 2,
+        "transient_unverified": 3,
+    }
 
 
 def test_validator_accepts_scaffold_and_reports_exact_incomplete_count():

@@ -1,7 +1,8 @@
 ﻿# Knowledge surface verification
 
-Snapshot of DueCare harness knowledge-layer state as of 2026-06-10.
-Re-runnable via `python scripts/verify_knowledge_surfaces.py`.
+Snapshot of DueCare harness knowledge-layer state as of 2026-07-28.
+Re-runnable via `.venv\Scripts\python.exe scripts/verify_knowledge_surfaces.py`
+on Windows or the equivalent repository interpreter elsewhere.
 
 > Scope: this snapshot covers the **trafficking knowledge layer** (GREP / RAG / templates /
 > personas / ILO conventions, etc.). The separate propose-only **entity-intelligence layer**
@@ -83,20 +84,21 @@ Mauritania, Eritrea, North Korea, Cuba medical missions, UFLPA /
 Xinjiang, Operation Blooming Onion, IOM Libya, GEFM Brazil, CIW
 Florida, Saipan, Bangladesh tea estates, ID-SA 2011 moratorium).
 
-### `CORRIDOR_FEE_CAPS` (31 corridors)
+### `CORRIDOR_FEE_CAPS` (38 entries)
 
-Top-7 origin countries (PH, ID, NP, BD, VN, KH, MM) by 11 major
-destinations (HK, SG, SA, KW, LB, QA, UAE, TW, JP, KR, MY) +
-Latin America / Pacific (MX-US H-2A/H-2B, JM-CA SAWP).
+Versioned corridor and programme fee-rule entries across the established
+South/Southeast Asia to Gulf/East Asia paths plus selected seasonal-worker
+programmes. The count is measured from the current dictionary; it is not a
+claim that every possible origin/destination pair has an active rule.
 
-### `FEE_CAMOUFLAGE_DICT` (45 deceptive fee labels)
+### `FEE_CAMOUFLAGE_DICT` (57 deceptive fee labels)
 
 Labels grouped: training / orientation, medical, process,
 deployment / placement, broker / agent, document / clearance,
 deposit / bond, salary-deduction, novation / loan-transfer,
 sectoral (P3MI / RA / SPE / manpower).
 
-### `NGO_INTAKE` (30 corridors + regions)
+### `NGO_INTAKE` (36 corridors + regions)
 
 Per-corridor NGO + regulator + embassy + POLO contact bundle,
 plus cross-region patterns (`('any', us)`, `('any', uk)`,
@@ -108,26 +110,23 @@ C029, C087, C095, C097, C098, C100, C105, C111, C138, C143, C181,
 C182, C188, C189, C190, P029. Each entry has key articles +
 focus + ratification note.
 
-### `TEMPLATES_REGISTRY` (34 complaint + narrative templates)
+### `TEMPLATES_REGISTRY` (36 complaint + narrative templates)
 
-| Class | Count | Examples |
-| --- | --- | --- |
-| Origin-country regulator | 5 | PH DMW, ID BP2MI, NP DoFE, BD BMET, VN DOLAB |
-| Destination-country regulator | 11 | HK Labour Dept, SA MHRSD, UAE MoHRE, Qatar MoL, US DOL WHD, AU FWO, KR EPS, TW MOL, SG MOM, IL PIBA, CA SAWP |
-| Referral + restitution pathways | 5 | NGO intake, IOM referral, UK NRM, Polaris hotline, CBP e-Allegation |
-| Madlibs scenario templates | 13 | PH-HK fee refund demand, passport return demand, T-Visa affidavit, anti-retaliation TRO, witness statement, restitution calculation, compound-scam victim affidavit, NGO survivor narrative, worker first-contact script, journalist tip brief, employer wage demand, supplier audit finding letter, UNGP/OECD remediation request |
+The registry includes origin- and destination-country regulator complaints,
+NGO/IOM/NRM and hotline referrals, worker and survivor narratives, wage and
+passport demands, fee-refund and loan-void demands, contract-substitution
+complaints, witness and affidavit formats, restitution calculations, supplier
+audit findings, and UNGP/OECD remediation requests. The executable verifier
+prints every template ID plus its field and required-field counts so category
+copy cannot silently become a competing inventory.
 
-### Personas (22 system-prompt roles)
+### Personas (37 system-prompt roles)
 
-NGO intake, lawyer (research mode), regulator audit, journalist
-fact-check, researcher tagging, worker-side advocate, skeptical
-review, active caseworker, embassy officer, peer supporter,
-clinical social worker, platform Trust & Safety, faith /
-community helper, labour inspector, recruiter compliance,
-survivor peer advocate, government policy advisor, engineer
-building a safe-migration product, labour lawyer (destination
-court), medical clinician (screening), Financial Intelligence
-Unit officer, shipping / maritime HR.
+The versioned `_personas.json` registry contains 37 roles spanning worker,
+caseworker, NGO, legal, regulator, research, platform-safety, medical,
+financial-intelligence, maritime, compliance, policy, engineering, and
+community-support viewpoints. The JSON registry and its schema are canonical;
+this page deliberately avoids duplicating all role definitions.
 
 ## Smoke render test
 
@@ -141,7 +140,7 @@ and confirms:
   Palermo Protocol Art. 3, Vienna Convention on Consular
   Relations Art. 5(d), HK Cap. 57 Sec. 32 + Cap. 57A Reg. 13)
 
-The same pattern works for all 34 templates in the registry: any
+The same pattern works for all 36 templates in the registry: any
 template whose required fields are filled produces a complete
 court-ready or NGO-ready document with no unresolved
 placeholders.
@@ -171,35 +170,35 @@ All critical files parse cleanly:
 
 | File | Lines | Status |
 | --- | --- | --- |
-| `packages/duecare-llm-chat/src/duecare/chat/templates.py` | 4,736 | AST OK |
-| `packages/duecare-llm-chat/src/duecare/chat/harness/__init__.py` | 16,367 | AST OK |
+| `packages/duecare-llm-chat/src/duecare/chat/templates.py` | 5,647 | AST OK |
+| `packages/duecare-llm-chat/src/duecare/chat/harness/__init__.py` | 7,410 | AST OK |
+| `packages/duecare-llm-chat/src/duecare/chat/harness/_grep_rules.py` | 9,688 | AST OK |
+| `packages/duecare-llm-chat/src/duecare/chat/harness/_rag_corpus.py` | 3,471 | AST OK |
+| `packages/duecare-llm-chat/src/duecare/chat/harness/_multidomain_corpus.py` | 2,451 | AST OK |
 | `packages/duecare-llm-chat/src/duecare/chat/harness/_personas.json` | -- | JSON OK |
-| `kaggle/01-duecare-exploration-workbench/kernel.py` | 3,300 | AST OK |
-| `kaggle/02-live-demo/kernel.py` | 2,084 | AST OK |
-| `kaggle/A-00-omni-experiment-workbench/kernel.py` | 8,061 | AST OK |
+| `kaggle/01-duecare-exploration-workbench/kernel.py` | 3,402 | AST OK |
+| `kaggle/02-live-demo/kernel.py` | 2,093 | AST OK |
+| `kaggle/A-00-omni-experiment-workbench/kernel.py` | 10,544 | AST OK |
 
-## Local-runtime caveat
+## Runtime boundary
 
-Local `pip` + venv are currently broken on this workstation
-(OneDrive-sync corruption -- `typing_extensions`, `pip._vendor`,
-`numpy._core` reported missing across Python 3.10 / 3.12 / 3.14
-installs). This blocks `python -c 'from duecare.chat.app import
-create_app'` style imports until the venv is rebuilt.
+The 2026-07-28 receipt ran successfully with the repository `.venv`.
+`scripts/verify_knowledge_surfaces.py` intentionally uses AST and JSON standard
+library parsing rather than importing the application stack, so this check is
+portable and does not prove that optional runtime dependencies or external
+services are available. Kaggle kernels retain their own explicit dependency
+bootstrap and are validated separately.
 
-`scripts/verify_knowledge_surfaces.py` works around the broken
-venv by using **AST + JSON stdlib parsing only** -- no pip-managed
-imports required. The script confirms the knowledge layer is well-
-formed regardless of whether the FastAPI stack is locally
-installed.
-
-Boot in Kaggle uses the explicit dependency block at the top of
-each `kaggle/*/kernel.py` and is unaffected by the local venv
-issue.
+The same maintenance cycle reviewed the 12 candidate corridor-source URLs:
+seven responded directly, two redirected, three were transient or bot/network
+limited, and zero were confirmed broken. Reachability is not rights approval;
+all 12 remain blocked from training as recorded in the dated
+[closeout receipt](CLOSEOUT_RESOLUTIONS_2026_07_28.md).
 
 ## Re-run
 
-```bash
-python scripts/verify_knowledge_surfaces.py
+```powershell
+.\.venv\Scripts\python.exe scripts/verify_knowledge_surfaces.py
 ```
 
 Exit code 0 = pass; non-zero = AST or JSON error somewhere in

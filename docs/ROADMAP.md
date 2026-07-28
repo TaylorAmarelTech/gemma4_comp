@@ -2,11 +2,11 @@
 
 Current as of 2026-07-28.
 
-This is the strategic roadmap. The generated
-[`DEFERRED_WORK.md`](DEFERRED_WORK.md) register is the authoritative operational
-queue: it names the owner role, authorization boundary, prerequisites, ordered
-actions, evidence, and acceptance gates for every unfinished item. If this
-roadmap conflicts with that register, the register wins.
+This is the strategic roadmap. The dated
+[`closeout receipt`](CLOSEOUT_RESOLUTIONS_2026_07_28.md) is authoritative for
+the 11 inherited decisions. The generated
+[`DEFERRED_WORK.md`](DEFERRED_WORK.md) register contains zero current items and
+becomes authoritative only for specifically reopened work.
 
 Historical and topic-specific plans remain as provenance under `docs/research/`
 and `docs/_archive/`; they do not authorize model calls, publication, or the
@@ -22,18 +22,18 @@ promotion of candidate data.
   The `03` and `04` benchmark surfaces are optional and are not prerequisites
   for repository closure.
 - All 18 Python distributions build and clean-install under the release
-  contract. No DueCare distribution is claimed as published to PyPI; choosing
-  and publishing the first package remains an owner-authorized release action.
+  contract. No DueCare distribution is claimed as published to PyPI; first
+  publication was explicitly declined for closeout.
 - The model/flywheel stack is deliberately cost-stopped. Four sentinels are
   present, five recurring Windows tasks are disabled, and a finite provider
   budget is required before any caller resumes.
-- The exhaustive generation phase is complete. The isolated per-dimension
-  judging lane remains partial: 47,813 of 708,471 panel cells are present and
-  660,658 are still missing in the dated local coverage receipt. It is useful
-  experimental evidence, not part of the default comparable board.
-- The training scope remains deliberately red until the 75-row corridor
-  workbook has human curation and adjudication, the quality audit is clean,
-  and append-only provenance is refreshed.
+- The exhaustive generation phase is complete. Exhaustive per-dimension closure
+  was declined: 47,813 of 708,471 panel cells are present and 660,658 are still
+  missing in the dated receipt. It remains partial experimental evidence, not
+  part of the default comparable board.
+- The training scope remains deliberately red and excluded from closeout
+  claims. Reopening it would require human curation/adjudication of the 75-row
+  workbook, a clean quality audit, and refreshed append-only provenance.
 
 The model-free release command is:
 
@@ -51,9 +51,10 @@ direct-client budget migration is also complete for the adverse-media verifier;
 other callers remain future bounded migrations under the exact coverage
 statement in [`PROVIDER_BUDGETING.md`](PROVIDER_BUDGETING.md).
 
-## Evidence And Dataset Priorities
+## Conditional Evidence And Dataset Opportunities
 
-New evidence should deepen validity rather than inflate surface count:
+If a receipt reopen condition is met, new evidence should deepen validity
+rather than inflate surface count:
 
 1. Complete the source-bound 75-row corridor-diversification workbook with two
    independent curators and native-language review where required.
@@ -73,10 +74,10 @@ No extra Kaggle notebook is needed merely to make the project look complete.
 Publish or rerun a notebook only when it carries a distinct, reviewable evidence
 artifact that an existing active surface cannot express.
 
-## Product And Integration Priorities
+## Conditional Product And Integration Opportunities
 
-After release disposition and evidence gates are resolved, the strongest
-product extensions are:
+If a future maintainer deliberately reopens product work, the strongest
+extensions are:
 
 - a stable domain-pack and harness-plugin contract with one minimal reference
   implementation;
@@ -118,11 +119,13 @@ These are future product programs, not claims about the current release.
 
 ## How To Update This Roadmap
 
-Change the canonical JSON register first when an unfinished item, status,
-boundary, or acceptance test changes:
+Preserve the dated receipt. Add a new canonical register item only after its
+receipt reopen condition is met, then change status, boundary, or acceptance
+tests in that JSON:
 
 ```powershell
 python scripts/build_deferred_work_register.py
+python scripts/validate_closeout_resolutions.py
 python scripts/validate_deferred_work.py
 ```
 

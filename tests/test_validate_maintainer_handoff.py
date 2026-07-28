@@ -40,7 +40,7 @@ def test_deferred_work_register_is_a_succession_gate():
     assert check == {
         "name": "deferred work register",
         "ok": True,
-        "detail": "11 explicit item(s); generated document current",
+        "detail": "0 explicit item(s); generated document current",
     }
 
 

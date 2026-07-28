@@ -6,7 +6,7 @@ Only three Kaggle script kernels are active for the current competition scope.
 The first two are the primary recording path; A-00 is the quantitative proof
 and training/evaluation path:
 
-| Order | Folder | Kaggle slug | Title | Live status checked 2026-07-27 | Purpose |
+| Order | Folder | Kaggle slug | Title | Live status checked 2026-07-28 | Purpose |
 |---|---|---|---|---|---|
 | 01 | `01-duecare-exploration-workbench` | `taylorsamarel/duecare-app` | **DueCare App** | `COMPLETE` | Full reviewer workbench: chat, harness comparison, bulk file review, knowledge extraction, search, sharing, traces, and activity logs. |
 | 02 | `02-live-demo` | `taylorsamarel/duecare-live-demo` | **DueCare Live Demo** | `CANCEL_ACKNOWLEDGED` | Focused live demo for judges and video capture. Hosts the recording-grade pitch deck at `/start` and `/slides`. |
@@ -15,7 +15,7 @@ and training/evaluation path:
 Each active kernel is intended to be copied into Kaggle, run on T4 x2 with Internet enabled, install DueCare from GitHub, write outputs under `/kaggle/working`, launch the local server, and print a public `https://*.trycloudflare.com` URL.
 
 Live status was reviewed through the authenticated Kaggle command line on
-2026-07-27. Cancellation is terminal but is not a successful proof. The A-00
+2026-07-28. Cancellation is terminal but is not a successful proof. The A-00
 URL is public and attaches `taylorsamarel/duecare-proof-finetuning-data`, but
 its canceled run still needs a fresh successful execution and artifact review
 before it can be cited as a completed A-00 proof. A
@@ -29,7 +29,7 @@ This repository also includes optional benchmark kernels that are useful for
 post-submission comparison work but are not required for the primary recording
 path:
 
-| Folder | Kaggle slug | Title | Live status checked 2026-07-27 | Purpose |
+| Folder | Kaggle slug | Title | Live status checked 2026-07-28 | Purpose |
 |---|---|---|---|---|
 | `03-universal-llm-benchmark` | `taylorsamarel/duecare-universal-llm-benchmark` | **DueCare Universal LLM Benchmark** | Public URL not verified | Benchmarks arbitrary OpenAI-compatible, Anthropic Messages, or raw JSON endpoints against DueCare prompt/rubric/evidence cues, with Claude Opus judging when an Anthropic key is configured. |
 | `04-kaggle-community-benchmark` | `taylorsamarel/duecare-kaggle-community-benchmark` | **DueCare Kaggle Community Benchmark** | `COMPLETE` | Publishes DueCare safety rows as `kaggle_benchmarks` tasks so model calls can use Kaggle's model proxy and benchmark leaderboard flow. |

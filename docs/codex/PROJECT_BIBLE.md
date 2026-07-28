@@ -23,12 +23,13 @@ life-cycle risk.
    closeout, rehearsal, release decision, and maintenance-mode fallback.
 5. `docs/PUBLICATION_READINESS.md` - canonical release/evidence boundary and
    limitations.
-6. `docs/DEFERRED_WORK.md` - generated owners, prerequisites, authorization
-   boundaries, next actions, evidence, and acceptance gates for unfinished work.
-7. `CLAUDE.md` - concise Claude Code index and rules map.
-8. `docs/codex/00_do_not_break.md` - recording-critical contract.
-9. `docs/codex/00_execution_order.md` - historical goal order and dependencies.
-10. `docs/FILE_PURPOSE_GUIDE.md` and `docs/REPO_LAYOUT.md` - update these when
+6. `docs/CLOSEOUT_RESOLUTIONS_2026_07_28.md` - final disposition, evidence,
+   claim boundary, and reopen condition for all 11 inherited items.
+7. `docs/DEFERRED_WORK.md` - generated outstanding queue; zero current items.
+8. `CLAUDE.md` - concise Claude Code index and rules map.
+9. `docs/codex/00_do_not_break.md` - recording-critical contract.
+10. `docs/codex/00_execution_order.md` - historical goal order and dependencies.
+11. `docs/FILE_PURPOSE_GUIDE.md` and `docs/REPO_LAYOUT.md` - update these when
    adding public surfaces or long-lived docs outside an existing indexed area.
 
 Claude Code also auto-loads `.claude/rules/05_project_bible_pickup.md`, a
@@ -48,27 +49,31 @@ explicitly asks to restore them.
 
 > **Re-verified 2026-07-28 -- read this box before trusting the 2026-07-14 snapshot below.**
 >
-> - **Repository reconciliation is complete; release disposition is an owner
->   decision.** Root `AGENTS.md` names `master` as the active branch. Pull
+> - **Repository reconciliation is complete; maintenance mode is enacted.**
+>   Root `AGENTS.md` names `master` as the active branch. Pull
 >   request 15 is the current pre-handoff anchor at
 >   `56e7283df1e191793355b340559733b4ef77f9fa`; all 16 PR checks passed and the
 >   exact local broad regression passed 4,646 tests with 9 skips. Verify live Git state and rerun the
 >   release gates on any later candidate rather than inheriting that receipt.
 > - **Canonical stopping point:** start with
->   `docs/PUBLICATION_READINESS.md`. Its model-free core lane passed 11/11 checks
->   on 2026-07-27; the separate training lane intentionally remains red on five
+>   `docs/PUBLICATION_READINESS.md`. Its current model-free core lane has 12
+>   checks, including the dated closeout receipt; the historical PR #15 lane
+>   passed 11/11. The separate training lane intentionally remains red on five
 >   dense generic-corridor typologies, with a privacy-safe 25-task / 75-row
 >   curation plan. A deterministic 75-slot workbook now enforces source,
 >   lineage, duplicate, language, privacy, and two-person adjudication gates;
 >   it remains honestly empty and no new model or adapter-improvement claim is
 >   ready.
-> - **Canonical unfinished work:** `docs/DEFERRED_WORK.md` is generated from a
->   validated JSON registry. It distinguishes model-free local maintenance from
->   private-access, human-review, owner-decision, recurring, and budget-gated
->   work and supplies exact acceptance evidence for all 11 items.
-> - **Succession is now an explicit 30-day workstream.** Start coding agents at
+> - **Canonical closeout decisions:**
+>   `docs/CLOSEOUT_RESOLUTIONS_2026_07_28.md` records all 11 inherited outcomes.
+>   `docs/DEFERRED_WORK.md` is generated from a validated JSON registry and
+>   contains zero current items; it is reserved for a specifically reopened
+>   condition.
+> - **Succession has a preserved 30-day playbook.** Start coding agents at
 >   `docs/CLAUDE_CODE_HANDOFF.md`, use `docs/MAINTAINER_HANDOFF.md` for human operational pickup, and
->   `docs/PROJECT_TRANSITION_PLAN.md` for the 2026-08-25 target. The read-only
+>   `docs/PROJECT_TRANSITION_PLAN.md` for the 2026-08-25 target. The current
+>   owner retains private maintenance/recovery authority; no transfer is
+>   claimed. The read-only
 >   `validate_publication_readiness.py --scope handoff` composes document/link/
 >   privacy checks with live pickup consistency. It passed 2/2 gates on
 >   2026-07-28 (23/23 succession checks and the 65-check pickup validator with
@@ -93,12 +98,12 @@ explicitly asks to restore them.
 >   Render serves project status plus all six advertised schema endpoints, and the 2026-07-27 post-deploy 592-link audit
 >   found zero confirmed broken links and nine transient or unverified hosts.
 >   `ollama ps` showed no loaded model.
-> - **Generation is COMPLETE.** `reports/rich_lift/panel_perdim.coverage.json` reports
+> - **Generation is complete; exhaustive judging is closed as partial.** `reports/rich_lift/panel_perdim.coverage.json` reports
 >   `response_cells 236,157 / 236,157, 0 missing`. Every Gemma response for 78,719 prompts x 3 arms
 >   is on disk. Only judge calls remain: `panel_cells 47,813 / 708,471` (6.7%),
 >   `dimension_outputs 239,065 / 3,542,355`. The 2026-07-14 line below saying `0 / 708,471` is
->   superseded. **Consequence: model-free analysis over the full response set is always available,
->   even while Ollama is capped.**
+>   superseded. Exhaustive closure was declined as low-value; the partial lane
+>   stays isolated, while model-free analysis over the full response set remains available.
 > - **The last verified engine block was an Ollama WEEKLY usage cap, not a code fault.** The
 >   generation probe returned HTTP 429 "reached your weekly usage limit". `/api/tags` can still
 >   return 200 while capped, so reachability is NOT a quota test; explicit `-Run` rechecks provider
@@ -117,15 +122,17 @@ explicitly asks to restore them.
 >   require a positive finite provider budget before launch. Inspect host truth with
 >   `scripts/stop_ollama_stack.ps1 -Status`; explicit `-Resume` removes sentinels and re-enables
 >   tasks but launches nothing directly. Historical background usage had no local provider ledger
->   and must be reconciled privately. `validate_project_bible_pickup.py` remains the portable
+>   and is retained as an explicit unknown risk rather than reported as zero or
+>   reconciled. `validate_project_bible_pickup.py` remains the portable
 >   state-only pickup check.
 > - **Full suite re-verified green on 2026-07-28:** the integrated combined
->   `packages tests` run passed **4,648 tests, 9 skipped** with no warning
+>   `packages tests` run passed **4,653 tests, 9 skipped** with no warning
 >   summary under the zero-call transport lock. Mocked/loopback provider tests
 >   now isolate their fake transports explicitly while the real zero-call
 >   denial tests stay enforced. The former pandas Styler constant-range warnings are fixed; a
 >   focused package regression also passed with `RuntimeWarning` promoted to
->   an error. The registered three-file Ruff cleanup is complete without
+>   an error. This supersedes the earlier 4,648-pass handoff candidate. The
+>   registered three-file Ruff cleanup is complete without
 >   file-wide suppression. This supersedes the PR #15 4,646-test, 2026-07-27
 >   4,637-test, and 2026-07-26 4,589-test receipts, the earlier
 >   separate counts, and the
