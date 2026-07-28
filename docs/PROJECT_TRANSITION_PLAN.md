@@ -96,11 +96,11 @@ The project has reached a good stopping point when:
   closeout disables all five recurring tasks, keeps four daemon sentinels, and
   requires zero verified repository daemon processes; historical unmetered
   background usage is reconciled privately at the provider.
-- The final model-free sequence advanced through pull requests 11 through 15.
-  The current pre-handoff anchor is pull request 15 on `master`, merge commit
-  `56e7283df1e191793355b340559733b4ef77f9fa`; all 16 pull-request checks passed,
-  and the exact local `packages tests` regression passed 4,646 tests with 9
-  skips. Render stayed live, the independent `duecare-ai-site` continuity
+- The pre-closeout sequence advanced through pull requests 11 through 16. Pull
+  request 16 is the immediate fully merged predecessor to this maintenance
+  receipt at `1c8f6b25729da869b2775a29321ab3b74bd4715f`; all 16 checks passed.
+  Pull request 15's 4,646-pass local run remains older historical evidence.
+  Render stayed live, the independent `duecare-ai-site` continuity
   repository published the reviewed 51-route backend-free export without a
   production `CNAME`, and this monorepo retained MkDocs as its Pages site. Pull
   request 14 also corrected the homepage worker-story grid that had squeezed
@@ -246,7 +246,7 @@ or billing information.
 | Entity-intelligence pipeline | Propose-only, curator-reviewed, separate from worker-facing and training paths | A reviewed governance and evidence-admission change is approved |
 | Kaggle surface inventory | `01`, `02`, and `A-00` active; `03` and `04` optional; notebook-era variants archived | Root `AGENTS.md` and `kaggle/_INDEX.md` change together |
 | Release version/tag | No release tag or PyPI publication during closeout | A real consumer need and a maintainer-owned package release proposal exist |
-| Target branch | Root rules name `master`; pull request 15 is the current pre-handoff anchor at `56e7283df1e191793355b340559733b4ef77f9fa`, with all 16 pull-request checks green and a 4,646-pass local broad regression | Continue from live `master`; rerun gates on the exact candidate before any tag |
+| Target branch | Root rules name `master`; pull request 16 at `1c8f6b25729da869b2775a29321ab3b74bd4715f` is the immediate fully merged predecessor, with all 16 checks green | Continue from live `master`; rerun gates on the exact candidate before any tag |
 | Successor | Current owner retains private maintenance/recovery authority; no transfer is claimed | A named successor is authorized, accepts, and completes the rehearsal plus private receipt |
 
 ### Historical Pre-decision Snapshot - 2026-07-27
