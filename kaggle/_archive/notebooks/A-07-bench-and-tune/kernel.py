@@ -242,8 +242,10 @@ _UNSLOTH_MARKER = Path("/tmp/.duecare_bench_tune_unsloth_v1_done")
 def _install_unsloth_stack() -> bool:
     """Install Daniel Hanchen's pinned Gemma 4 + Unsloth stack via subprocess.
 
-    Verbatim recipe from the live-demo kernel + feedback_bwandowando_recipe
-    memory:  torch>=2.8 / triton>=3.4 / transformers==5.5.0 / unsloth /
+    Same recipe as the live-demo kernel. The install-then-restart sequencing
+    is credited to Kaggle community member @bwandowando
+    (https://www.kaggle.com/bwandowando); the pinned versions are Daniel
+    Han's Unsloth stack:  torch>=2.8 / triton>=3.4 / transformers==5.5.0 / unsloth /
     unsloth_zoo>=2026.4.6 / bitsandbytes / torchcodec / timm.
 
     Subprocess only -- no Python imports of torch happen until the install

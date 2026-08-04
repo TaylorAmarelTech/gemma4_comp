@@ -262,7 +262,12 @@ os.environ["DUECARE_MODEL_NAME"] = (
 #   2. If marker missing AND we need the Unsloth stack: install it via
 #      subprocess, write marker, print restart instructions, sys.exit(0).
 #   3. If marker present: skip and proceed.
-# This pattern is from feedback_bwandowando_recipe_verbatim memory -- the
+# Credit: this install-marker-then-restart sequencing for getting a heavy,
+# C-extension-bearing stack into a Kaggle session follows the recipe
+# published by Kaggle community member @bwandowando
+# (https://www.kaggle.com/bwandowando). We reproduce the ordering
+# faithfully because that ordering is the part that actually works. The
+# pinned versions installed below are Daniel Han's Unsloth stack. The
 # restarted run picks up exactly where the cell would have if Unsloth had
 # already been installed.
 # ===========================================================================

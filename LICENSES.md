@@ -161,17 +161,55 @@ optional rerank stage.
 **Use:** primary chat model; multimodal variants (E4B, 31B) handle
 the `image_prompts` bucket attachments.
 
+## Web fonts (shipped UI surfaces)
+
+Distinct from the Pillow/system fonts below, which affect only generated
+imagery. The workbench, hub, and slide surfaces load three families from
+Google Fonts via `@import` / `<link>` in `_chrome.css` and the hub
+templates. **No font files are bundled or redistributed in this repository
+or in any wheel** — they are fetched at render time from
+`fonts.googleapis.com`.
+
+All three are **SIL Open Font License 1.1**, which permits use, embedding,
+and redistribution provided the copyright notice and license are retained:
+
+| Family | Author | Source |
+|---|---|---|
+| Inter | Rasmus Andersson | <https://github.com/rsms/inter> |
+| JetBrains Mono | JetBrains s.r.o. | <https://github.com/JetBrains/JetBrainsMono> |
+| IBM Plex Sans / Mono | IBM Corp. | <https://github.com/IBM/plex> |
+
+Because these surfaces depend on a remote font host, any deployment that must
+run offline should self-host the families under the same OFL terms rather
+than substituting a differently-licensed one.
+
 ## Python dependencies
 
-The chat package's `pyproject.toml` declares:
-- `fastapi>=0.115.0` (MIT)
-- `uvicorn>=0.30.0` (BSD-3-Clause)
-- `pydantic>=2.9.0` (MIT)
+Direct declarations across the workspace `pyproject.toml` files, grouped by
+license. Transitive dependencies are governed by their own licenses.
 
-The kernel-side dependencies (loaded transitively via `unsloth`,
-`transformers`, `accelerate`, `peft`, etc.) are governed by their
-respective licenses; major ones are Apache 2.0 (transformers) and
-Apache 2.0 (unsloth).
+**MIT** — `fastapi`, `pydantic`, `bitsandbytes`, `duckdb`, `typer`, `click`,
+`rich`, `jupytext`, `kaggle`, `llama-cpp-python`, `textstat`,
+`vaderSentiment`, `repomix`.
+
+**BSD-3-Clause** — `uvicorn`, `torch`, `numpy`, `scipy`, `scikit-learn`,
+`pandas`, `seaborn`, `jinja2`.
+
+**Apache-2.0** — `transformers`, `unsloth`, `accelerate`, `peft`, `trl`,
+`datasets`, `huggingface_hub`, `sentencepiece`, `tokenizers`,
+`sentence-transformers`, `faiss-cpu`, `httpx`, `structlog`, `pyyaml`,
+`aiofiles`, `python-multipart`, `requests`, the `opentelemetry-*` family,
+`openai`, `google-generativeai`, `anthropic`.
+
+**matplotlib license (BSD-compatible)** — `matplotlib`.
+
+Two of these carry author citation requests that permissive licensing does
+not compel but that we honour anyway: `vaderSentiment` (Hutto & Gilbert,
+ICWSM-14) and `sentence-transformers` (Reimers & Gurevych, EMNLP 2019). Both
+citations are in [`docs/CREDITS.md`](docs/CREDITS.md).
+
+`faiss-cpu` is declared but currently has no import anywhere in the tree; it
+is a retained optional-extra slot, not an active dependency.
 
 ## Optional Pillow-pulled fonts
 
