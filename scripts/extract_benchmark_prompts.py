@@ -36,13 +36,23 @@ Output format (JSONL, one per line):
 from __future__ import annotations
 
 import json
+import os
 import sqlite3
 import sys
 from collections import Counter
 from pathlib import Path
 
+# Source benchmark root. This is the author's own benchmark and lives outside
+# the repository, so the path is supplied per-machine rather than hardcoded:
+#
+#     DUECARE_BENCHMARK_ROOT=/path/to/trafficking_llm_benchmark \
+#         python scripts/extract_benchmark_prompts.py
+#
+# Regenerating the seed corpus requires that source benchmark. The generated
+# corpus is committed, so nothing downstream depends on this path resolving.
 BENCHMARK_ROOT = Path(
-    r"C:\Users\amare\OneDrive\Documents\Migrant_Worker_LLM_Test_Benchmark_Trafficking_Bondage_Etc\trafficking_llm_benchmark"
+    os.environ.get("DUECARE_BENCHMARK_ROOT", "")
+    or (Path.home() / "duecare-source-benchmark" / "trafficking_llm_benchmark")
 )
 DUECARE_ROOT = Path(__file__).resolve().parents[1]
 OUTPUT_DIR = DUECARE_ROOT / "configs" / "duecare" / "domains" / "trafficking"

@@ -152,11 +152,14 @@ in the Kaggle session:
    privacy-preserving Individual worker use case; the judge runs separately,
    the G-Eval / MT-Bench / Auto-J methodology. Network requirement
    means it doesn't fit the on-device-only Kaggle exercise.
-2. **Abliterated Gemma** (e.g. `dealignai/Gemma-4-31B-JANG_4M-CRACK`)
-   — engages with adversarial responses the safety-tuned chat model
-   would refuse to grade. Materially better for adversarial-suite
-   scoring at production scale where you have VRAM headroom for two
-   model loads.
+2. **Purpose-built safety classifier** (e.g. Google's ShieldGemma
+   family) — scores harmful content as a classification task, so it
+   returns a grade where a chat-tuned model would decline to engage
+   with the text at all. This is the correct answer to the "the judge
+   refuses to grade the adversarial suite" problem: a model built to
+   classify harm, not a model with its refusal training removed.
+   DueCare does not use, endorse, or distribute refusal-ablated Gemma
+   weights.
 3. **Larger Gemma** (e.g. Gemma 4 31B-it grading while chat runs E2B)
    — better grading without giving up the chat-side speed. Same
    VRAM-headroom precondition.

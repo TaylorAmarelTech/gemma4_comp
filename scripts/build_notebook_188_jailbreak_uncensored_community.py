@@ -122,10 +122,10 @@ The probe list below is ordered best-match-first. If you have an HF access token
 
 PROBE = '''CANDIDATES = [
     # Best-match: E4B-class uncensored Gemma 4, nf4 or fp16-compatible.
-    'huihui-ai/gemma-4-e4b-it-abliterated',
-    'huihui-ai/gemma-4-A4B-it-abliterated',
-    'AEON-7/Gemma-4-A4B-it-Uncensored',        # NVFP4 variants deliberately excluded
-    'mlabonne/Gemma-4-E4B-it-abliterated',
+    '<operator-supplied-checkpoint>',
+    '<operator-supplied-checkpoint>',
+    '<operator-supplied-checkpoint>',        # NVFP4 variants deliberately excluded
+    '<operator-supplied-checkpoint>',
 ]
 
 # Pull the HF_TOKEN secret if one is set.

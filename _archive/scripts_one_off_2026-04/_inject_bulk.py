@@ -124,7 +124,7 @@ CONTENT = {
         'title':'Community probe',
     },
     '189': {
-        'cards': [('31B','model','dealignai/JANG_4M-CRACK','primary'),('22 GB','VRAM required','gated','warning'),('4-bit','nf4','device_map auto','info'),('L4x4 / A100','GPU','skip on T4','danger')],
+        'cards': [('31B','model','<operator-supplied-checkpoint>','primary'),('22 GB','VRAM required','gated','warning'),('4-bit','nf4','device_map auto','info'),('L4x4 / A100','GPU','skip on T4','danger')],
         'steps': [('VRAM gate','>= 22 GB','warning'),('Load 31B','4-bit','primary'),('Run benchmark','15 prompts','info'),('Gen red-team','10 prompts','success')],
         'body':'4-bit 31B cracked Gemma; skips gracefully on single T4.',
         'title':'31B gated run',

@@ -191,7 +191,7 @@ KERNELS: list[dict[str, object]] = [
         "demo_path": "Run All -> add your API key -> ask a corridor question that needs fresh data -> watch the agent work.",
     },
     {
-        "folder": "A-10-chat-playground-jailbroken-models",
+        "folder": "A-10-runtime-vs-weights-safety-study",
         "kind": "appendix",
         "n": 10,
         "title": "Jailbroken-Gemma comparison",

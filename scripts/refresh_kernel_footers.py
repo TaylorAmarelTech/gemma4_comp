@@ -42,7 +42,7 @@ ROSTER: tuple[Kernel, ...] = (
     Kernel("A07", "A-07-bench-and-tune", "Adapter training + new-model benchmark"),
     Kernel("A08", "A-08-research-graphs", "Research graphs (CPU-only)"),
     Kernel("A09", "A-09-chat-playground-with-agentic-research", "Agentic-research chat (BYOK + Playwright)"),
-    Kernel("A10", "A-10-chat-playground-jailbroken-models", "Jailbroken-Gemma comparison"),
+    Kernel("A10", "A-10-runtime-vs-weights-safety-study", "Jailbroken-Gemma comparison"),
     Kernel("A11", "A-11-grading-evaluation", "Runtime harness-lift regenerator"),
     Kernel("A12", "A-12-pii-fine-tune-eval", "PrivacyRedactor LoRA fine-tune + eval"),
     Kernel("A13", "A-13-multimodal-document-analyzer", "Multimodal document analyzer (Gemma 4 vision)"),

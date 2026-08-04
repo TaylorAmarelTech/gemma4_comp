@@ -140,11 +140,14 @@ def test_portability_model_and_sample_helpers_are_canonical():
         resolve_model_revision("custom/repo", "custom/repo", "b" * 40)
         == "b" * 40
     )
+    # An arbitrary third-party HF ref carrying a variant token passes through
+    # unchanged and still resolves to that variant. Synthetic org/repo on
+    # purpose: the contract is about ref shape, not about any specific model.
     custom_resolved, custom_variant, custom_source = resolve_model_ref(
         "hf",
-        "mlabonne/Gemma-4-E4B-it-abliterated",
+        "example-org/Gemma-4-E4B-it-custom",
     )
-    assert custom_resolved == "mlabonne/Gemma-4-E4B-it-abliterated"
+    assert custom_resolved == "example-org/Gemma-4-E4B-it-custom"
     assert custom_variant == "e4b-it"
     assert custom_source == "hf"
     assert resolve_model_revision(custom_resolved, custom_resolved, "") == ""

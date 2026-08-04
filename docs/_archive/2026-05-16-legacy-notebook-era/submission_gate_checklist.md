@@ -93,7 +93,7 @@ The 13 to verify:
 | A7 | duecare-bench-and-tune | https://www.kaggle.com/code/taylorsamarel/duecare-bench-and-tune |
 | A8 | duecare-research-graphs | https://www.kaggle.com/code/taylorsamarel/duecare-research-graphs |
 | A9 | duecare-chat-playground-with-agentic-research | https://www.kaggle.com/code/taylorsamarel/duecare-chat-playground-with-agentic-research |
-| A10 | duecare-chat-playground-jailbroken-models | https://www.kaggle.com/code/taylorsamarel/duecare-chat-playground-jailbroken-models |
+| A10 | duecare-a10-runtime-vs-weights-safety-study | https://www.kaggle.com/code/taylorsamarel/duecare-a10-runtime-vs-weights-safety-study |
 | A11 | duecare-grading-evaluation | https://www.kaggle.com/code/taylorsamarel/duecare-grading-evaluation |
 
 > ⚠️ **Per memory:** Kaggle derives slugs from notebook titles, not

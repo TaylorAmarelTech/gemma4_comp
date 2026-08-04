@@ -49,7 +49,7 @@ NB_METADATA = {
 
 HEADER_TABLE = canonical_header_table(
     inputs_html=(
-        "<code>dealignai/Gemma-4-31B-JANG_4M-CRACK</code> loaded in "
+        "<code><operator-supplied-checkpoint></code> loaded in "
         "nf4 4-bit via bitsandbytes across all available GPUs. The "
         "15-prompt graded trafficking slice drives the response "
         "comparison."
@@ -81,7 +81,7 @@ HEADER_TABLE = canonical_header_table(
 
 HEADER = f"""# 189: DueCare Jailbreak - Cracked Gemma 4 31B
 
-**Load `dealignai/Gemma-4-31B-JANG_4M-CRACK` in 4-bit on an L4 x 4 or A100 kernel and run it on the same benchmark slice. On a T4 kernel the notebook skips gracefully so the rest of the jailbreak family still renders.** This arm of the comparison answers whether the refusal gap measured on E4B persists when the base model is much larger. "Cracked" 31B weights are the upper bound of the uncensored-Gemma distribution DueCare has to protect against; if the gap shrinks at 31B it argues DueCare's judge can lean on size-independent signals.
+**Load `<operator-supplied-checkpoint>` in 4-bit on an L4 x 4 or A100 kernel and run it on the same benchmark slice. On a T4 kernel the notebook skips gracefully so the rest of the jailbreak family still renders.** This arm of the comparison answers whether the refusal gap measured on E4B persists when the base model is much larger. "Cracked" 31B weights are the upper bound of the uncensored-Gemma distribution DueCare has to protect against; if the gap shrinks at 31B it argues DueCare's judge can lean on size-independent signals.
 
 DueCare is an on-device LLM safety system built on Gemma 4 and named for the common-law duty of care codified in California Civil Code section 1714(a).
 
@@ -108,7 +108,7 @@ The gate decides whether the 31B cracked model fits on this accelerator. On a T4
 """
 
 GATE = '''MIN_FREE_GB = 22.0
-HF_ID = 'dealignai/Gemma-4-31B-JANG_4M-CRACK'
+HF_ID = '<operator-supplied-checkpoint>'
 SKIP_REASON = None
 
 free_gb_now = (torch.cuda.mem_get_info()[0] / 1e9) if GPU_OK else 0.0
@@ -241,7 +241,7 @@ def _step(label, sub, kind="primary"):
 _arrow = f'<span style="display:inline-block;vertical-align:middle;margin:0 4px;color:{_P["muted"]};font-size:20px">&rarr;</span>'
 
 cards = [
-    _stat_card('31B', 'model', 'dealignai/JANG_4M-CRACK', 'primary'),
+    _stat_card('31B', 'model', '<operator-supplied-checkpoint>', 'primary'),
     _stat_card('22 GB', 'VRAM required', 'gated', 'warning'),
     _stat_card('4-bit', 'nf4', 'device_map auto', 'info'),
     _stat_card('L4x4 / A100', 'GPU', 'skip on T4', 'danger')

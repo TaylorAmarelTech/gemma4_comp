@@ -20,7 +20,7 @@ execute these commands when ready.
 | 186 | `kaggle/kernels/duecare_186_jailbreak_stock_gemma` | T4 | stock weights | `jailbreak_out/stock_e4b`, `stock_dan`, `stock_roleplay` |
 | 187 | `kaggle/kernels/duecare_187_jailbreak_abliterated_e4b` | T4x2 / L4 | stock weights | `jailbreak_out/abliterated_e4b/` + `refusal_direction.pt` |
 | 188 | `kaggle/kernels/duecare_188_jailbreak_uncensored_community` | T4 | HF community weights (probed) | `jailbreak_out/uncensored_community/` |
-| 189 | `kaggle/kernels/duecare_189_jailbreak_cracked_31b` | L4x4 / A100 | `dealignai/Gemma-4-31B-JANG_4M-CRACK` | `jailbreak_out/cracked_31b/` |
+| 189 | `kaggle/kernels/duecare_189_jailbreak_cracked_31b` | L4x4 / A100 | `<operator-supplied-checkpoint>` | `jailbreak_out/cracked_31b/` |
 
 ## Publish order (recommended)
 

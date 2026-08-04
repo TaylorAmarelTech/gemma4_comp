@@ -70,8 +70,8 @@
       e4b-it             google/gemma-4-E4B-it          single T4
       26b-a4b-it         google/gemma-4-26b-a4b-it     T4 x2 (4-bit)
       31b-it             google/gemma-4-31b-it         T4 x2 (4-bit)
-      jailbroken-31b     dealignai/Gemma-4-31B-JANG_4M-CRACK
-      jailbroken-e4b     mlabonne/Gemma-4-E4B-it-abliterated
+      jailbroken-31b     <operator-supplied-checkpoint>
+      jailbroken-e4b     <operator-supplied-checkpoint>
       cloud-gemini       Gemini API (set GEMINI_API_KEY)
       cloud-openai       OpenAI-compat (OPENAI_API_KEY + _BASE_URL +
                                           _MODEL)
@@ -169,8 +169,11 @@ _VARIANT_HF_ID = {
     "e4b-it":         "google/gemma-4-E4B-it",
     "26b-a4b-it":     "google/gemma-4-26b-a4b-it",
     "31b-it":         "google/gemma-4-31b-it",
-    "jailbroken-31b": "dealignai/Gemma-4-31B-JANG_4M-CRACK",
-    "jailbroken-e4b": "mlabonne/Gemma-4-E4B-it-abliterated",
+    # Research-only slots. DueCare ships no safety-stripped model and names
+    # none; these stay empty unless the operator supplies their own checkpoint,
+    # and an empty id makes the variant unselectable in the picker.
+    "jailbroken-31b": os.environ.get("DUECARE_STRIPPED_MODEL_31B", ""),
+    "jailbroken-e4b": os.environ.get("DUECARE_STRIPPED_MODEL_E4B", ""),
 }
 
 PORT   = 8080

@@ -219,9 +219,9 @@ APPENDIX_KERNELS: list[dict[str, str]] = [
         ),
     },
     {
-        "path": "A-10-chat-playground-jailbroken-models/wheels",
+        "path": "A-10-runtime-vs-weights-safety-study/wheels",
         "title": "Duecare Jailbroken Models Wheels",
-        "id": "taylorsamarel/duecare-chat-playground-jailbroken-models-wheels",
+        "id": "taylorsamarel/duecare-a10-runtime-vs-weights-safety-study-wheels",
         "license": "MIT",
         "subtitle": (
             "v0.14.5 harness on abliterated Gemma 4 — real-not-faked proof"
@@ -229,8 +229,8 @@ APPENDIX_KERNELS: list[dict[str, str]] = [
         "kernel_blurb": (
             "Wheels for the chat-playground-jailbroken-models notebook. "
             "Bundled: duecare-llm-chat / -core / -models. Loads "
-            "dealignai/Gemma-4-31B-JANG_4M-CRACK or "
-            "mlabonne/Gemma-4-E4B-it-abliterated by default. Demonstrates "
+            "<operator-supplied-checkpoint> or "
+            "<operator-supplied-checkpoint> by default. Demonstrates "
             "that the 6-layer harness (Persona / GREP 161 / RAG 46 / Imports "
             "/ Tools 5 / Online) still produces safe + cited outputs even "
             "when the base model has had its refusal layer ablated by the "

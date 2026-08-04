@@ -385,7 +385,7 @@ gemma4_comp/
     â”œâ”€â”€ A-07-bench-and-tune/                   â† has training-pipeline dashboard
     â”œâ”€â”€ A-08-research-graphs/                  â† has inline-chart dashboard
     â”œâ”€â”€ A-09-chat-playground-with-agentic-research/
-    â”œâ”€â”€ A-10-chat-playground-jailbroken-models/
+    â”œâ”€â”€ A-10-runtime-vs-weights-safety-study/
     â””â”€â”€ A-11-grading-evaluation/               â† has lift dashboard
 ```
 
@@ -683,7 +683,7 @@ Existing curated-prompt examples (each grounded in real corridors):
 | A-07 | `A-07-bench-and-tune` | kernel-rendered | training pipeline | researcher |
 | A-08 | `A-08-research-graphs` | kernel-rendered | inline Plotly viewer | researcher |
 | A-09 | `A-09-chat-playground-with-agentic-research` | custom-FastAPI (uses `/wb-static/`) | custom agentic-chat page | researcher |
-| A-10 | `A-10-chat-playground-jailbroken-models` | chat-shell | workbench homepage | researcher |
+| A-10 | `A-10-runtime-vs-weights-safety-study` | chat-shell | workbench homepage | researcher |
 | A-11 | `A-11-grading-evaluation` | kernel-rendered | lift dashboard | researcher |
 
 **Each `kernel-metadata.json` IDs match the folder name** (e.g.

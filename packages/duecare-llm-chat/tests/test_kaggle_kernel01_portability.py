@@ -284,7 +284,10 @@ def test_shared_gemma_runtime_uses_gemma4_message_content_blocks():
     assert "top_k=top_k" in runtime
     assert "resolve_model_revision" in runtime
     assert 'load_kwargs["revision"] = resolved_revision' in runtime
-    assert "dealignai/Gemma-4-31B-JANG_4M-CRACK" in runtime
+    # Research-only variants resolve from operator-supplied env vars. The
+    # runtime must ship no safety-stripped model id of its own.
+    assert "DUECARE_STRIPPED_MODEL_31B" in runtime
+    assert "DUECARE_STRIPPED_MODEL_E4B" in runtime
 
 
 def test_kernel01_delegates_local_model_loading_to_shared_fastmodel_runtime():

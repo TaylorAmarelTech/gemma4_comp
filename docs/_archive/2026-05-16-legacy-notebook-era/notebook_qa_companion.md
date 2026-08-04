@@ -345,7 +345,7 @@ on a busy day, judges may see "no results." Note this in a banner.
 ### A5. `chat-playground-jailbroken-models` (publish pending) ⭐ STRONGEST PROOF
 
 **Purpose**: load an abliterated/cracked Gemma 4 variant (default:
-`dealignai/Gemma-4-31B-JANG_4M-CRACK`) + run the same harness.
+`<operator-supplied-checkpoint>`) + run the same harness.
 **Strongest "real, not faked" proof** — the harness produces safe
 outputs even when the base model has had its refusals ablated.
 

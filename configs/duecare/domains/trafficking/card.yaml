@@ -11,7 +11,7 @@ citation: "Amarel, T. (2026). Duecare Trafficking Domain Pack v0.1.0"
 owner: "Taylor Amarel"
 capabilities_required:
   - text
-n_seed_prompts: 12
+n_seed_prompts: 74640
 n_evidence_items: 10
 n_indicators: 11
 n_categories: 5

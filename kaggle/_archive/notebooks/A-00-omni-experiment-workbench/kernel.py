@@ -571,7 +571,7 @@ MODEL_PRESETS = [
     },
     {
         "label": "Abliterated Gemma 4 adversary",
-        "ref": "mlabonne/Gemma-4-E4B-it-abliterated",
+        "ref": "<operator-supplied-checkpoint>",
         "source": "hf",
         "notes": "Use for adversarial prompt and rejected-answer generation.",
     },
@@ -7714,7 +7714,7 @@ async function runPreconfiguredPipeline() {
 }
 function setAbliterated() {
   $("model-source").value = "hf";
-  $("model-ref").value = "mlabonne/Gemma-4-E4B-it-abliterated";
+  $("model-ref").value = "<operator-supplied-checkpoint>";
   $("run-label").value = "abliterated-adversary";
 }
 function selectedModelPayload() {

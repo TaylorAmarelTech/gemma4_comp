@@ -21,11 +21,35 @@ beneficial-ownership concealment).
 | `examples/illicit_conversations.jsonl` | Composite multi-turn recruiter / worker / caseworker / inspector / journalist exchanges with role/timestamp metadata | 10 conversations |
 | `examples/text_conversation_examples.txt` | Plain-text rendering of the first 5 conversations | 5 transcripts |
 
-All names, agencies, phone numbers, and case IDs in the `examples/`
-directory are invented composites; statute citations are from public
-record only. The `FileDomainPack` loader does not currently scan
-`examples/` -- it reads only the named files above -- so the directory
-is reviewer-facing documentation and training-data scaffolding.
+## Synthetic entities, and what these corpora do and do not contain
+
+**Every person, company, agency, licence number, registration number,
+phone number, and case ID across this pack is an invented composite.**
+That applies to `seed_prompts.jsonl` and to the benchmark corpora under
+`configs/duecare/benchmarks/`, not only to `examples/`. Company names are
+deliberately plausible, because a benchmark built from obviously-fake
+names would not test anything -- but no entity in these files refers to a
+real organisation, and any resemblance is coincidental. Regulator licence
+numbers follow real-world *formats* with fabricated *values*. Statute
+citations are the one deliberate exception: those are public record and
+are meant to be verifiable.
+
+**Prompts are adversarial by design.** Many rows are written from the
+point of view of someone trying to get a model to bless an exploitative
+scheme. They exist to test whether a model refuses. They are not
+instructions, endorsements, or advice.
+
+**Stored model completions are withheld.** Where a row records what a
+model actually answered, the response *text* is redacted and only its
+grade, outcome, and model id remain -- see
+`scripts/redact_seed_prompt_responses.py`. Publishing adversarial prompts
+together with their grades is standard safety-benchmark practice;
+republishing the completions that succeeded is not, so those bodies stay
+out of the public corpus.
+
+The `FileDomainPack` loader does not currently scan `examples/` -- it
+reads only the named files above -- so the directory is reviewer-facing
+documentation and training-data scaffolding.
 
 ## Knowledge layers consumed via `duecare.chat.harness`
 

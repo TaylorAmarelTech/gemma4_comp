@@ -29,6 +29,7 @@ automatically.
 
 from __future__ import annotations
 
+import os
 from dataclasses import dataclass
 from typing import Any, Optional
 
@@ -130,10 +131,16 @@ BUILTIN_VARIANTS: tuple[VariantSpec, ...] = (
         gpu_gb=16.0,
         unsloth_alias="unsloth/gemma-4-31B-it",
     ),
+    # Research-only slots for safety-stripped checkpoints. DueCare ships no
+    # such model and names none: ``hf_id`` stays empty unless the operator
+    # supplies one, and an empty ``hf_id`` makes the variant unselectable.
+    # These exist so the harness can be measured against a model whose refusal
+    # training is absent -- the threat model in appendix A-10 -- not so anyone
+    # can obtain such a model from this repository.
     VariantSpec(
         id="jailbroken-31b",
-        display="Gemma 4 31B (abliterated)",
-        hf_id="dealignai/Gemma-4-31B-JANG_4M-CRACK",
+        display="Gemma 4 31B (operator-supplied, safety-stripped)",
+        hf_id=os.environ.get("DUECARE_STRIPPED_MODEL_31B", ""),
         size_gb=18.0,
         fits="T4 ×2 (4-bit)",
         category="jailbroken",
@@ -143,8 +150,8 @@ BUILTIN_VARIANTS: tuple[VariantSpec, ...] = (
     ),
     VariantSpec(
         id="jailbroken-e4b",
-        display="Gemma 4 E4B (abliterated)",
-        hf_id="mlabonne/Gemma-4-E4B-it-abliterated",
+        display="Gemma 4 E4B (operator-supplied, safety-stripped)",
+        hf_id=os.environ.get("DUECARE_STRIPPED_MODEL_E4B", ""),
         size_gb=4.0,
         fits="single T4",
         category="jailbroken",

@@ -27,7 +27,9 @@ Generation uses the Gemma 4 defaults from the Unsloth notebook: `temperature=1.0
 - `google/gemma-4-4b-it` and `e4b-it` resolve to `unsloth/gemma-4-E4B-it`.
 - `google/gemma-4-26b-a4b-it` and `26b-a4b-it` resolve to `unsloth/gemma-4-26B-A4B-it`.
 - `google/gemma-4-31b-it` and `31b-it` resolve to `unsloth/gemma-4-31B-it`.
-- `jailbroken-31b` resolves to `dealignai/Gemma-4-31B-JANG_4M-CRACK`.
+- `jailbroken-31b` / `jailbroken-e4b` resolve to whatever the operator sets in
+  `DUECARE_STRIPPED_MODEL_31B` / `DUECARE_STRIPPED_MODEL_E4B`. They are empty by
+  default, which makes them unselectable: DueCare ships no safety-stripped model.
 
 Kaggle-attached models are preferred when `/kaggle/input/models/google/gemma-4/transformers/gemma-4-{variant}/{1,2,3}/config.json` exists. Otherwise the runtime downloads the Unsloth repo from Hugging Face.
 

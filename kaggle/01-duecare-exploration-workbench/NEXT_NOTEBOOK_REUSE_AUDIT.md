@@ -29,7 +29,7 @@ defaults, or UI shell behavior.
 | `03-duecare-video-pitch` | `build_minimal_shell` plus video export embeds portability payload | OK |
 | `A-00-omni-experiment-workbench` | `build_minimal_shell`, direct portability imports, direct experiment-contract imports, `/api/a00/experiment-contract`, `/api/a00/quantitative/run` | OK |
 | `A-01` to `A-09`, `A-11` to `A-24` | `build_minimal_shell`; inherit `/api/portability` and `/api/experiment-contract` from the shell | OK |
-| `A-10-chat-playground-jailbroken-models` | full `duecare.chat.app.create_app`; inherits Workbench `/api/portability` and `/api/experiment-contract` from the app | OK |
+| `A-10-runtime-vs-weights-safety-study` | full `duecare.chat.app.create_app`; inherits Workbench `/api/portability` and `/api/experiment-contract` from the app | OK |
 | `A-07-bench-and-tune` | `build_minimal_shell` plus direct `training_profile_map()` and `upload_limit_map()` from `experiment_contracts` | OK |
 
 ## What Must Not Be Reintroduced

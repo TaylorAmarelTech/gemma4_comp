@@ -402,7 +402,7 @@ def _line_or_above_has_allow(lines: list[str], line_idx_1based: int) -> bool:
 # documented reason.
 _MANIFEST_CHECKSUM_GRANDFATHERED: frozenset[str] = frozenset({
     "kaggle/_archive/notebooks/A-09-chat-playground-with-agentic-research/kernel.py",
-    "kaggle/_archive/notebooks/A-10-chat-playground-jailbroken-models/kernel.py",
+    "kaggle/_archive/notebooks/A-10-runtime-vs-weights-safety-study/kernel.py",
     "kaggle/_archive/notebooks/A-12-pii-fine-tune-eval/kernel.py",
     "kaggle/_archive/notebooks/A-13-multimodal-document-analyzer/kernel.py",
     "kaggle/_archive/notebooks/A-14-on-device-export/kernel.py",

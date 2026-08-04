@@ -53,7 +53,7 @@ Status legend:
 | A2 | duecare-bench-and-tune | [link](https://www.kaggle.com/code/taylorsamarel/duecare-bench-and-tune) | 🟡 PUSH PENDING + 🔵 GPU RUN PENDING | ⚪ NO | T4×2 | **HIGHEST EFFORT** — push notebook → run on T4×2 (~6h) → verify HF Hub model lands at `taylorscottamarel/Duecare-Gemma-4-E4B-it-SafetyJudge-v0.1.0`. Pre-flight: [`docs/bench_and_tune_readiness.md`](bench_and_tune_readiness.md) |
 | A3 | duecare-research-graphs | [link](https://www.kaggle.com/code/taylorsamarel/duecare-research-graphs) | 🟡 PUSH PENDING | 🔴 YES (chat wheel) | CPU | Rebuild chat wheel → push wheels dataset → push notebook → run + verify all 6 Plotly charts render |
 | A4 | duecare-chat-playground-with-agentic-research | [link](https://www.kaggle.com/code/taylorsamarel/duecare-chat-playground-with-agentic-research) | 🟡 PUSH PENDING | 🔴 YES (chat wheel) | T4 | Rebuild chat wheel → push wheels dataset → push notebook → run + verify 5th toggle (agentic research) fires DuckDuckGo |
-| A5 | duecare-chat-playground-jailbroken-models | [link](https://www.kaggle.com/code/taylorsamarel/duecare-chat-playground-jailbroken-models) | 🟡 PUSH PENDING ⭐ | 🔴 YES (chat wheel) | T4 | **STRONGEST "REAL" PROOF** — rebuild chat wheel → push wheels dataset → push notebook → run with default abliterated model → verify harness still produces safe outputs |
+| A5 | duecare-a10-runtime-vs-weights-safety-study | [link](https://www.kaggle.com/code/taylorsamarel/duecare-a10-runtime-vs-weights-safety-study) | 🟡 PUSH PENDING ⭐ | 🔴 YES (chat wheel) | T4 | **STRONGEST "REAL" PROOF** — rebuild chat wheel → push wheels dataset → push notebook → run with default abliterated model → verify harness still produces safe outputs |
 | A6 | duecare-grading-evaluation | [link](https://www.kaggle.com/code/taylorsamarel/duecare-grading-evaluation) | 🟡 PUSH PENDING ⭐ | ⚪ NO (chat wheel already current) | T4 | **DEDICATED LIFT EVALUATOR** — push notebook → run on T4 (~15 min for 5 prompts × 2 conditions) → verify it produces `duecare_lift_eval.json` + `duecare_lift_eval.md` with mean lift, per-dimension status changes, citation grounding %. The headline +56.5pp number, regenerated live. |
 
 ## Step-by-step recipe per notebook
@@ -100,7 +100,7 @@ Recommended push order (highest impact first):
 - **Slug ≠ kernel-metadata.json id** — Kaggle derives the slug from the title, not the metadata id. If a slug 404s after push, the live notebook may still use the old slug from a previous title. See `~/.claude/projects/.../memory/feedback_kaggle_slug_derivation.md`.
 - **Wheels dataset re-version** — when you update wheels, push a NEW version (`kaggle datasets version`), not a new dataset (`kaggle datasets create`).
 - **GPU quota** — a Kaggle account gets ~30h/week of T4 time. Bench-and-tune (A2) eats most of one day's quota. Schedule it.
-- **Abliterated model in A5** — the default `dealignai/Gemma-4-31B-JANG_4M-CRACK` is a 31B variant; it needs the GPU memory of T4×2.
+- **Abliterated model in A5** — the default `<operator-supplied-checkpoint>` is a 31B variant; it needs the GPU memory of T4×2.
 
 ## What's "verified" mean per notebook
 

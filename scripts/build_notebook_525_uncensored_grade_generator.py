@@ -207,10 +207,10 @@ if not torch.cuda.is_available():
 print(f'GPU: {torch.cuda.get_device_name(0)}')
 
 CANDIDATES = [
-    'huihui-ai/gemma-4-e4b-it-abliterated',
-    'huihui-ai/gemma-4-A4B-it-abliterated',
-    'AEON-7/Gemma-4-A4B-it-Uncensored',
-    'mlabonne/Gemma-4-E4B-it-abliterated',
+    '<operator-supplied-checkpoint>',
+    '<operator-supplied-checkpoint>',
+    '<operator-supplied-checkpoint>',
+    '<operator-supplied-checkpoint>',
 ]
 
 try:

@@ -119,7 +119,7 @@ MODEL_VARIANT_PROFILES: tuple[dict[str, Any], ...] = (
     {
         "id": "jailbroken-31b",
         "label": "Gemma 4 31B (abliterated)",
-        "hf_id": "dealignai/Gemma-4-31B-JANG_4M-CRACK",
+        "hf_id": "<operator-supplied-checkpoint>",
         "google_hf_id": "",
         "runtime_size_b": 31.0,
         "runtime_size_gb": 18.0,
@@ -132,7 +132,7 @@ MODEL_VARIANT_PROFILES: tuple[dict[str, Any], ...] = (
     {
         "id": "jailbroken-e4b",
         "label": "Gemma 4 E4B (abliterated)",
-        "hf_id": "mlabonne/Gemma-4-E4B-it-abliterated",
+        "hf_id": "<operator-supplied-checkpoint>",
         "google_hf_id": "",
         "runtime_size_b": 4.0,
         "runtime_size_gb": 4.0,

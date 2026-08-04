@@ -74,7 +74,7 @@ You are here: **#A18 appendix — Sentinel / research monitor**.
 - [#A07 appendix: Adapter training + new-model benchmark](../A-07-bench-and-tune/README.md)
 - [#A08 appendix: Research graphs (CPU-only)](../A-08-research-graphs/README.md)
 - [#A09 appendix: Agentic-research chat (BYOK + Playwright)](../A-09-chat-playground-with-agentic-research/README.md)
-- [#A10 appendix: Jailbroken-Gemma comparison](../A-10-chat-playground-jailbroken-models/README.md)
+- [#A10 appendix: Runtime vs weights safety study](../A-10-runtime-vs-weights-safety-study/README.md)
 - [#A11 appendix: Runtime harness-lift regenerator](../A-11-grading-evaluation/README.md)
 - [#A12 appendix: PrivacyRedactor LoRA fine-tune + eval](../A-12-pii-fine-tune-eval/README.md)
 - [#A13 appendix: Multimodal document analyzer (Gemma 4 vision)](../A-13-multimodal-document-analyzer/README.md)

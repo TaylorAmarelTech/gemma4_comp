@@ -96,7 +96,7 @@ DueCare is an on-device LLM safety system built on Gemma 4 and named for the com
 
 ### What "abliteration" means here
 
-The technique (originally popularized by Arditi et al. 2024 and the community recipe at TrevorS/gemma-4-abliteration) decomposes into three steps:
+The technique (originally popularized by Arditi et al. 2024 and the community recipe at <operator-supplied-checkpoint>) decomposes into three steps:
 
 1. Feed a batch of harmful prompts and a matched batch of benign prompts through the base model and record the residual-stream activation at the last input token for every transformer block.
 2. Compute the difference of means between the two batches. That difference vector — normalized and projected onto the residual stream — is a linear direction strongly correlated with whether the model is about to emit a refusal.

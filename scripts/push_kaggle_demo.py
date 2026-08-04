@@ -360,11 +360,11 @@ _KERNEL_PRESETS = {
         "model_sources": _DEFAULT_GEMMA4_MODELS,
     },
     "chat-playground-jailbroken-models": {
-        "notebook_dir": "kaggle/_archive/notebooks/A-10-chat-playground-jailbroken-models",
+        "notebook_dir": "kaggle/_archive/notebooks/A-10-runtime-vs-weights-safety-study",
         "kernel_py": "kernel.py",
-        "slug": "duecare-chat-playground-jailbroken-models",
+        "slug": "duecare-a10-runtime-vs-weights-safety-study",
         "title": "DueCare Chat Playground Jailbroken Models",
-        "wheels_dataset_slug": "duecare-chat-playground-jailbroken-models-wheels",
+        "wheels_dataset_slug": "duecare-a10-runtime-vs-weights-safety-study-wheels",
         "wheels_dir": "wheels",
         "model_sources": [],   # HF Hub download per JAILBROKEN_MODEL config
     },

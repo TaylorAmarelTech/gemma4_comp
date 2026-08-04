@@ -98,6 +98,8 @@ jobs:
           python scripts/prompt_corpus.py validate
           python scripts/prompt_corpus.py stats
           python scripts/prompt_corpus.py export-by-category
+      - name: No stored model completions in the public corpus
+        run: python scripts/redact_seed_prompt_responses.py --check
 
   validate-benchmark:
     name: kaggle community benchmark validator

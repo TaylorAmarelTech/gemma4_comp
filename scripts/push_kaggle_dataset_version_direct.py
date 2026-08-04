@@ -188,7 +188,7 @@ CHAT_BUNDLING = (
     "A-06-prompt-generation",
     "A-08-research-graphs",
     "A-09-chat-playground-with-agentic-research",
-    "A-10-chat-playground-jailbroken-models",
+    "A-10-runtime-vs-weights-safety-study",
     "A-11-grading-evaluation",
 )
 

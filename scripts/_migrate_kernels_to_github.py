@@ -161,7 +161,7 @@ def replace_install_function(folder: str, func_name: str) -> bool:
 def fix_a10() -> None:
     """A-10 has top-level wheel install (not a function). Inject CANONICAL_INSTALL,
     replace the inline install block with a call to install_duecare_from_github()."""
-    path = ROOT / 'kaggle/_archive/notebooks/A-10-chat-playground-jailbroken-models/kernel.py'
+    path = ROOT / 'kaggle/_archive/notebooks/A-10-runtime-vs-weights-safety-study/kernel.py'
     text = path.read_text(encoding='utf-8')
     idx = text.find('found = sorted(p for p in Path("/kaggle/input").rglob("*.whl")')
     if idx == -1:

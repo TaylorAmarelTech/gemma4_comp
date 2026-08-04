@@ -174,8 +174,11 @@
     {key: "e4b-it",          name: "Gemma 4 E4B-it",        hf: "unsloth/gemma-4-E4B-it",          hw: "single T4 | default" , badges: ["gpu"]},
     {key: "26b-a4b-it",      name: "Gemma 4 26B-A4B-it",    hf: "unsloth/gemma-4-26B-A4B-it",      hw: "T4x2 (4-bit) | MoE"  , badges: ["gpu"]},
     {key: "31b-it",          name: "Gemma 4 31B-it",        hf: "unsloth/gemma-4-31B-it",          hw: "T4x2 (4-bit) | flagship", badges: ["gpu"]},
-    {key: "jailbroken-31b",  name: "Gemma 4 31B JANG_4M-CRACK", hf: "dealignai/Gemma-4-31B-JANG_4M-CRACK", hw: "T4x2 | abliterated", badges: ["gpu"]},
-    {key: "jailbroken-e4b",  name: "Gemma 4 E4B abliterated", hf: "mlabonne/Gemma-4-E4B-it-abliterated", hw: "single T4 | abliterated", badges: ["gpu"]},
+    // Research-only slots. DueCare ships no safety-stripped model and names none.
+    // `hf` stays empty unless the operator sets DUECARE_STRIPPED_MODEL_31B /
+    // DUECARE_STRIPPED_MODEL_E4B, and an empty `hf` makes the card unselectable.
+    {key: "jailbroken-31b",  name: "Gemma 4 31B (operator-supplied)", hf: "", hw: "T4x2 | research only", badges: ["gpu"]},
+    {key: "jailbroken-e4b",  name: "Gemma 4 E4B (operator-supplied)", hf: "", hw: "single T4 | research only", badges: ["gpu"]},
   ];
 
   function escapeHtml(s) {

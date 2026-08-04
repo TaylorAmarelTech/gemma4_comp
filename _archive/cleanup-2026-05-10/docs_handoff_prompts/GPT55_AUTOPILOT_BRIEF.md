@@ -513,7 +513,7 @@ against actual notebook content first):
 | `A-07-bench-and-tune` | 04, 05 (Unsloth) |
 | `A-08-research-graphs` | 04 |
 | `A-09-chat-playground-with-agentic-research` | 04, 05 (Playwright BYOK) |
-| `A-10-chat-playground-jailbroken-models` | 04 (skunkworks-adjacent) |
+| `A-10-runtime-vs-weights-safety-study` | 04 (skunkworks-adjacent) |
 | `A-11-grading-evaluation` | 04 (lift regenerator) |
 
 Read each notebook's existing README before editing. The lane

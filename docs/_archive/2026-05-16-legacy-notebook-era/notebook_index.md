@@ -40,7 +40,7 @@
   A7. duecare-bench-and-tune                            adapter training + new-model benchmark
   A8. duecare-research-graphs                           6 Plotly charts
   A9. duecare-chat-playground-with-agentic-research     Playwright + DuckDuckGo + Wikipedia
-  A10. duecare-chat-playground-jailbroken-models        abliterated-model proof
+  A10. duecare-a10-runtime-vs-weights-safety-study        abliterated-model proof
   A11. duecare-grading-evaluation                       runtime harness-lift regenerator
 ```
 
@@ -224,21 +224,21 @@ sidebar lets users paste optional Tavily / Brave / Serper API keys
 (stored in browser localStorage, never on server). PII filter on
 every outbound query; audit log records sha256(query) only.
 
-### A5. `duecare-chat-playground-jailbroken-models` â€” *abliterated model proof*
+### A5. `duecare-a10-runtime-vs-weights-safety-study` â€” *abliterated model proof*
 
 | | |
 |---|---|
-| Folder | [`kaggle/A-10-chat-playground-jailbroken-models/`](../kaggle/A-10-chat-playground-jailbroken-models/) |
-| Notebook URL | https://www.kaggle.com/code/taylorsamarel/duecare-chat-playground-jailbroken-models *(TBD)* |
-| Wheels | `taylorsamarel/duecare-chat-playground-jailbroken-models-wheels` âœ“ live |
+| Folder | [`kaggle/A-10-runtime-vs-weights-safety-study/`](../kaggle/A-10-runtime-vs-weights-safety-study/) |
+| Notebook URL | https://www.kaggle.com/code/taylorsamarel/duecare-a10-runtime-vs-weights-safety-study *(TBD)* |
+| Wheels | `taylorsamarel/duecare-a10-runtime-vs-weights-safety-study-wheels` âœ“ live |
 | LOC | 562 |
 | GPU | T4 Ã—2 |
 | Runtime | first run ~5-10 min (HF Hub download); subsequent ~30 sec |
 
 Same chat UI + 4-toggle harness as Core #2, but loads an **abliterated
 / cracked / uncensored Gemma 4 variant** instead of the stock instruct
-model. Default: `dealignai/Gemma-4-31B-JANG_4M-CRACK`. CONFIG block
-supports 6 variants (mlabonne / huihui-ai / AEON-7 / TrevorS / dealignai).
+model. No default and no bundled model: the operator supplies a checkpoint via
+`DUECARE_STRIPPED_MODEL`.
 Yellow banner top-left reminds the user the model is ablated. The
 demo: toggle harness OFF â†’ cracked model produces operational
 exploitation advice; toggle harness ON â†’ same model produces ILO
@@ -263,7 +263,7 @@ All 11 wheels datasets are live on Kaggle as of 2026-04-29:
 | `duecare-bench-and-tune-wheels` | 6 | core, models, domains, tasks, benchmark, training |
 | `duecare-research-graphs-wheels` | 4 | core, models, chat, benchmark |
 | `duecare-chat-playground-with-agentic-research-wheels` | 3 | core, models, chat |
-| `duecare-chat-playground-jailbroken-models-wheels` | 3 | core, models, chat |
+| `duecare-a10-runtime-vs-weights-safety-study-wheels` | 3 | core, models, chat |
 
 Each kernel auto-installs from `/kaggle/input/duecare-*-wheels/*.whl`
 in its Phase 1 install step.

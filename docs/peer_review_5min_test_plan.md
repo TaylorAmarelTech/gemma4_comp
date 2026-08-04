@@ -139,7 +139,7 @@ script. Click **Grade → Combined**. The
 
 For the appendix proof — that this works against models with
 refusals literally ablated — visit `duecare-chat-playground-
-jailbroken-models` (loads `dealignai/Gemma-4-31B-JANG_4M-CRACK`).
+jailbroken-models` (loads `<operator-supplied-checkpoint>`).
 
 ---
 

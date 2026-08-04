@@ -67,7 +67,7 @@ PHASES = [
             {"id": "186", "title": "Jailbreak - Stock Gemma Baseline", "slug": "duecare-186-jailbreak-stock-gemma", "summary": "Stock Gemma 4 E4B under three conditions (baseline, DAN preamble, researcher roleplay) — the prompt-level-bypass floor the weight-level variants must beat."},
             {"id": "187", "title": "Jailbreak - Abliterated E4B", "slug": "duecare-187-jailbreak-abliterated-e4b", "summary": "In-kernel abliteration recipe: 30+30 calibration, mid-band layer pick, o_proj+down_proj subtraction, held-out probe. Reproducible without external uncensored weights."},
             {"id": "188", "title": "Jailbreak - Uncensored Community", "slug": "duecare-188-jailbreak-uncensored-community", "summary": "Ranked HF probe list (huihui / AEON-7 / mlabonne); NVFP4 variants excluded (Blackwell-only); writes diagnostic bundle if no candidate resolves."},
-            {"id": "189", "title": "Jailbreak - Cracked 31B", "slug": "duecare-189-jailbreak-cracked-31b", "summary": "dealignai/Gemma-4-31B-JANG_4M-CRACK in 4-bit; VRAM gate skips gracefully on T4, runs on L4x4/A100 (tests whether size closes the gap — it does not)."},
+            {"id": "189", "title": "Jailbreak - Cracked 31B", "slug": "duecare-189-jailbreak-cracked-31b", "summary": "<operator-supplied-checkpoint> in 4-bit; VRAM gate skips gracefully on T4, runs on L4x4/A100 (tests whether size closes the gap — it does not)."},
         ],
     },
     {

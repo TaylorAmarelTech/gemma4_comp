@@ -25,8 +25,8 @@ from the model.
 | Gemma 4 E4B | NGO / government dashboard baseline | `unsloth/gemma-4-E4B-it` |
 | Gemma 4 26B-A4B | research, server-side eval, MoE | `unsloth/gemma-4-26B-A4B-it` |
 | Gemma 4 31B | flagship | `unsloth/gemma-4-31B-it` |
-| Jailbroken 31B | abliterated; "real not faked" proof | `dealignai/Gemma-4-31B-JANG_4M-CRACK` |
-| Jailbroken E4B | smaller abliterated | `mlabonne/Gemma-4-E4B-it-abliterated` |
+| Jailbroken 31B | abliterated; "real not faked" proof | `<operator-supplied-checkpoint>` |
+| Jailbroken E4B | smaller abliterated | `<operator-supplied-checkpoint>` |
 | Cloud Gemini | BYOK fallback | Gemini 1.5 Flash |
 | Cloud OpenAI-compat | BYOK fallback | per-deploy |
 | Cloud Ollama | BYOK fallback | per-deploy |

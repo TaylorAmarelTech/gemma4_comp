@@ -145,10 +145,10 @@ tok = mdl = None
 load_errs = []
 
 CANDIDATES = [
-    'huihui-ai/gemma-4-e4b-it-abliterated',
-    'huihui-ai/gemma-4-A4B-it-abliterated',
-    'AEON-7/Gemma-4-A4B-it-Uncensored',
-    'mlabonne/Gemma-4-E4B-it-abliterated',
+    '<operator-supplied-checkpoint>',
+    '<operator-supplied-checkpoint>',
+    '<operator-supplied-checkpoint>',
+    '<operator-supplied-checkpoint>',
 ]
 
 try:

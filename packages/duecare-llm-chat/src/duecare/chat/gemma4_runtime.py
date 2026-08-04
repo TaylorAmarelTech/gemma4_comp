@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import gc
+import os
 import re
 import threading
 import time
@@ -91,11 +92,16 @@ def resolve_model_ref(source: str, model_ref: str) -> tuple[str, str, str]:
             return str(candidate), variant, "kaggle_attached"
 
     if variant.startswith("jailbroken-"):
+        # Research-only variants. DueCare ships no safety-stripped model and
+        # names none: the operator supplies their own checkpoint. When unset we
+        # fall back to ``model_ref`` rather than inventing a repo id, so an
+        # unconfigured request fails on a missing model instead of silently
+        # resolving to one.
         repos = {
-            "jailbroken-e4b": "mlabonne/Gemma-4-E4B-it-abliterated",
-            "jailbroken-31b": "dealignai/Gemma-4-31B-JANG_4M-CRACK",
+            "jailbroken-e4b": os.environ.get("DUECARE_STRIPPED_MODEL_E4B", ""),
+            "jailbroken-31b": os.environ.get("DUECARE_STRIPPED_MODEL_31B", ""),
         }
-        return repos.get(variant, model_ref), variant, "hf"
+        return repos.get(variant) or model_ref, variant, "hf"
 
     repo_variant = (
         variant.replace("e2b-it", "E2B-it")

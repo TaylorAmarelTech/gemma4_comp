@@ -95,7 +95,6 @@ cloud routes that should skip the Unsloth install phase:
 ```bash
 %env GEMMA_MODEL_VARIANT=e4b-it     # default: single T4
 %env GEMMA_MODEL_VARIANT=31b-it      # T4x2 in 4-bit (~5-10+ min first run)
-%env GEMMA_MODEL_VARIANT=jailbroken-31b   # abliterated; harness still wins
 %env GEMMA_MODEL_VARIANT=cloud-gemini    # BYOK (set GEMINI_API_KEY)
 ```
 
@@ -118,8 +117,8 @@ Full variant list (9 supported):
 | `e4b-it` | `unsloth/gemma-4-E4B-it` | single T4 | **default** |
 | `26b-a4b-it` | `unsloth/gemma-4-26B-A4B-it` | T4x2 (4-bit) | MoE |
 | `31b-it` | `unsloth/gemma-4-31B-it` | T4x2 (4-bit) | flagship |
-| `jailbroken-31b` | `dealignai/Gemma-4-31B-JANG_4M-CRACK` | T4x2 | abliterated; the strongest "real, not faked" proof |
-| `jailbroken-e4b` | `mlabonne/Gemma-4-E4B-it-abliterated` | single T4 | smaller abliterated |
+| `jailbroken-31b` | *(empty unless `DUECARE_STRIPPED_MODEL_31B` is set)* | T4x2 | research only; ships no model |
+| `jailbroken-e4b` | *(empty unless `DUECARE_STRIPPED_MODEL_E4B` is set)* | single T4 | research only; ships no model |
 | `cloud-gemini` | Gemini 1.5 Flash API | CPU-only | needs `GEMINI_API_KEY` |
 | `cloud-openai` | OpenAI-compat | CPU-only | needs `OPENAI_API_KEY`, `OPENAI_BASE_URL`, `OPENAI_MODEL` |
 | `cloud-ollama` | Ollama | CPU-only | needs `OLLAMA_HOST`, `OLLAMA_MODEL` |
