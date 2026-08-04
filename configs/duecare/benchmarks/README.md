@@ -75,8 +75,18 @@ regression. Prompts and grades are what make a claim reproducible. The
 completions that succeeded would mostly transfer operational detail, so they
 stay out.
 
-**Any registry of safety-stripped models.** DueCare does not distribute,
-endorse, or link refusal-ablated Gemma weights anywhere in this repository.
+**Any registry of safety-stripped models.** No code, config, or notebook in
+this repository names, links, bundles, or downloads refusal-ablated Gemma
+weights. Where the harness supports evaluating such a model, the checkpoint is
+supplied by the operator through a `DUECARE_STRIPPED_MODEL*` environment
+variable and is empty by default.
+
+To be explicit rather than narrowly literal: DueCare does publish separate
+red-team research on Kaggle that evaluates a third-party safety-stripped Gemma,
+because measuring how the harness behaves when weight-level refusals are absent
+is part of the safety case. That is published as labelled evaluation research
+under the author's own account, and is not a recommendation to deploy such a
+model. This repository itself stays free of those model identifiers.
 
 ## Handling
 

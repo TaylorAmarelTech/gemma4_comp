@@ -9,7 +9,11 @@
 > appendix names no such model, links to none, and downloads none: the operator
 > supplies a checkpoint they are authorized to evaluate via
 > `DUECARE_STRIPPED_MODEL`, and the kernel exits with instructions if it is unset.
-> DueCare does not use, endorse, or distribute refusal-ablated Gemma weights.
+> DueCare does not endorse or distribute refusal-ablated Gemma weights, and
+> ships none. It does *evaluate* one in published red-team research on Kaggle,
+> because measuring what the harness does when weight-level refusals are absent
+> is the whole point of this appendix. Evaluating a model is not deploying or
+> recommending it.
 
 <!-- duecare:lane-label -->
 > **Serves lanes:** 04 Researcher
