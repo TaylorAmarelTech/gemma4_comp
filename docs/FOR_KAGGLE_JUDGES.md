@@ -71,6 +71,7 @@ notebook-era appendix surfaces are historical.
 | **Path tracing** — every retrieval-pipeline stage logged | `app.py:_path_trace_record` + chat UI's "RETRIEVAL PATH TRACE" card |
 | **A/B Compare tab** — same prompt, two harness configurations, side-by-side grades | `kaggle/01-duecare-exploration-workbench/kernel.py` live; UI button next to "About" |
 | **License + attribution** — every bundled asset, every model, every third-party reference | `LICENSES.md` |
+| **Competition rule compliance** — winner licence, external-data reasonableness, reproducibility deliverables, open-source and warranty provisions, mapped section by section | [`COMPETITION_COMPLIANCE.md`](COMPETITION_COMPLIANCE.md) |
 | **Public hub** — knowledge-pack registry + anonymized signal intake + public-source proposal intake | [duecare-ai.com](https://duecare-ai.com) (code at [`apps/duecare-ai.com/`](../apps/duecare-ai.com/), deployed via repo-root `render.yaml`) |
 | **Hub API surface** — `GET /api/hub/knowledge-packs`, `POST /api/hub/signals`, `POST /api/hub/opencrawl/updates`, `GET /api/hub/trends`, `GET /api/hub/status`, `GET /api/health` | [duecare-ai.com/docs](https://duecare-ai.com/docs) (FastAPI auto-generated OpenAPI) |
 | **Recording-grade deck and demo routes** | `kaggle/02-live-demo/kernel.py` prints a `*.trycloudflare.com` tunnel; open `/start`, `/slides`, and `/wb-static/process.html` |
@@ -199,9 +200,10 @@ app = create_app(
 
 1. `docs/writeup_draft.md` — the 1,500-word submission writeup
 2. `LICENSES.md` — full attribution + license declarations
-3. `docs/USER_TODO.md` — author's submission-day checklist
-4. `reports/adversarial_<latest>.md` — the empirical evidence
-5. The current Cloudflare URL printed by `kaggle/02-live-demo/kernel.py`
+3. `docs/COMPETITION_COMPLIANCE.md` — rule-by-rule compliance map (winner licence, external data, reproducibility, warranty)
+4. `docs/USER_TODO.md` — author's submission-day checklist
+5. `reports/adversarial_<latest>.md` — the empirical evidence
+6. The current Cloudflare URL printed by `kaggle/02-live-demo/kernel.py`
 
 ## Reading order if you have 5 minutes
 
