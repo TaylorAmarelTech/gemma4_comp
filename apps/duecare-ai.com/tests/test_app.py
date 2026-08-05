@@ -7,6 +7,27 @@ from app.main import create_app, detect_pii
 from fastapi.testclient import TestClient
 
 
+def test_security_response_headers_are_set() -> None:
+    """Baseline security headers must ship on every response.
+
+    These were absent from the live deployment until they were added, and a
+    missing header fails silently -- nothing breaks, the protection is just
+    gone. This test is the tripwire. Content-Security-Policy is deliberately
+    excluded: it needs per-request nonces threaded through the templates, and
+    a permissive 'unsafe-inline' policy would assert protection it does not
+    provide.
+    """
+    response = TestClient(create_app()).get("/")
+    assert response.status_code == 200
+    assert response.headers["X-Content-Type-Options"] == "nosniff"
+    assert response.headers["X-Frame-Options"] == "DENY"
+    assert response.headers["Referrer-Policy"] == "strict-origin-when-cross-origin"
+    assert "max-age=" in response.headers["Strict-Transport-Security"]
+    permissions = response.headers["Permissions-Policy"]
+    for capability in ("camera=()", "microphone=()", "geolocation=()"):
+        assert capability in permissions
+
+
 def test_detect_pii_blocks_obvious_contact_details() -> None:
     assert detect_pii("Contact worker@example.org for details") == {"email"}
     assert "phone" in detect_pii("Call +1 555 123 4567 immediately")

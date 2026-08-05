@@ -1283,6 +1283,41 @@ def create_app(*, data_dir: Path | None = None) -> FastAPI:
     # DUECARE_RATE_LIMIT="requests/window_seconds" ("0" disables; default
     # 30/300). See app/ratelimit.py.
     application.add_middleware(RateLimitMiddleware)
+
+    # Baseline security response headers. The hub serves public read-only
+    # content plus a few unauthenticated intake endpoints, so these are cheap
+    # defence-in-depth rather than a substitute for the auth and rate limiting
+    # above. The set mirrors the project's own web security rule.
+    #
+    # Deliberately NOT set here:
+    #   - Content-Security-Policy. The templates and the embedded workbench use
+    #     inline styles and scripts, so a meaningful CSP needs per-request
+    #     nonces threaded through the templates. Shipping a permissive
+    #     'unsafe-inline' policy would look like protection while providing
+    #     approximately none, so it is left to be done properly.
+    @application.middleware("http")
+    async def _security_headers(request: Request, call_next):
+        response = await call_next(request)
+        # Deployed behind TLS at duecare-ai.com; instructs browsers to refuse
+        # plaintext for a year. Harmless on localhost, which browsers exempt.
+        response.headers.setdefault(
+            "Strict-Transport-Security", "max-age=31536000; includeSubDomains"
+        )
+        # Stop MIME sniffing turning an uploaded or generated file into script.
+        response.headers.setdefault("X-Content-Type-Options", "nosniff")
+        # No page here is meant to be framed; blocks clickjacking overlays.
+        response.headers.setdefault("X-Frame-Options", "DENY")
+        # Send the origin, not the full path, to third parties. Hub URLs can
+        # carry knowledge-pack and campaign identifiers worth not leaking.
+        response.headers.setdefault(
+            "Referrer-Policy", "strict-origin-when-cross-origin"
+        )
+        # The hub needs none of these device capabilities.
+        response.headers.setdefault(
+            "Permissions-Policy", "camera=(), microphone=(), geolocation=()"
+        )
+        return response
+
     application.state.duecare = AppState(started_at=datetime.now(UTC), store=store)
 
     application.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
