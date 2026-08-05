@@ -40,6 +40,50 @@ deployments, we'd appreciate 90 days of coordinated disclosure to give
 NGO partners time to update their deployments. Earlier disclosure is
 fine if you believe workers are at active risk.
 
+## Past incidents
+
+### Credential exposure in git history — resolved 2026-08-05
+
+**Both credentials below have been disabled at their providers and are no
+longer valid.** They are recorded here because disclosure is more useful than
+quiet deletion.
+
+| | |
+|---|---|
+| What | A Google API key and a Hugging Face access token |
+| Committed | 2026-05-01 |
+| Removed from working tree | 2026-05-04 and 2026-05-15 |
+| Remained readable in history until | 2026-08-05 |
+| Status | **Revoked at the provider; strings purged from git history** |
+
+Removing a secret from the working tree does not remove it from history. Both
+values stayed readable to anyone who cloned this public repository for roughly
+three months. They were found by a full-history scan, not by the working-tree
+scans run previously — a gap worth naming, because a clean `git grep` on HEAD
+says nothing about what earlier commits contain.
+
+**What was done, in order of importance:**
+
+1. **Revoked at the provider.** This is the part that actually resolves the
+   exposure. Anyone who cloned the repository during those three months still
+   holds the strings; only revocation makes them worthless.
+2. **Purged from history** with `git filter-repo`, replacing each value with a
+   `REDACTED-…-DISABLED-SEE-SECURITY-MD` marker across 1,644 commits. This is
+   tidiness rather than security — see
+   [`docs/security/CREDENTIAL_HISTORY_PURGE.md`](docs/security/CREDENTIAL_HISTORY_PURGE.md)
+   for the procedure and its costs.
+
+**Consequence for anyone verifying this repository:** every commit SHA from
+2026-05-01 onward changed. The submission snapshot cited in `RESULTS.md` moved
+from `d3ab6588` to `20ccc532`; file content is identical apart from the two
+replaced strings. Older clones and forks will not fast-forward and should be
+re-cloned.
+
+**Prevention:** `gitleaks` runs in pre-commit and in CI at full history depth,
+`.env` is gitignored and was never committed, and
+`scripts/validate_legal_hygiene.py` gates the repository on every push. GitHub
+push protection is the recommended additional control.
+
 ## Hall of fame
 
 Contributors who report security bugs are credited in `RESULTS.md`

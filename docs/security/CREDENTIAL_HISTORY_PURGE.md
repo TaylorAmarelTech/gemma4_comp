@@ -1,8 +1,14 @@
 # Runbook — purging exposed credentials from git history
 
-**Status: prepared, not executed.** Every command here is ready to run. None of
-it has been run, because it force-pushes a rewritten public history, and that
-should be a deliberate act taken at a moment you choose.
+**Status: EXECUTED 2026-08-05.** This procedure has been run against this
+repository. It is retained as the record of what was done, and as a runbook
+should it ever be needed again.
+
+**Outcome:** both credential strings replaced across 1,644 commits;
+full-history occurrences went from **19 to 0**; all 1,727 commits and every
+branch and tag preserved; file content otherwise unchanged. The submission
+snapshot moved from `d3ab6588` to `20ccc532`, and `RESULTS.md` was updated in
+the same operation. A pre-purge mirror backup was taken first.
 
 ## Read this first: rewriting history does not secure a leaked key
 

@@ -13,7 +13,7 @@
 
 | Field | Value |
 |---|---|
-| **Submission snapshot** | commit `d3ab6588` — the last commit of the 2026-05-18 submission window. No release tag was cut; verify with `git log --until=2026-05-19 -1 --format="%h %ad %s" --date=short` |
+| **Submission snapshot** | commit `20ccc532` ("Embed full walkthrough video on /demo", 2026-05-18) — the last commit of the 2026-05-18 submission window. No release tag was cut; verify with `git log -1 20ccc532 --format="%h %ad %s" --date=short`. This commit was `d3ab6588` before the 2026-08-05 credential-history purge, which rewrote every commit from 2026-05-01 onward; see [`docs/security/CREDENTIAL_HISTORY_PURGE.md`](docs/security/CREDENTIAL_HISTORY_PURGE.md). File content is unchanged — only two leaked credential strings were replaced. |
 | **Headline-number pin** | the A-00 smoke matrix below is pinned by its Kaggle run id (`e2b-full-train-eval`) and the kernel's exported artifact bundle, not by a git SHA |
 | **Submission date** | on or before 2026-05-18 |
 | **Wheels built** | `dist/duecare_llm_*-0.1.0-py3-none-any.whl` (17 wheels — full inventory in `docs/current_kaggle_notebook_state.md`) |
@@ -127,7 +127,8 @@ boundary between measured and planned stays explicit:
 ### From the GitHub repo
 
 ```bash
-git checkout d3ab6588                 # last submission-window commit (2026-05-18); HEAD also works
+git checkout 20ccc532                 # last submission-window commit (2026-05-18); HEAD also works
+                                      # (was d3ab6588 before the 2026-08-05 history purge)
 make build                            # rebuild all 18 current wheels into dist/
 make test                             # full package + top-level suite (1,877 pass / 2 skip as of 2026-06-10)
 python scripts/run_local_gemma.py --max-prompts 10   # 10-prompt sanity check via Ollama
