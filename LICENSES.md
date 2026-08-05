@@ -211,6 +211,27 @@ citations are in [`docs/CREDITS.md`](docs/CREDITS.md).
 `faiss-cpu` is declared but currently has no import anywhere in the tree; it
 is a retained optional-extra slot, not an active dependency.
 
+### Copyleft check
+
+A scan of the installed dependency set (184 distributions) found no copyleft
+license in DueCare's core dependency path. Two results are stated explicitly so
+nobody has to re-derive them:
+
+- **`igraph` (GPL)** appears in some local environments but is **not declared
+  in any `pyproject.toml` or requirements file, and is not imported anywhere in
+  the tree.** It is incidental to a developer machine, not a dependency of this
+  project, and nothing distributed links it.
+
+- **`pyphen` (GPLv2+ *or* LGPLv2+, dual-licensed)** is pulled transitively by
+  `textstat`. `textstat` is **not a core dependency** — it appears only in
+  `packages/duecare-llm-kit`'s optional `nlp` / `all` extras, so a plain
+  `pip install duecare-llm-kit` pulls neither. Where a user opts in, `pyphen`'s
+  LGPL option applies and Python's import mechanism is dynamic linking, so
+  combining it with MIT-licensed code is permitted. Anyone who wants a strictly
+  permissive-only install should use the base package without the `nlp` extra.
+
+No GPL, AGPL, or SSPL code is bundled in any published wheel.
+
 ## Optional Pillow-pulled fonts
 
 The synthetic-evidence generator falls back to system fonts (DejaVu
