@@ -155,7 +155,7 @@ optional rerank stage.
 
 ### Gemma 4 family (E2B / E4B / 26B-A4B / 31B variants)
 **Link:** <https://huggingface.co/google/gemma-4>
-**License:** Gemma Terms of Use (<https://ai.google.dev/gemma/terms>).
+**License:** Apache License 2.0 (<https://ai.google.dev/gemma/apache_2>).
 **Bundling:** NOT bundled. Loaded by the kernel via `transformers` /
 `unsloth` at user choice.
 **Use:** primary chat model; multimodal variants (E4B, 31B) handle

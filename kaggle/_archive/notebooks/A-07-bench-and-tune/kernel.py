@@ -1597,7 +1597,7 @@ def _model_card(repo: str, kind: str) -> str:
         f"```\n\n"
         f"## License\n\n"
         f"Apache 2.0 (matching upstream Gemma 4). Used in accordance with "
-        f"the [Gemma Terms of Use](https://ai.google.dev/gemma/terms).\n"
+        f"the [Gemma 4 license — Apache 2.0](https://ai.google.dev/gemma/apache_2).\n"
     )
 
 

@@ -94,12 +94,19 @@ This document lists the open source software dependencies used in DueCare and th
 
 ## Model Family
 
-### Gemma (Gemma Terms of Use)
-- **Model**: Gemma 4 E4B / E2B
-- **License**: Gemma Terms of Use
-- **Copyright**: Copyright 2024 Google LLC
-- **Use**: Base language model for safety evaluation
-- **License URL**: https://ai.google.dev/gemma/terms
+### Gemma 4 (Apache License 2.0)
+- **Model**: Gemma 4 — E2B / E4B / 26B-A4B / 31B variants
+- **License**: Apache License, Version 2.0
+- **Copyright**: Copyright 2026 Google LLC
+- **Use**: Base language model for safety evaluation and LoRA fine-tuning
+- **License URL**: https://ai.google.dev/gemma/apache_2
+- **Prohibited use policy**: https://ai.google.dev/gemma/prohibited_use_policy
+- **Intended use statement**: https://ai.google.dev/gemma/intended_use_statement
+- **Note**: Gemma 4 is Apache 2.0, not the older "Gemma Terms of Use" that
+  govern earlier Gemma generations — Google's terms page directs Gemma 4 to
+  the Apache 2.0 license. The Prohibited Use Policy still applies. DueCare
+  redistributes no base weights; the LoRA adapters it does publish are
+  Derivative Works and are covered in the root `NOTICE` file.
 
 ## Optional Dependencies
 
@@ -178,7 +185,8 @@ Full license texts for all dependencies are available in their respective reposi
 - Apache 2.0: https://www.apache.org/licenses/LICENSE-2.0.txt
 - MIT: https://opensource.org/licenses/MIT
 - BSD-3-Clause: https://opensource.org/licenses/BSD-3-Clause
-- Gemma Terms: https://ai.google.dev/gemma/terms
+- Gemma 4 license (Apache 2.0): https://ai.google.dev/gemma/apache_2
+- Gemma prohibited use policy: https://ai.google.dev/gemma/prohibited_use_policy
 
 ---
 

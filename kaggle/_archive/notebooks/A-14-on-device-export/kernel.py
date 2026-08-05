@@ -33,7 +33,7 @@
     - llama.cpp ($10K) — real GGUF a judge can run on a laptop
     - LiteRT ($10K) — recipe marker for the mobile target
 
-  Built with Google's Gemma 4. Used in accordance with the Gemma Terms of Use.
+  Built with Google's Gemma 4, used under the Apache License 2.0.
 ============================================================================
 """
 from __future__ import annotations

@@ -42,7 +42,7 @@ Built with Google's Gemma 4 ecosystem. The visualizations operate on
 data Gemma 4 produces (the harness layer outputs, the benchmark
 results) — Gemma itself doesn't need to be loaded for this kernel.
 Used in accordance with the
-[Gemma Terms of Use](https://ai.google.dev/gemma/terms).
+[Gemma 4 license — Apache 2.0](https://ai.google.dev/gemma/apache_2).
 
 ## Why "appendix"
 

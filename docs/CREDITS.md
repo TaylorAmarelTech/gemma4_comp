@@ -9,7 +9,8 @@ of, with attribution.
 
 - **Gemma 4** — Google DeepMind. Open-weight base model used as the
   local runtime across all three Kaggle kernels and the sibling
-  Android app. Subject to the Gemma Terms of Use. We use the E2B,
+  Android app. Licensed under Apache 2.0; the Gemma Prohibited Use Policy
+  also applies. We use the E2B,
   E4B, 26B-A4B, and 31B-IT variants from
   [`google/gemma-4`](https://www.kaggle.com/models/google/gemma-4) on
   Kaggle.
@@ -62,7 +63,7 @@ harness changes a response on one migrant-worker safety rubric.
 **Evaluated as subjects** (7 on the public board):
 
 - **Google DeepMind** — Gemma 4 (`gemma4:31b` plus the E2B / E4B / 26B-A4B
-  variants). Gemma Terms of Use.
+  variants). Apache License 2.0.
 - **OpenAI** — `gpt-oss:20b`, `gpt-oss:120b` (open-weight release), and
   `gpt-4o` / `gpt-4o-mini` in the wider frontier study.
 - **Zhipu AI / Z.ai** — `glm-5.1`, `glm-5.2`.
@@ -224,7 +225,8 @@ this repository or any of its samples.
 ## License
 
 The DueCare project code is **MIT-licensed**. The Gemma 4 model
-weights are subject to the Gemma Terms of Use. Library dependencies
+weights are licensed under Apache 2.0, with the Gemma Prohibited Use
+Policy also applying. Library dependencies
 retain their respective licenses (see each library's repository).
 Knowledge-pack content quotes from public statutes and circulars is
 used under fair-use citation; redistribution of those quoted

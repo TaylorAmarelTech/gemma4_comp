@@ -1,0 +1,77 @@
+================================================================================
+DueCare — NOTICE
+================================================================================
+
+DueCare
+Copyright 2026 Taylor Amarel
+
+This product includes software and model derivatives developed on top of
+Gemma 4, released by Google under the Apache License, Version 2.0.
+
+    Gemma 4 is licensed under the Apache License, Version 2.0.
+    License:               https://ai.google.dev/gemma/apache_2
+    Prohibited use policy: https://ai.google.dev/gemma/prohibited_use_policy
+    Intended use:          https://ai.google.dev/gemma/intended_use_statement
+
+Note on which Gemma license applies: earlier Gemma generations were released
+under the "Gemma Terms of Use" (ai.google.dev/gemma/terms). Gemma 4 is not —
+Google's own terms page states that for Gemma 4 terms, see the Gemma 4 license,
+which is Apache 2.0. DueCare uses Gemma 4, so Apache 2.0 governs. The
+Prohibited Use Policy continues to apply.
+
+--------------------------------------------------------------------------------
+1. What DueCare distributes
+--------------------------------------------------------------------------------
+
+DueCare does NOT redistribute Gemma 4 base model weights. Wherever Gemma is
+used, the weights are obtained by the operator directly from Google's own
+distribution channels (the Kaggle `google/gemma-4` model listing or the
+corresponding Hugging Face repositories).
+
+DueCare DOES distribute Derivative Works of Gemma 4 in one place: LoRA adapter
+weights produced by fine-tuning, published as
+
+    kaggle.com/datasets/taylorsamarel/duecare-gemma4-adapter-learning-study
+    (runs/run-01/adapter/, runs/run-02/adapter/)
+
+Those adapters are low-rank deltas. They are inert without Gemma 4 base weights
+and are Derivative Works within the meaning of the Apache License 2.0.
+
+--------------------------------------------------------------------------------
+2. Statement of changes (Apache License 2.0, Section 4b)
+--------------------------------------------------------------------------------
+
+No file supplied by Google is modified or redistributed by this project. The
+adapters named above are new files produced by parameter-efficient fine-tuning
+(LoRA) of Gemma 4; they add low-rank weight deltas and replace nothing.
+
+Each adapter ships with configuration recording its base checkpoint, rank, and
+training procedure, so any recipient can see exactly what was derived and how.
+Training data provenance and evaluation results ship in the same dataset.
+
+--------------------------------------------------------------------------------
+3. Terms that follow the adapters
+--------------------------------------------------------------------------------
+
+Recipients of those adapter weights receive them under the Apache License 2.0,
+together with the Gemma Prohibited Use Policy, which continues to apply to
+Gemma 4 and its derivatives. A copy of the Apache License 2.0 accompanies the
+published adapter dataset.
+
+Google has not reviewed, approved, or endorsed DueCare. Nothing in this project
+is a representation by Google about DueCare or its results. "Gemma" and
+"Google" are trademarks of Google LLC, used here only to identify the upstream
+model as permitted for descriptive reference; Apache License 2.0 grants no
+trademark rights.
+
+--------------------------------------------------------------------------------
+4. DueCare's own license
+--------------------------------------------------------------------------------
+
+DueCare's own source code is MIT-licensed (see LICENSE), which is compatible
+with the Apache 2.0 terms governing the upstream model. MIT covers
+DueCare-authored code only; it does not relicense Gemma 4, its derivatives, or
+any third-party dependency.
+
+Full attribution for third-party software, models, data sources, fonts, and
+research is in LICENSES.md, THIRD_PARTY_LICENSES.md, and docs/CREDITS.md.

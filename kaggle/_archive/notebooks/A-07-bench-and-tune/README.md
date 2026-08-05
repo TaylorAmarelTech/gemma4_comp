@@ -58,7 +58,7 @@ Built with Google's Gemma 4 (base model:
 Fine-tuned weights are pushed to HF Hub under
 `taylorscottamarel/duecare-gemma-4-*` slugs with the required Gemma
 attribution. Used in accordance with the
-[Gemma Terms of Use](https://ai.google.dev/gemma/terms).
+[Gemma 4 license — Apache 2.0](https://ai.google.dev/gemma/apache_2).
 
 | Field | Value |
 |---|---|

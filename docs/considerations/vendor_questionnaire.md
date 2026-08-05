@@ -15,7 +15,7 @@
 | # | Question | Answer |
 |---|---|---|
 | A1 | Is Duecare SaaS or self-hosted? | **Self-hosted only.** Operator deploys to their own infra (laptop / NGO office / cloud / k8s). The Duecare authors do not operate any service that customer data passes through. See [`docs/deployment_topologies.md`](../deployment_topologies.md). |
-| A2 | What's the licensing model? | MIT. The source workspace package surfaces, Docker image, Helm chart, and Android repo are MIT. Gemma 4 model weights are Apache 2.0; see the [Gemma Terms of Use](https://ai.google.dev/gemma/terms). |
+| A2 | What's the licensing model? | MIT. The source workspace package surfaces, Docker image, Helm chart, and Android repo are MIT. Gemma 4 model weights are Apache 2.0; see the [Gemma 4 license — Apache 2.0](https://ai.google.dev/gemma/apache_2). |
 | A3 | Where's the source code? | https://github.com/TaylorAmarelTech/gemma4_comp + https://github.com/TaylorAmarelTech/duecare-journey-android |
 | A4 | Who's the maintainer? | Taylor Amarel (`amarel.taylor.s@gmail.com`). See `SECURITY.md` for vulnerability reporting. |
 | A5 | What's the support SLA? | Community / best-effort by default. SLAs are negotiated separately — see operator agreement. |

@@ -28,7 +28,7 @@ both are prerequisites for understanding what the live-demo does.
 Built with Google's Gemma 4 (base model:
 [google/gemma-4-e4b-it](https://huggingface.co/google/gemma-4-e4b-it)
 and other IT variants). Used in accordance with the
-[Gemma Terms of Use](https://ai.google.dev/gemma/terms).
+[Gemma 4 license — Apache 2.0](https://ai.google.dev/gemma/apache_2).
 
 | Field | Value |
 |---|---|

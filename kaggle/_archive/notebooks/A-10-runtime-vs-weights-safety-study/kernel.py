@@ -71,7 +71,7 @@
 
   Built with Google's Gemma 4 (the underlying base; abliterated weights
   are 3rd-party derivatives). Used in accordance with the Gemma Terms of
-  Use (https://ai.google.dev/gemma/terms).
+  Use (https://ai.google.dev/gemma/apache_2).
 ============================================================================
 """
 from __future__ import annotations

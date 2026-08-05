@@ -49,7 +49,7 @@
     config.adapter_path      = mount path or HF Hub ref to the adapter
     config.harness_enabled   = false  (this is the fine-tuned BASELINE)
 
-  Built with Google's Gemma 4. Used in accordance with the Gemma Terms of Use.
+  Built with Google's Gemma 4, used under the Apache License 2.0.
 ============================================================================
 """
 from __future__ import annotations

@@ -46,7 +46,7 @@ DueCare's architecture, and the only way to test it is to remove the
 weights-side guarantee and re-measure.
 
 Built with Google's Gemma 4 as the underlying base architecture, used in
-accordance with the [Gemma Terms of Use](https://ai.google.dev/gemma/terms).
+accordance with the [Gemma 4 license — Apache 2.0](https://ai.google.dev/gemma/apache_2).
 Any third-party derivative checkpoint is supplied by the operator and is
 neither distributed nor endorsed here.
 
@@ -62,11 +62,11 @@ neither distributed nor endorsed here.
 | **Secrets** | `HF_TOKEN` recommended (HF Hub rate-limit avoidance) |
 | **Expected runtime** | first run ~5-10 min (HF Hub download + load); subsequent ~30 sec |
 
-## The 6 jailbroken variants the kernel supports
+## Model under test
 
-Edit the `JAILBROKEN_MODEL` constant at the top of the kernel to
-switch. All loaded uniformly via Unsloth FastModel (same loader as
-the live-demo's stock 31B):
+Set `DUECARE_STRIPPED_MODEL` to the checkpoint you are authorized to
+evaluate. It loads via Unsloth FastModel, the same loader as the
+live-demo's stock 31B:
 
 | Variant | Size | HF slug |
 |---|---|---|
@@ -77,14 +77,15 @@ them would turn this file into a distribution index for exactly the weights the
 study exists to defend against. Supply your own checkpoint, one you are
 authorized to evaluate.
 
-These variants come from your project's existing research kernels
-(notebooks 185-189). They are 3rd-party derivatives of Google's
-Gemma 4. Verify each repo's license and terms before re-publishing.
+Any such checkpoint is a third-party derivative of Google's Gemma 4.
+Gemma 4 is Apache 2.0, but a derivative may carry its own additional
+terms — verify the specific repository's license before using or
+re-publishing it.
 
 ## What this notebook proves
 
-1. Load a model that has been INTENTIONALLY uncensored (refusal
-   directions ablated)
+1. Load an operator-supplied checkpoint whose refusal training has been
+   removed
 2. Toggle the DueCare harness OFF — observe that the model now responds
    to exploitation/trafficking scenarios with operational advice (no
    refusal, because we ablated it)
@@ -100,7 +101,7 @@ harness works on a HOSTILE input model.
 ## Files in this folder
 
 ```
-chat-playground-jailbroken-models/
+A-10-runtime-vs-weights-safety-study/
 ├── kernel.py              ← source-of-truth (paste into Kaggle)
 ├── kernel-metadata.json   ← Kaggle kernel config
 ├── README.md              ← this file
@@ -112,9 +113,8 @@ chat-playground-jailbroken-models/
 **Built 2026-04-29.** Loader uses the same Unsloth FastModel pattern
 as `live-demo/kernel.py`. Same shutdown infrastructure as the other
 7 server kernels (red floating button + `/shutdown` page +
-`/api/shutdown` POST). Yellow "JAILBROKEN MODEL LOADED — refusals
-ablated" banner (top-left) reminds the user this isn't a normal
-playground. Wheels dataset
+`/api/shutdown` POST). A yellow "safety-stripped model loaded" banner
+(top-left) reminds the user this isn't a normal playground. Wheels dataset
 (`duecare-a10-runtime-vs-weights-safety-study-wheels`) is staged locally for Taylor's manual Kaggle upload.
 
 ---
@@ -134,7 +134,7 @@ playground. Wheels dataset
 
 ### All DueCare kernels
 
-You are here: **#A10 appendix — Jailbroken-Gemma comparison**.
+You are here: **#A10 appendix — Runtime vs weights safety study**.
 
 - [#01 core: Migrant-worker safety playground](../01-duecare-exploration-workbench/README.md)
 - [#02 core: Live demo (focused walkthrough)](../02-live-demo/README.md)

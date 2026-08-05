@@ -28,7 +28,7 @@
     - GPU: T4 (e4b-it default); e2b-it also vision-capable
     - Internet: ON (GitHub + HF Hub model download)
 
-  Built with Google's Gemma 4. Used in accordance with the Gemma Terms of Use.
+  Built with Google's Gemma 4, used under the Apache License 2.0.
 ============================================================================
 """
 from __future__ import annotations

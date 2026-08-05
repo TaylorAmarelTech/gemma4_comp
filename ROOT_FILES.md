@@ -21,6 +21,7 @@ one-off historical helpers belong under `_archive/`.
 | `SECURITY.md` | Security reporting and privacy posture. |
 | `RESULTS.md` | Provenance table for headline metrics cited by the README and docs site. |
 | `LICENSES.md` | Competition-facing attribution and license summary. |
+| `NOTICE` | Apache 2.0 attribution notice for Gemma 4 and its derivatives. Records that DueCare redistributes no Gemma base weights, that the published LoRA adapters are Derivative Works carrying Apache 2.0 plus the Gemma Prohibited Use Policy, and that MIT covers DueCare code only. |
 | `THIRD_PARTY_LICENSES.md` | Dependency-level attribution referenced by the README. |
 | `ROOT_FILES.md` | This root-file manifest and cleanup policy. |
 

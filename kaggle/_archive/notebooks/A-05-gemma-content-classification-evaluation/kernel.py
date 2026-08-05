@@ -50,7 +50,7 @@
     config.harness_layers     = ["persona", "grep", "rag", "tools"]
     results[].harness_trace   = {persona, grep, rag, tools, online}
 
-  Built with Google's Gemma 4. Used in accordance with the Gemma Terms of Use.
+  Built with Google's Gemma 4, used under the Apache License 2.0.
 ============================================================================
 """
 from __future__ import annotations

@@ -397,4 +397,4 @@ following are ALREADY publishable:
 > **Built with Google's Gemma 4** (target on-device variant:
 > [google/gemma-4-e2b-it](https://huggingface.co/google/gemma-4-e2b-it)).
 > Used in accordance with the
-> [Gemma Terms of Use](https://ai.google.dev/gemma/terms).
+> [Gemma 4 license — Apache 2.0](https://ai.google.dev/gemma/apache_2).
