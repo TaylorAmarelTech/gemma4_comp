@@ -23,6 +23,15 @@ from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 
+# This scanner necessarily contains the very strings it forbids -- the model
+# identifiers live in its regex, and the superseded licence URL lives in its
+# allowlist. Without this exclusion it reports itself, which is exactly what
+# happened the first time it ran as a tracked file (it had passed while still
+# untracked and therefore invisible to `git ls-files`). A scanner must not scan
+# its own rule definitions. Only the two content checks skip this path; the
+# NOTICE and local-path checks are unaffected.
+SELF_PATH = "scripts/validate_legal_hygiene.py"
+
 TEXT_SUFFIXES = {
     ".md", ".py", ".json", ".jsonl", ".yaml", ".yml",
     ".txt", ".html", ".ipynb", ".cfg", ".toml",
@@ -114,6 +123,8 @@ def check_no_stripped_model_ids(files: list[Path]) -> list[str]:
     """Fail if any safety-stripped checkpoint identifier is referenced."""
     findings = []
     for path in files:
+        if path.as_posix() == SELF_PATH:
+            continue
         for match in sorted(set(STRIPPED_MODEL_PATTERN.findall(_read(path)))):
             findings.append(
                 f"{path.as_posix()} references safety-stripped model '{match}'"
@@ -125,6 +136,8 @@ def check_gemma4_license_reference(files: list[Path]) -> list[str]:
     """Fail if Gemma 4 is described under the superseded Gemma Terms of Use."""
     findings = []
     for path in files:
+        if path.as_posix() == SELF_PATH:
+            continue
         if path.as_posix() in SUPERSEDED_TERMS_ALLOWLIST:
             continue
         if SUPERSEDED_TERMS_URL in _read(path):
