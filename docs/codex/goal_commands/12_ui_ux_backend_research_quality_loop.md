@@ -8,7 +8,7 @@
 
 ---
 
-/goal In `C:\Users\amare\OneDrive\Documents\gemma4_comp`, work on `master`, never switch branches. Run a long, autonomous, workflow-driven implementation-quality pass across the whole DueCare / Gemma 4 project: UI/UX clarity and button/action consistency, backend wiring, workflow gating, the research-frontier tools/spiders/facts, and the harness-lift benchmark + judging stack. Do not merely audit — inspect, improve, test, leak-scan, gate, commit, push, and continue in coherent loops.
+/goal In `<repo-root>`, work on `master`, never switch branches. Run a long, autonomous, workflow-driven implementation-quality pass across the whole DueCare / Gemma 4 project: UI/UX clarity and button/action consistency, backend wiring, workflow gating, the research-frontier tools/spiders/facts, and the harness-lift benchmark + judging stack. Do not merely audit — inspect, improve, test, leak-scan, gate, commit, push, and continue in coherent loops.
 
 READ FIRST (in order, skip any that are absent): `AGENTS.md`; `CLAUDE.md`; `.claude/rules/*.md`; `docs/codex/README.md`, `docs/codex/00_do_not_break.md`, `docs/codex/00_kernel_compatibility_gate.md`, `docs/codex/00_execution_order.md`, `docs/codex/goal_commands/README.md`, `docs/codex/goal_commands/11_iterative_branching_research_frontier.md`; the memory file `harness-lift benchmark (generate -> judge, 500->2000 scale)` and `feedback_synthetic_pii_allowed`. Honor every route, DOM-ID, static-page, Kaggle, activity-log, sample-artifact, model-loading, and PII/privacy constraint.
 
@@ -56,7 +56,7 @@ Loop tasks here, in order: (1) tag the full 1,000-prompt set with the applicabil
 9. Update handoff/run-state if research-frontier or benchmark artifacts changed.
 10. Continue to the next gap without asking.
 
-== VALIDATION (use the project testenv when local Python is broken: `C:\Users\amare\AppData\Local\gemma4-testenv\venv\Scripts\python.exe`) ==
+== VALIDATION (use the project testenv when local Python is broken: `%LOCALAPPDATA%\gemma4-testenv\venv\Scripts\python.exe`) ==
 - Focused: `python -m pytest tests/test_templates_batch_fill.py tests/test_public_research_spider.py tests/test_public_search_providers.py tests/test_public_fetch_extract.py tests/test_public_tool_survey.py tests/test_major_case_pattern_extractor.py tests/test_dimension_selector.py tests/test_applicability_judge.py tests/test_harness_lift_*.py tests/test_prompt_remixer.py tests/test_build_lift_report.py -q`
 - `python scripts/validate_public_surface.py`
 - `python -m pytest packages --collect-only -q`

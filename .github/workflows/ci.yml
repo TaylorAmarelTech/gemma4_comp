@@ -100,6 +100,8 @@ jobs:
           python scripts/prompt_corpus.py export-by-category
       - name: No stored model completions in the public corpus
         run: python scripts/redact_seed_prompt_responses.py --check
+      - name: Legal hygiene (licence refs, model ids, NOTICE, local paths)
+        run: python scripts/validate_legal_hygiene.py
 
   validate-benchmark:
     name: kaggle community benchmark validator

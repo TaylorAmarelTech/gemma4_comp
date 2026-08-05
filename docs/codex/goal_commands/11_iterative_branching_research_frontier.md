@@ -21,7 +21,7 @@ tests are loop checkpoints.
 ## Copy-paste `/goal`
 
 ```text
-/goal In C:\Users\amare\OneDrive\Documents\gemma4_comp, work on master without switching branches and follow docs/codex/goal_commands/11_iterative_branching_research_frontier.md as a 24-72 hour iterative branching research-frontier run. Start from the current public research spider artifacts and major-case aggregate pattern outputs. Spend the first several loops searching for and profiling better public search, spider, crawler, browser-automation, document-extraction, WARC/archive, dork-generation, and OSINT-adjacent Python repos/tools, then create a tool evaluation matrix and adopt only safe optional adapters behind deterministic tests. After that, repeatedly branch outward from each high-yield source candidate, tool candidate, knowledge object, source profile, failed query, and coverage gap. For each loop: extract new search terms and dorks; search official/court/immigration/justice/labour/law-enforcement/intergovernmental/nontraditional sources; profile new public documents; distill dated candidate knowledge objects; create or refine dimensions, tests, single-turn prompts, multi-turn conversations, hybrid scenario mixes, adversarial detection/refusal prompts, and long-context stress prompts; regenerate deterministic artifacts; run focused tests, leak scans, and repo gates; commit and push coherent slices; update resume state; then continue to the next highest-value branch without asking Taylor. Escalate only for credentials, destructive actions, unresolved PII/secrets risk, private-data exposure risk, or validation blockers that repeat after three genuine fix attempts. Do not stop after planning, one tool survey, one country, one source cluster, one batch of dorks, one generated corpus, one commit, or one successful validation pass.
+/goal In <repo-root>, work on master without switching branches and follow docs/codex/goal_commands/11_iterative_branching_research_frontier.md as a 24-72 hour iterative branching research-frontier run. Start from the current public research spider artifacts and major-case aggregate pattern outputs. Spend the first several loops searching for and profiling better public search, spider, crawler, browser-automation, document-extraction, WARC/archive, dork-generation, and OSINT-adjacent Python repos/tools, then create a tool evaluation matrix and adopt only safe optional adapters behind deterministic tests. After that, repeatedly branch outward from each high-yield source candidate, tool candidate, knowledge object, source profile, failed query, and coverage gap. For each loop: extract new search terms and dorks; search official/court/immigration/justice/labour/law-enforcement/intergovernmental/nontraditional sources; profile new public documents; distill dated candidate knowledge objects; create or refine dimensions, tests, single-turn prompts, multi-turn conversations, hybrid scenario mixes, adversarial detection/refusal prompts, and long-context stress prompts; regenerate deterministic artifacts; run focused tests, leak scans, and repo gates; commit and push coherent slices; update resume state; then continue to the next highest-value branch without asking Taylor. Escalate only for credentials, destructive actions, unresolved PII/secrets risk, private-data exposure risk, or validation blockers that repeat after three genuine fix attempts. Do not stop after planning, one tool survey, one country, one source cluster, one batch of dorks, one generated corpus, one commit, or one successful validation pass.
 ```
 
 ## Mission
@@ -685,14 +685,14 @@ Do not promote candidate knowledge objects to verified status unless:
 Run focused tests after each implementation slice:
 
 ```bash
-C:\Users\amare\AppData\Local\gemma4-testenv\venv\Scripts\python.exe -m pytest tests/test_public_research_spider.py tests/test_major_case_pattern_extractor.py -q
+%LOCALAPPDATA%\gemma4-testenv\venv\Scripts\python.exe -m pytest tests/test_public_research_spider.py tests/test_major_case_pattern_extractor.py -q
 ```
 
 Add and run any new focused tests created by the loop. If tool scripts are
 created, expected focused tests include:
 
 ```bash
-C:\Users\amare\AppData\Local\gemma4-testenv\venv\Scripts\python.exe -m pytest tests/test_public_tool_survey.py tests/test_public_search_providers.py tests/test_public_fetch_extract.py -q
+%LOCALAPPDATA%\gemma4-testenv\venv\Scripts\python.exe -m pytest tests/test_public_tool_survey.py tests/test_public_search_providers.py tests/test_public_fetch_extract.py -q
 ```
 
 Run leak scans over changed scripts, tests, and generated artifacts. Classify

@@ -898,8 +898,9 @@ def _knowledge_packs() -> list[KnowledgePackSummary]:
                 "Public ILO, Palermo, corridor, and pattern-brief context for "
                 "grounded Gemma 4 answers: 846 trafficking-domain documents, plus "
                 "a separate 610-document corpus spanning 51 integrity verticals "
-                "(corruption, financial crime, elder care, and more) that proves "
-                "the architecture generalizes beyond one domain."
+                "(corruption, financial crime, elder care, and more). Coverage across "
+                "those verticals is evidence that the architecture is not "
+                "single-domain; it is not a measured generalization claim."
             ),
             status="live",
             update_channel="Public-source proposals then curator review",

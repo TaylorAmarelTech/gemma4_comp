@@ -3,7 +3,7 @@
 You are Claude Code working in:
 
 ```text
-C:\Users\amare\OneDrive\Documents\gemma4_comp
+<repo-root>
 ```
 
 Your task is to review and improve the Bulk File Review demo path. Treat this

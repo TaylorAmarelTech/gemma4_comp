@@ -92,5 +92,5 @@ Do not put Cloudflare, Render, provider, or analytics API keys in repo files.
 From the monorepo root:
 
 ```powershell
-c:/Users/amare/OneDrive/Documents/gemma4_comp/.venv/Scripts/python.exe -m pytest apps/duecare-ai.com/tests -q
+.venv/Scripts/python.exe -m pytest apps/duecare-ai.com/tests -q
 ```

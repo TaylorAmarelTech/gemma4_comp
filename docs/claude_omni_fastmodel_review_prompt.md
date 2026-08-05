@@ -2,7 +2,7 @@
 
 You are Claude Code working in:
 
-`C:\Users\amare\OneDrive\Documents\gemma4_comp`
+`<repo-root>`
 
 Please read `CLAUDE.md` first, then read `docs/model_loading_trace.md`.
 

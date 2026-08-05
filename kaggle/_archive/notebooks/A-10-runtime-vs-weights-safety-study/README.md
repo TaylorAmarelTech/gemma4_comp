@@ -95,8 +95,10 @@ re-publishing it.
    model's training-time refusals. Even an ablated model behaves
    safely when the runtime harness is wired.
 
-This is the strongest possible "real, not faked" rubric demo: the
-harness works on a HOSTILE input model.
+This is a deliberately adversarial test of the "real, not faked" claim:
+the harness is measured against an input model chosen to be hostile to it.
+A single appendix run is a demonstration, not a general guarantee that the
+harness holds against every possible safety-stripped checkpoint.
 
 ## Files in this folder
 

@@ -15,7 +15,7 @@ section; use `git log --oneline -10` for the live HEAD.
 
 ## Where we are
 
-Repo: `C:\Users\amare\OneDrive\Documents\gemma4_comp`
+Repo: `<repo-root>`
 Branch: `master` (clean, in sync with `origin/master`)
 HEAD: `8141134 Add Copilot handoff snapshot for 2026-05-16 session`
 
@@ -379,7 +379,7 @@ work unless Taylor asks.
 ## Verification commands (PowerShell)
 
 ```powershell
-cd C:\Users\amare\OneDrive\Documents\gemma4_comp
+cd <repo-root>
 git fetch origin
 git status --short --branch
 git log --oneline -10

@@ -27,7 +27,7 @@ Product framing:
 - The hub is a coordination plane, not a raw case-management system.
 - The hub must never collect raw worker case details, passport numbers, phone numbers, emails, home addresses, or other PII.
 - Render does not run Gemma 4 inference. Gemma 4 runs in Kaggle, local Ollama/llama.cpp, HF Spaces, NGO edge boxes, or mobile LiteRT.
-- The website proves a public, working infrastructure layer around the Kaggle model demo: anonymized signals, public-source update proposals, knowledge-pack metadata, and curator review.
+- The website demonstrates a public, working infrastructure layer around the Kaggle model demo: anonymized signals, public-source update proposals, knowledge-pack metadata, and curator review.
 
 Current architecture:
 

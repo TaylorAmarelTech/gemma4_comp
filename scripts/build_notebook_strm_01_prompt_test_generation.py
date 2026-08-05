@@ -84,7 +84,7 @@ try:
 except Exception:
     print("Proceeding without HF auth (repo is public)")
 
-MODEL_ID = "TrevorJS/gemma-4-E4B-it-uncensored"
+MODEL_ID = "<operator-supplied-checkpoint>"
 print(f"\nLoading {MODEL_ID} ...")
 t0 = time.time()
 tokenizer = AutoTokenizer.from_pretrained(MODEL_ID, trust_remote_code=True)

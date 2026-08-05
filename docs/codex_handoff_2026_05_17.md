@@ -8,7 +8,7 @@ you do not need the prior session's chat history.
 
 ## Where we are right now
 
-Repo: `C:\Users\amare\OneDrive\Documents\gemma4_comp`
+Repo: `<repo-root>`
 Branch: `master`, clean, in sync with `origin/master`.
 HEAD: `965e1f9 Bump A00 inference context to 16K for grading and full-harness prompts`
 
@@ -275,7 +275,7 @@ Pick any of these. Each is small enough to commit independently.
 ## Verification commands (PowerShell)
 
 ```powershell
-cd C:\Users\amare\OneDrive\Documents\gemma4_comp
+cd <repo-root>
 git fetch origin
 git status --short --branch
 git log --oneline -10

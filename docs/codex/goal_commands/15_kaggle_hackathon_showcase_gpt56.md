@@ -33,7 +33,7 @@ Related source documents:
 ````text
 You are working in:
 
-C:\Users\amare\OneDrive\Documents\gemma4_comp
+<repo-root>
 
 You are a senior coding agent continuing the DueCare / Gemma 4 Kaggle
 hackathon showcase. Work end to end. Do not stop at explanation. Inspect the
@@ -448,7 +448,7 @@ validated improvement slice and leave exact evidence.
 Use this shorter block when the target agent has limited context length:
 
 ```text
-In C:\Users\amare\OneDrive\Documents\gemma4_comp, continue the DueCare / Gemma
+In <repo-root>, continue the DueCare / Gemma
 4 Kaggle hackathon showcase. Treat the Kaggle datasets and notebooks as a
 professional, reviewer-friendly learning artifact. Verify the two public
 datasets, nine public notebooks, manifest hashes, and remote notebook output

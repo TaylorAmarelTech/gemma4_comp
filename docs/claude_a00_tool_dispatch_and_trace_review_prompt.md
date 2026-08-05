@@ -24,7 +24,7 @@ context, and reviewer visibility â€” and can it regress silently?"
 ## Paste-ready prompt
 
 You are Claude Code working in:
-C:\Users\amare\OneDrive\Documents\gemma4_comp
+<repo-root>
 
 Read these first, in order:
 1. CLAUDE.md (project context, canonical Gemma 4 runtime, A-00

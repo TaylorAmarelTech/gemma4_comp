@@ -72,6 +72,7 @@ notebook-era appendix surfaces are historical.
 | **A/B Compare tab** — same prompt, two harness configurations, side-by-side grades | `kaggle/01-duecare-exploration-workbench/kernel.py` live; UI button next to "About" |
 | **License + attribution** — every bundled asset, every model, every third-party reference | `LICENSES.md` |
 | **Competition rule compliance** — winner licence, external-data reasonableness, reproducibility deliverables, open-source and warranty provisions, mapped section by section | [`COMPETITION_COMPLIANCE.md`](COMPETITION_COMPLIANCE.md) |
+| **Responsible use policy** — what DueCare is and is not, prohibited uses, why the adversarial corpora are released tiered, privacy boundaries, reporting routes | [`RESPONSIBLE_USE.md`](RESPONSIBLE_USE.md) |
 | **Public hub** — knowledge-pack registry + anonymized signal intake + public-source proposal intake | [duecare-ai.com](https://duecare-ai.com) (code at [`apps/duecare-ai.com/`](../apps/duecare-ai.com/), deployed via repo-root `render.yaml`) |
 | **Hub API surface** — `GET /api/hub/knowledge-packs`, `POST /api/hub/signals`, `POST /api/hub/opencrawl/updates`, `GET /api/hub/trends`, `GET /api/hub/status`, `GET /api/health` | [duecare-ai.com/docs](https://duecare-ai.com/docs) (FastAPI auto-generated OpenAPI) |
 | **Recording-grade deck and demo routes** | `kaggle/02-live-demo/kernel.py` prints a `*.trycloudflare.com` tunnel; open `/start`, `/slides`, and `/wb-static/process.html` |

@@ -11,7 +11,7 @@ objectives have a 4,000 character limit.
 ## Copy-paste `/goal`
 
 ```text
-/goal In C:\Users\amare\OneDrive\Documents\gemma4_comp, work on master without switching branches and follow docs/codex/goal_commands/07_verification_showcase_hardening.md. Run the verification-first environment hardening, runtime smoke tests, manual path tracing, and Gemma 4 ecosystem showcase review described there. Do not stop for ordinary failures; diagnose, repair, rerun, and continue. Stop only for required approval, destructive actions, secrets risk, or unsafe user-change conflict. Commit and push only scoped fixes; if no fixes are needed, do not commit. Final report must include env details, pass/fail table, path-tracing findings, showcase/design findings, push status, blockers, and Kaggle readiness.
+/goal In <repo-root>, work on master without switching branches and follow docs/codex/goal_commands/07_verification_showcase_hardening.md. Run the verification-first environment hardening, runtime smoke tests, manual path tracing, and Gemma 4 ecosystem showcase review described there. Do not stop for ordinary failures; diagnose, repair, rerun, and continue. Stop only for required approval, destructive actions, secrets risk, or unsafe user-change conflict. Commit and push only scoped fixes; if no fixes are needed, do not commit. Final report must include env details, pass/fail table, path-tracing findings, showcase/design findings, push status, blockers, and Kaggle readiness.
 ```
 
 ## Mission

@@ -2,7 +2,7 @@
 
 - Total entries: 292
 - Categories:    10
-- Cache dir:     `C:\Users\amare\OneDrive\Documents\gemma4_comp\data\curation_cache`
+- Cache dir:     `<repo-root>\data\curation_cache`
 
 ## Per-category counts
 

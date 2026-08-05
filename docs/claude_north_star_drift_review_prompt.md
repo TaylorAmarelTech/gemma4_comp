@@ -1,7 +1,7 @@
 ﻿# Claude Prompt: North-Star Drift, Harness, And A-00 Review
 
 You are Claude Code working in:
-`C:\Users\amare\OneDrive\Documents\gemma4_comp`
+`<repo-root>`
 
 Read these first:
 

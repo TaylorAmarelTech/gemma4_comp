@@ -196,7 +196,8 @@ No API keys are required for the initial public hub.
 
 ## Relationship to the Gemma 4 submission
 
-- Kaggle proves the Gemma 4 model + harness behavior.
-- `duecare-ai.com` proves the public coordination layer.
+- Kaggle is where the Gemma 4 model and harness behaviour can be run and inspected.
+- `duecare-ai.com` is where the public coordination layer can be run and inspected.
+- Both are demonstrations on recorded benchmarks, not field-deployment evidence.
 - Local/mobile deployments keep sensitive cases private.
 - The hub only exchanges anonymized patterns, public-source proposals, prompts, evaluation manifests, and vetted knowledge-pack metadata.

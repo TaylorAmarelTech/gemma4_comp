@@ -689,7 +689,7 @@ results to Kaggle Datasets / Models.**
 If you approve this plan, the first three things to do (in order):
 
 1. **Create the Kaggle API token** (Kaggle Settings → Create New Token),
-   move `kaggle.json` to `C:\Users\amare\.kaggle\`, and confirm with
+   move `kaggle.json` to `%USERPROFILE%\.kaggle\`, and confirm with
    `kaggle competitions list | head`. **Blocking — nothing else works
    until this is done.**
 2. **Join the Gemma 4 Good Hackathon** via the competition UI so

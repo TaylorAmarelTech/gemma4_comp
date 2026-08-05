@@ -16,7 +16,7 @@ should reference this file instead of pasting the full text.
 ## Copy-paste `/goal`
 
 ```text
-/goal In C:\Users\amare\OneDrive\Documents\gemma4_comp, work on master without switching branches and follow docs/codex/goal_commands/09_major_case_research_benchmark_expansion.md as a multi-hour no-stop capability run. Improve the major-case-derived benchmark pipeline with public web research, source-grounded knowledge extraction, scenario crafting, deterministic scenario mixing, stronger tests, more synthetic prompts, more derived dimensions, and richer exploitation/camouflage coverage from C:\projects\major_cases while preserving strict PII safety. Do not stop after a plan or one small edit; complete repeated research/extraction/generation/validation loops, commit and push coherent slices, and continue until the file's completion standard is met or a real blocker is documented.
+/goal In <repo-root>, work on master without switching branches and follow docs/codex/goal_commands/09_major_case_research_benchmark_expansion.md as a multi-hour no-stop capability run. Improve the major-case-derived benchmark pipeline with public web research, source-grounded knowledge extraction, scenario crafting, deterministic scenario mixing, stronger tests, more synthetic prompts, more derived dimensions, and richer exploitation/camouflage coverage from C:\projects\major_cases while preserving strict PII safety. Do not stop after a plan or one small edit; complete repeated research/extraction/generation/validation loops, commit and push coherent slices, and continue until the file's completion standard is met or a real blocker is documented.
 ```
 
 ## Mission

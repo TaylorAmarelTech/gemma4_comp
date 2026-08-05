@@ -28,7 +28,7 @@ services.
 ## Copy-paste `/goal`
 
 ```text
-/goal In C:\Users\amare\OneDrive\Documents\gemma4_comp, work on master without switching branches and follow docs/codex/goal_commands/10_global_research_corpus_multiturn_benchmark.md as a long no-stop autonomous research and benchmark capability run. Search broadly across public web sources and nontraditional sources, create or refresh at least 1,000 safe source-profile documents, maintain a resumable search frontier, extract source-grounded facts and verification notes, expand exploitation/camouflage dimensions, create single-turn and multi-turn benchmark prompts, build hybrid scenario mixes across public case law and private aggregate patterns from C:\projects\major_cases, regenerate artifacts, add tests, run PII/leak checks and repo validation gates, commit and push coherent slices, then continue using coverage gaps, failed tests, and source-cluster gaps to choose the next batch without asking Taylor. Escalate to Taylor only for PII/secrets risk, destructive actions, credentials, or repeated unrecoverable validation blockers. Do not stop after a plan, one scrape, one country, one prompt batch, one commit, or one successful validation pass.
+/goal In <repo-root>, work on master without switching branches and follow docs/codex/goal_commands/10_global_research_corpus_multiturn_benchmark.md as a long no-stop autonomous research and benchmark capability run. Search broadly across public web sources and nontraditional sources, create or refresh at least 1,000 safe source-profile documents, maintain a resumable search frontier, extract source-grounded facts and verification notes, expand exploitation/camouflage dimensions, create single-turn and multi-turn benchmark prompts, build hybrid scenario mixes across public case law and private aggregate patterns from C:\projects\major_cases, regenerate artifacts, add tests, run PII/leak checks and repo validation gates, commit and push coherent slices, then continue using coverage gaps, failed tests, and source-cluster gaps to choose the next batch without asking Taylor. Escalate to Taylor only for PII/secrets risk, destructive actions, credentials, or repeated unrecoverable validation blockers. Do not stop after a plan, one scrape, one country, one prompt batch, one commit, or one successful validation pass.
 ```
 
 ## Mission
@@ -699,9 +699,9 @@ present, start another loop instead of ending.
 Use the project test environment if the system Python is broken:
 
 ```powershell
-C:\Users\amare\AppData\Local\gemma4-testenv\venv\Scripts\python.exe -m pytest tests\test_major_case_pattern_extractor.py -q
-C:\Users\amare\AppData\Local\gemma4-testenv\venv\Scripts\python.exe scripts\validate_public_surface.py
-C:\Users\amare\AppData\Local\gemma4-testenv\venv\Scripts\python.exe -m pytest packages --collect-only -q
+%LOCALAPPDATA%\gemma4-testenv\venv\Scripts\python.exe -m pytest tests\test_major_case_pattern_extractor.py -q
+%LOCALAPPDATA%\gemma4-testenv\venv\Scripts\python.exe scripts\validate_public_surface.py
+%LOCALAPPDATA%\gemma4-testenv\venv\Scripts\python.exe -m pytest packages --collect-only -q
 python scripts\validate_main_kaggle_kernels.py
 py -3.12 scripts\validate_kaggle_page_sources.py
 ```

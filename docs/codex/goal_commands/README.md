@@ -8,7 +8,7 @@ These are agent commands, not shell commands. Paste one whole block into Codex w
 
 All command packs assume:
 
-- Repo: `C:\Users\amare\OneDrive\Documents\gemma4_comp`
+- Repo: `<repo-root>`
 - Branch: `master`
 - Read first: `docs/codex/README.md`, `docs/codex/00_do_not_break.md`, `docs/codex/00_kernel_compatibility_gate.md`, and `docs/codex/00_execution_order.md`
 - Keep the four active/optional root Kaggle `kernel.py` files and the Kaggle root layout green; appendix and archived notebooks are out of scope unless Taylor explicitly says otherwise

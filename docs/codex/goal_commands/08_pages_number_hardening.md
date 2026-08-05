@@ -10,7 +10,7 @@ objectives have a 4,000 character limit.
 ## Copy-paste `/goal`
 
 ```text
-/goal In C:\Users\amare\OneDrive\Documents\gemma4_comp, work on master without switching branches and follow docs/codex/goal_commands/08_pages_number_hardening.md. Same-day priority: get GitHub Pages enabled/deploying for the project docs, or report the exact GitHub/token/settings blocker with evidence. Continue Kaggle-safe polish, remove fragile public magic numbers unless a generated artifact or validation contract owns them, keep active Kaggle kernel.py files compatible, run the documented gates, commit only scoped fixes, push, and report Pages status, CI status, Kaggle readiness, changed files, tests, and unresolved risks.
+/goal In <repo-root>, work on master without switching branches and follow docs/codex/goal_commands/08_pages_number_hardening.md. Same-day priority: get GitHub Pages enabled/deploying for the project docs, or report the exact GitHub/token/settings blocker with evidence. Continue Kaggle-safe polish, remove fragile public magic numbers unless a generated artifact or validation contract owns them, keep active Kaggle kernel.py files compatible, run the documented gates, commit only scoped fixes, push, and report Pages status, CI status, Kaggle readiness, changed files, tests, and unresolved risks.
 ```
 
 ## Mission

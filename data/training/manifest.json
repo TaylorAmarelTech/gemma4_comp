@@ -1,6 +1,6 @@
 {
   "created_at": "2026-04-12T19:19:17.796522",
-  "source": "C:\\Users\\amare\\OneDrive\\Documents\\gemma4_comp\\configs\\duecare\\domains\\trafficking\\seed_prompts.jsonl",
+  "source": "<repo-root>\\configs\\duecare\\domains\\trafficking\\seed_prompts.jsonl",
   "n_source_prompts": 204,
   "n_examples": 612,
   "n_positive": 408,

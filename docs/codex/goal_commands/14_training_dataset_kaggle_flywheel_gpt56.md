@@ -30,7 +30,7 @@ Related source documents:
 ## Copy-paste master prompt
 
 ```text
-You are working in C:\Users\amare\OneDrive\Documents\gemma4_comp.
+You are working in <repo-root>.
 
 You are a senior coding agent continuing the DueCare / Gemma training-data
 flywheel. Work end to end. Do not stop at explanation. Inspect the repository,
@@ -602,7 +602,7 @@ validated slice and keep going.
 Use this shorter block when the target agent has limited context length:
 
 ```text
-In C:\Users\amare\OneDrive\Documents\gemma4_comp, continue the DueCare
+In <repo-root>, continue the DueCare
 training-data and Kaggle flywheel. Read AGENTS.md and docs/training_and_finetuning.md first.
 Inventory all prompt/response/grade/synthetic data; normalize into SFT,
 preference/DPO, reward-label, evaluation, and quarantine schemas; build or
