@@ -72,7 +72,8 @@ reproduce the approach.
 | Required | Where |
 |---|---|
 | Training code | `packages/duecare-llm-training/`, `kaggle/A-00-omni-experiment-workbench/kernel.py` |
-| Training hyper-parameters | `configs/duecare/training/unsloth_e4b.yaml` — 3 epochs, per-device batch 4, learning rate 2e-4, max sequence length 2048, `adamw_8bit` optimiser |
+| Training recipe (E4B path) | `configs/duecare/training/unsloth_e4b.yaml` — 3 epochs, per-device batch 4, learning rate 2e-4, max sequence length 2048, `adamw_8bit` optimiser |
+| Hyper-parameters of the **published** adapters | Those are **E2B** runs and did not execute the E4B recipe above to completion. Authoritative per-run values live in each run's `metrics.json` / `run-manifest.json` in the adapter dataset — run-01: 12 steps, epoch 0.75; run-02: 60 steps, epoch 1.875; both peak lr 2e-4. Summarised in [`MODEL_CARD_DRAFT.md`](MODEL_CARD_DRAFT.md) |
 | Adapter shape per run | `adapter_config.json` inside each `runs/run-*/adapter/` of the published adapter dataset (base checkpoint, rank, target modules) |
 | Inference code | `packages/duecare-llm-chat/src/duecare/chat/gemma4_runtime.py` (canonical loader) plus the active Kaggle kernels |
 | Computational environment | `docs/deployment_local.md`, `requirements.txt`, and the accelerator/attachment requirements in each `kaggle/*/README.md` |
