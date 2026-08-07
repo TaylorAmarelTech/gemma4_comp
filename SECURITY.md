@@ -42,7 +42,7 @@ fine if you believe workers are at active risk.
 
 ## Past incidents
 
-### Credential exposure in git history — resolved 2026-08-05
+### Credential exposure in git history — resolved 2026-08-05, remote purge completed 2026-08-07
 
 **Both credentials below have been disabled at their providers and are no
 longer valid.** They are recorded here because disclosure is more useful than
@@ -53,8 +53,10 @@ quiet deletion.
 | What | A Google API key and a Hugging Face access token |
 | Committed | 2026-05-01 |
 | Removed from working tree | 2026-05-04 and 2026-05-15 |
-| Remained readable in history until | 2026-08-05 |
-| Status | **Revoked at the provider; strings purged from git history** |
+| Revoked at the provider | 2026-08-05 — the step that actually resolved the exposure |
+| History rewritten locally | 2026-08-05 |
+| Purged history propagated to the public remote | 2026-08-07 (every branch and the tag; the 2026-08-05 push did not complete) |
+| Status | **Revoked at the provider; strings purged from public git history** |
 
 Removing a secret from the working tree does not remove it from history. Both
 values stayed readable to anyone who cloned this public repository for roughly
@@ -82,7 +84,8 @@ re-cloned.
 **Prevention:** `gitleaks` runs in pre-commit and in CI at full history depth,
 `.env` is gitignored and was never committed, and
 `scripts/validate_legal_hygiene.py` gates the repository on every push. GitHub
-push protection is the recommended additional control.
+secret scanning and push protection were enabled on the repository on
+2026-08-07.
 
 ## Hall of fame
 

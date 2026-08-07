@@ -1,14 +1,27 @@
 # Runbook — purging exposed credentials from git history
 
-**Status: EXECUTED 2026-08-05.** This procedure has been run against this
-repository. It is retained as the record of what was done, and as a runbook
-should it ever be needed again.
+**Status: EXECUTED — rewrite 2026-08-05, remote propagation 2026-08-07.**
+This procedure has been run against this repository. It is retained as the
+record of what was done, and as a runbook should it ever be needed again.
 
 **Outcome:** both credential strings replaced across 1,644 commits;
 full-history occurrences went from **19 to 0**; all 1,727 commits and every
 branch and tag preserved; file content otherwise unchanged. The submission
 snapshot moved from `d3ab6588` to `20ccc532`, and `RESULTS.md` was updated in
 the same operation. A pre-purge mirror backup was taken first.
+
+**Propagation record (2026-08-07):** the 2026-08-05 session rewrote history
+locally but its force-push never reached the remote, leaving the public
+repository unpurged for two further days while this document already read
+"EXECUTED". On 2026-08-07 the purged history was force-pushed to every public
+ref — `master`, the four remaining `agent/*` and `codex/*` branches, and the
+`ui-polish-2026-05-23` tag — and a fresh full-history scan of the remote
+confirmed zero credential occurrences. A complete bundle backup of the
+original remote state was retained offline first. Residuals that only GitHub
+can remove: the frozen `refs/pull/*` heads and cached views of old commit
+SHAs, both removable via a GitHub Support request and both inert since
+revocation. The repository had zero forks at purge time. GitHub secret
+scanning and push protection were enabled the same day.
 
 ## Read this first: rewriting history does not secure a leaked key
 
