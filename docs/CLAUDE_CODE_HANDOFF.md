@@ -86,9 +86,12 @@ Do not reuse the counts in this document as proof for a later revision.
   erase a dirty worktree merely because a handoff expected it to be clean.
 - The immediate fully merged predecessor to this maintenance closeout is pull
   request [#16](https://github.com/TaylorAmarelTech/gemma4_comp/pull/16), merge
-  commit `1c8f6b25729da869b2775a29321ab3b74bd4715f`. Its 16 checks passed. This
-  immutable predecessor receipt is historical context, not a substitute for
-  `git rev-parse HEAD` or the checks on live `master`.
+  commit `dcd60564bf1b20a36cf898bff2f9d376e71fef4e` (recorded pre-purge as
+  `1c8f6b25…`; every SHA from 2026-05-01 onward changed in the 2026-08-05/07
+  credential-history purge — see `docs/security/CREDENTIAL_HISTORY_PURGE.md`).
+  Its 16 checks passed. This immutable predecessor receipt is historical
+  context, not a substitute for `git rev-parse HEAD` or the checks on live
+  `master`.
 - The model-free core publication scope is green at the recorded revision. The
   strict training scope remains intentionally red and excluded from closeout
   claims; a future reopen requires source, rights, lineage, diversity, privacy,

@@ -84,8 +84,10 @@ historical receipts.
 
 The model-free closeout landed through
 [pull request 2](https://github.com/TaylorAmarelTech/gemma4_comp/pull/2) on
-`master` as merge commit `07cfdbfd00e1bc304ffc1f8b2736c4d93bbf0eab` on
-2026-07-26 (PDT). The post-merge evidence is:
+`master` as merge commit `d707467cf0eca147599d81d1bc7f76c1e5d3867d` on
+2026-07-26 (PDT) (recorded pre-purge as `07cfdbfd…`; SHAs changed in the
+2026-08-05/07 credential-history purge — see
+`docs/security/CREDENTIAL_HISTORY_PURGE.md`). The post-merge evidence is:
 
 - the [master CI run](https://github.com/TaylorAmarelTech/gemma4_comp/actions/runs/30235104435)
   passed both full Python matrices, the 18-wheel build, clean-room install,
@@ -154,7 +156,8 @@ named evidence gap and passes the publication checklist in
 The successor-focused wrap-up began in pull request 5, and its validated
 deferred-work closeout landed through
 [pull request 8](https://github.com/TaylorAmarelTech/gemma4_comp/pull/8) on
-`master` as merge commit `9385a837879209e18f8e013cf969a3e1ecbcfc91`.
+`master` as merge commit `404485ab66e58d5d2c701017948d55be1bf2525f`
+(recorded pre-purge as `9385a837…`).
 All 16 pull-request checks passed. In particular, the active Kaggle kernels,
 generated page sources, optional Community Benchmark surface, both full Python
 matrices, 18-wheel build, clean-room install, privacy/secret scan, public

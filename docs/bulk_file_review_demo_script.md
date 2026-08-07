@@ -1,7 +1,7 @@
 # Bulk File Review demo script
 
 This is the canonical step-by-step walkthrough of the live Bulk File Review
-demo as wired into commit `2687a6a` and later. Use it to drive a Kaggle
+demo as wired into commit `118db472` (pre-purge `2687a6a`) and later. Use it to drive a Kaggle
 session, validate any UI/UX regression, or storyboard reviewer flow before
 external review.
 
