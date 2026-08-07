@@ -56,7 +56,23 @@ quiet deletion.
 | Revoked at the provider | 2026-08-05 — the step that actually resolved the exposure |
 | History rewritten locally | 2026-08-05 |
 | Purged history propagated to the public remote | 2026-08-07 (every branch and the tag; the 2026-08-05 push did not complete) |
-| Status | **Revoked at the provider; strings purged from public git history** |
+| Status | **Revoked at the provider; strings purged from every branch and tag. Still present in GitHub's frozen `refs/pull/*` refs — see below.** |
+
+Where the two values stood in this repository's history they now read
+`REDACTED-GOOGLE-API-KEY-DISABLED-SEE-SECURITY-MD` and
+`REDACTED-HF-TOKEN-DISABLED-SEE-SECURITY-MD` — the replacement is
+self-documenting, so anyone reading an old commit sees that the credential was
+disabled and where to read about it.
+
+**Known remaining exposure, stated plainly:** GitHub freezes a `refs/pull/N/head`
+ref for every pull request, and those refs are not writable by the repository
+owner. All 17 of this repository's PR refs descend from the 2026-05-01 leak
+commit, so both original strings remain fetchable from the public repository
+with `git fetch origin 'refs/pull/*:refs/remotes/origin/pr/*'`. Only GitHub
+Support can remove them. This is disclosed rather than glossed because **the
+credentials are revoked and therefore inert** — a dead key in a frozen ref is a
+meaningless string, which is precisely why revocation, not rewriting, was
+treated as the remedy.
 
 Removing a secret from the working tree does not remove it from history. Both
 values stayed readable to anyone who cloned this public repository for roughly

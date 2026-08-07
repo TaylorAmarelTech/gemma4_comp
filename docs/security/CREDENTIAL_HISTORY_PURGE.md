@@ -16,12 +16,29 @@ repository unpurged for two further days while this document already read
 "EXECUTED". On 2026-08-07 the purged history was force-pushed to every public
 ref — `master`, the four remaining `agent/*` and `codex/*` branches, and the
 `ui-polish-2026-05-23` tag — and a fresh full-history scan of the remote
-confirmed zero credential occurrences. A complete bundle backup of the
-original remote state was retained offline first. Residuals that only GitHub
-can remove: the frozen `refs/pull/*` heads and cached views of old commit
-SHAs, both removable via a GitHub Support request and both inert since
-revocation. The repository had zero forks at purge time. GitHub secret
-scanning and push protection were enabled the same day.
+confirmed zero credential occurrences **on every branch and tag**. A complete
+bundle backup of the original remote state was retained offline first. The
+repository had zero forks at purge time. GitHub secret scanning and push
+protection were enabled the same day.
+
+**Measured residue — do not describe the purge as total.** A follow-up probe on
+2026-08-07 fetched the frozen `refs/pull/N/head` refs and confirmed that
+**both original strings are still fetchable from the public repository**
+through them. Every one of the 17 PR refs descends from the 2026-05-01 leak
+commit, and GitHub does not let a repository owner rewrite or delete
+`refs/pull/*`. One command recovers them:
+
+```bash
+git fetch origin 'refs/pull/*:refs/remotes/origin/pr/*'   # still serves both values
+```
+
+Only a GitHub Support request can purge those refs and the cached by-SHA commit
+views; the request to send is drafted in
+[`GITHUB_SUPPORT_REQUEST.md`](GITHUB_SUPPORT_REQUEST.md). Because both
+credentials were revoked at their providers on 2026-08-05, this residue is
+inert and the request is cleanup, not incident response. The lesson
+generalises: **a branch-and-tag scan is not a repository-wide scan on a host
+that keeps hidden refs.**
 
 ## Read this first: rewriting history does not secure a leaked key
 
