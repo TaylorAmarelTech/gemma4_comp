@@ -1,6 +1,22 @@
 # Repository identity migration — rename, or replace with a clean repository
 
-**Status: drafted 2026-08-07. NOT executed. Do not execute during grading.**
+**Status: drafted 2026-08-07. Non-destructive half executed 2026-08-08.
+Nothing public has changed. Do not execute the remainder during grading.**
+
+On 2026-08-08 the continuation repository `TaylorAmarelTech/duecare` was
+created **private**, and the full 1,732-commit history was pushed to it with
+explicit refspecs. A fresh clone of it verified 0 `refs/pull/*` refs and 0
+usable credentials, so the residue described in
+[`security/CREDENTIAL_HISTORY_PURGE.md`](security/CREDENTIAL_HISTORY_PURGE.md)
+does not exist there.
+
+**This repository was not modified by that work.** `gemma4_comp` was not
+renamed, archived, deprecated, or redirected. It remains the live public
+repository the frozen Kaggle writeup points judges at, and it stays that way
+until the owner confirms grading is complete. The publication steps — making
+`duecare` public, enabling its Pages site, re-pointing the Kaggle kernels, and
+archiving this repository behind a pointer README — are all still pending and
+are deliberately not done.
 
 This document is gated on the same event as
 [`POST_COMPETITION_HOSTING_TRANSITION.md`](POST_COMPETITION_HOSTING_TRANSITION.md):
