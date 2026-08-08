@@ -1,22 +1,27 @@
 # Repository identity migration — rename, or replace with a clean repository
 
-**Status: drafted 2026-08-07. Non-destructive half executed 2026-08-08.
-Nothing public has changed. Do not execute the remainder during grading.**
+**Status: drafted 2026-08-07. Continuation repository created and published
+2026-08-08. This repository is unchanged and remains the judged surface.**
 
-On 2026-08-08 the continuation repository `TaylorAmarelTech/duecare` was
-created **private**, and the full 1,732-commit history was pushed to it with
-explicit refspecs. A fresh clone of it verified 0 `refs/pull/*` refs and 0
-usable credentials, so the residue described in
+On 2026-08-08 the continuation repository
+[`TaylorAmarelTech/duecare`](https://github.com/TaylorAmarelTech/duecare) was
+created and the full 1,732-commit history pushed to it with explicit refspecs.
+A fresh clone verified 0 `refs/pull/*` refs and 0 usable credentials, so the
+residue described in
 [`security/CREDENTIAL_HISTORY_PURGE.md`](security/CREDENTIAL_HISTORY_PURGE.md)
-does not exist there.
+does not exist there. At the owner's request it was then made public and its
+MkDocs Pages site enabled at <https://tayloramareltech.github.io/duecare/>.
 
 **This repository was not modified by that work.** `gemma4_comp` was not
-renamed, archived, deprecated, or redirected. It remains the live public
-repository the frozen Kaggle writeup points judges at, and it stays that way
-until the owner confirms grading is complete. The publication steps — making
-`duecare` public, enabling its Pages site, re-pointing the Kaggle kernels, and
-archiving this repository behind a pointer README — are all still pending and
-are deliberately not done.
+renamed, archived, deprecated, or redirected, and its own Pages site is
+unaffected. It remains the live public repository that the frozen Kaggle
+writeup points judges at, and it stays that way until the owner confirms
+grading is complete. The step that would change *this* repository — archiving
+it behind a pointer README — plus re-pointing the Kaggle kernels and the
+Hugging Face model card, are deliberately not done.
+
+The authoritative, continuously updated copy of this document now lives in the
+`duecare` repository.
 
 This document is gated on the same event as
 [`POST_COMPETITION_HOSTING_TRANSITION.md`](POST_COMPETITION_HOSTING_TRANSITION.md):
