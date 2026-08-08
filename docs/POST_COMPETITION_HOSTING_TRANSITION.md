@@ -9,6 +9,12 @@ organizations can deploy as independently governed nodes.
 This is an event-triggered runbook. It does not authorize an early shutdown,
 DNS change, data deletion, or credential revocation while grading continues.
 
+Its companion is
+[`REPOSITORY_IDENTITY_MIGRATION.md`](REPOSITORY_IDENTITY_MIGRATION.md), which
+covers renaming or replacing the source repository itself. Both are gated on
+the same owner confirmation, and both change public URLs, so sequence them
+deliberately rather than running them in parallel.
+
 ## Before and after
 
 | Capability | During grading | After the transition |

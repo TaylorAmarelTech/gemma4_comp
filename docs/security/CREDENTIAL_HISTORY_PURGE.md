@@ -34,7 +34,11 @@ git fetch origin 'refs/pull/*:refs/remotes/origin/pr/*'   # still serves both va
 
 Only a GitHub Support request can purge those refs and the cached by-SHA commit
 views; the request to send is drafted in
-[`GITHUB_SUPPORT_REQUEST.md`](GITHUB_SUPPORT_REQUEST.md). Because both
+[`GITHUB_SUPPORT_REQUEST.md`](GITHUB_SUPPORT_REQUEST.md). The alternative that
+does not depend on GitHub at all is migrating to a fresh repository, which
+starts clean by construction — see
+[`../REPOSITORY_IDENTITY_MIGRATION.md`](../REPOSITORY_IDENTITY_MIGRATION.md),
+gated on the end of grading. Because both
 credentials were revoked at their providers on 2026-08-05, this residue is
 inert and the request is cleanup, not incident response. The lesson
 generalises: **a branch-and-tag scan is not a repository-wide scan on a host
