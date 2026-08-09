@@ -1,5 +1,26 @@
 # DueCare: A Gemma 4 Safety Ecosystem for Migrant-Worker Protection
 
+> ### Development has moved to [`TaylorAmarelTech/duecare`](https://github.com/TaylorAmarelTech/duecare)
+>
+> **This repository stays online, public, and unchanged.** It is the Gemma 4
+> Good competition submission and carries that submission's name, so every
+> link in the writeup, every commit SHA, and every published permalink keeps
+> resolving here. Nothing is being deleted, archived, or redirected.
+>
+> Ongoing work continues in **[`duecare`](https://github.com/TaylorAmarelTech/duecare)**,
+> which holds the identical full history — same commits, same content, nothing
+> squashed — under the project's own name rather than the competition's. Its
+> documentation is at
+> [tayloramareltech.github.io/duecare](https://tayloramareltech.github.io/duecare/).
+>
+> | If you are… | Use |
+> |---|---|
+> | verifying the competition submission | **this repository** — it is the cited surface |
+> | reading or reusing the current code | [`duecare`](https://github.com/TaylorAmarelTech/duecare) |
+> | running the Kaggle kernels | no change; they install from this repository and continue to work |
+>
+> Background: [`docs/REPOSITORY_IDENTITY_MIGRATION.md`](docs/REPOSITORY_IDENTITY_MIGRATION.md).
+
 > **Main server website / public hub:** [duecare-ai.com](https://duecare-ai.com) |
 > **Read-only continuity site:** [tayloramareltech.github.io/duecare-ai-site](https://tayloramareltech.github.io/duecare-ai-site/) |
 > **GitHub source repo:** [github.com/TaylorAmarelTech/gemma4_comp](https://github.com/TaylorAmarelTech/gemma4_comp) |
