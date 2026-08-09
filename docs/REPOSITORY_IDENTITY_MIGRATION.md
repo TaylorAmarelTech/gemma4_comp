@@ -14,11 +14,23 @@ MkDocs Pages site enabled at <https://tayloramareltech.github.io/duecare/>.
 
 **This repository was not modified by that work.** `gemma4_comp` was not
 renamed, archived, deprecated, or redirected, and its own Pages site is
-unaffected. It remains the live public repository that the frozen Kaggle
-writeup points judges at, and it stays that way until the owner confirms
-grading is complete. The step that would change *this* repository — archiving
-it behind a pointer README — plus re-pointing the Kaggle kernels and the
-Hugging Face model card, are deliberately not done.
+unaffected.
+
+**Archiving is cancelled, not deferred (owner decision, 2026-08-08).** This
+repository stays online, public, and unarchived **indefinitely**. The only
+change made here is a signpost at the top of the README directing readers to
+`duecare` for ongoing development, worded to route rather than to deprecate.
+
+That decision removes every risk the archive step was hedging against: the
+frozen Kaggle writeup link keeps resolving to a live repository with no
+"Archived" banner, all commit SHAs and permalinks stay valid,
+`tayloramareltech.github.io/gemma4_comp/` stays published, and the Kaggle
+kernels keep installing from a permanent source — so no judged artifact needs
+re-pushing. Re-pointing those kernels at `duecare` is now optional consistency
+work, not pending work.
+
+The Hugging Face repository holds no model card to re-point; it contains
+`.gitattributes` only.
 
 The authoritative, continuously updated copy of this document now lives in the
 `duecare` repository.
