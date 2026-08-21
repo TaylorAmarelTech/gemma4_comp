@@ -1,5 +1,15 @@
 # Post-Competition Hosting Transition
 
+> **Status 2026-08-20 -- cutover in progress, not complete.** Taylor confirmed the
+> Gemma 4 Good result and directed that paid hosting stop. Steps done: the
+> `duecare-ai-site` build now targets the root domain (`fc50939`), its Pages
+> deployment succeeded, and `duecare-ai.com` is registered as that repository's
+> Pages custom domain. **Still outstanding and owner-only:** export the Render
+> disk data, repoint Namecheap DNS, verify root and `www` over HTTPS, then
+> cancel the Render service. Render remains live and billing until step 4.
+> Fly.io was never deployed -- `duecare-chat.fly.dev` does not resolve and there
+> is no Fly bill to cancel.
+
 **Decision:** keep the current Render production service and `duecare-ai.com`
 available through Gemma 4 Good grading. After the owner confirms grading is
 complete, retire centralized Fly/Render-style hosting and make GitHub Pages the

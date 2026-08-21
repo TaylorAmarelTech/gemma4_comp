@@ -1,8 +1,12 @@
 name: duecare-site-build
 
-# Builds both DueCare website handoff artifacts. The first keeps dynamic calls pointed at the
-# running Render backend. The second is a validated, backend-free continuity bundle used by the
-# dedicated duecare-ai-site Pages repository. This repository keeps its one Pages site for MkDocs.
+# Builds the validated, backend-free website bundle. The dedicated duecare-ai-site Pages
+# repository serves it at duecare-ai.com, which it took over from the retired paid Render
+# service. This repository keeps its one Pages site for MkDocs.
+#
+# The former live-backend variant (--api-base https://gemma4-comp.onrender.com) is gone with
+# the Render service. duecare-ai-site/.github/workflows/pages.yml is the deploying build; this
+# job is the in-repo check that a website change still exports and validates.
 
 on:
   push:
@@ -29,30 +33,21 @@ jobs:
           cache: pip
       - name: Install site deps (+ HTTP clients for the TestClient renderer)
         run: pip install -r requirements.txt httpx httpx2
-      - name: Render static bundle
-        run: python scripts/export_static.py --out dist --api-base https://gemma4-comp.onrender.com
-      - name: Upload live-backend static site artifact
-        uses: actions/upload-artifact@v7
-        with:
-          name: duecare-ai-static-site
-          path: apps/duecare-ai.com/dist
-          if-no-files-found: error
-      - name: Render backend-free continuity bundle
+      - name: Render backend-free website bundle
         run: >-
           python scripts/export_static.py
           --out dist-fallback
           --fallback
-          --base-path /duecare-ai-site
-          --site-url https://tayloramareltech.github.io/duecare-ai-site
+          --site-url https://duecare-ai.com
           --source-revision ${{ github.sha }}
-          --omit-cname
-      - name: Validate backend-free continuity bundle
+          --cname duecare-ai.com
+      - name: Validate backend-free website bundle
         run: >-
           python scripts/validate_static_fallback.py
           --site dist-fallback
-          --base-path /duecare-ai-site
-          --site-url https://tayloramareltech.github.io/duecare-ai-site
-      - name: Upload backend-free continuity artifact
+          --site-url https://duecare-ai.com
+          --expect-cname duecare-ai.com
+      - name: Upload backend-free website artifact
         uses: actions/upload-artifact@v7
         with:
           name: duecare-ai-read-only-fallback

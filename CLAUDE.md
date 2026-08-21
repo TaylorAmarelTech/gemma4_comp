@@ -64,18 +64,23 @@ or Kaggle quota, or publish a model-backed result without explicit current
 authorization, immutable model identifiers, reviewed pricing, finite
 attempt/token/cash caps, and a stop condition.
 
-The public services intentionally coexist:
+The public services are all free static hosting. The paid Render service was
+retired after the Gemma 4 Good result, per
+[`docs/POST_COMPETITION_HOSTING_TRANSITION.md`](docs/POST_COMPETITION_HOSTING_TRANSITION.md):
 
-- [duecare-ai.com](https://duecare-ai.com/) is the Render-hosted website and
-  mutable hub API surface.
-- [duecare-ai-site](https://tayloramareltech.github.io/duecare-ai-site/) is the
-  independent backend-free read-only continuity copy; it does not own
-  production DNS.
+- [duecare-ai.com](https://duecare-ai.com/) is served by the `duecare-ai-site`
+  repository's GitHub Pages build, which now owns the domain's `CNAME`. It is
+  backend-free and read-only.
 - [gemma4_comp Pages](https://tayloramareltech.github.io/gemma4_comp/) is the
   MkDocs documentation site.
 
-Do not deploy the marketing/continuity build over the documentation Pages site.
-Do not retire Render or change DNS as an incidental cleanup action.
+There is no longer a mutable public hub API. Contribute, newsletter, outreach,
+submission, login, admin, curator, and sentinel routes are permanently
+unavailable in public hosting and must stay visibly disabled; organizations
+that need them deploy the FastAPI hub from `apps/duecare-ai.com` as their own
+node. Do not deploy the marketing build over the documentation Pages site, and
+do not reintroduce a paid always-on host without Taylor's explicit current
+instruction.
 
 ## Current validation discipline
 
